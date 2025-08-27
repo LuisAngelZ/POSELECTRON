@@ -19,36 +19,7 @@
             overflow-x: hidden;
         }
 
-        .security-loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            color: white;
-        }
-
-        .security-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
+        /* ===== SIDEBAR STYLES (Universal) ===== */
         .app-container {
             display: flex;
             min-height: 100vh;
@@ -177,10 +148,6 @@
             border-radius: 12px;
             transition: all 0.2s ease;
             cursor: pointer;
-            border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
             font-size: 0.9rem;
             position: relative;
         }
@@ -314,6 +281,37 @@
             border-radius: 20px;
         }
 
+        .security-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+        }
+
+        .security-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== CONTENIDO DEL DASHBOARD ===== */
         .content-area {
             padding: 2rem;
         }
@@ -485,6 +483,7 @@
             box-shadow: 0 4px 12px rgba(255, 112, 67, 0.3);
         }
 
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 1200px) {
             .widgets-grid {
                 grid-template-columns: 1fr;
@@ -569,64 +568,12 @@
                 gap: 1rem;
             }
             
-            .widget-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-                margin-bottom: 1.5rem;
-            }
-            
-            .action-btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.8rem;
+            .breadcrumb {
+                display: none;
             }
 
             .sidebar-toggle {
                 display: none;
-            }
-            
-            .transactions-table {
-                font-size: 0.8rem;
-            }
-            
-            .transactions-table th,
-            .transactions-table td {
-                padding: 0.75rem 0.5rem;
-            }
-            
-            .stat-value {
-                font-size: 1.5rem;
-            }
-            
-            .breadcrumb {
-                display: none;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .content-area {
-                padding: 0.75rem;
-            }
-            
-            .widget-card {
-                padding: 1rem;
-            }
-            
-            .chart-container {
-                height: 180px;
-            }
-            
-            .pie-chart-container {
-                height: 120px;
-            }
-            
-            .transactions-table {
-                font-size: 0.75rem;
-            }
-            
-            .transactions-table th,
-            .transactions-table td {
-                padding: 0.5rem 0.25rem;
             }
         }
 
@@ -647,51 +594,42 @@
             animation: spin 1s linear infinite;
             margin-right: 0.5rem;
         }
+
+        .mobile-menu-btn {
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.6rem;
+            border-radius: 8px;
+            margin-right: 1rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-menu-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(255, 112, 67, 0.3);
+        }
     </style>
 </head>
 <body>
     <div class="security-loading" id="securityLoading">
         <div class="security-spinner"></div>
-        <h2>🔐 Verificando Acceso</h2>
+        <h2>🔒 Verificando Acceso</h2>
         <p>Autenticando usuario...</p>
     </div>
 
     <div class="app-container" id="appContainer" style="display: none;">
-        <nav class="sidebar-modern" id="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <div class="logo-icon">🏪</div>
-                    <div class="brand-text">
-                        <h2>Sistema POS</h2>
-                        <p>Punto de Venta</p>
-                    </div>
-                </div>
-                
-                <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">👤</div>
-                    <div class="user-details">
-                        <h4 id="userName">Cargando...</h4>
-                        <span class="user-role" id="userRole">USUARIO</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="sidebar-nav" id="sidebarNav">
-                <!-- Se carga dinámicamente -->
-            </div>
-
-            <div class="sidebar-footer">
-                <button class="logout-btn" onclick="logout()">
-                    <span>🚪</span>
-                    Cerrar Sesión
-                </button>
-            </div>
-        </nav>
+        <!-- SIDEBAR será generado por sidebar.js -->
 
         <main class="main-content" id="mainContent">
             <div class="top-bar">
                 <div class="top-bar-left">
-                    <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <button class="sidebar-toggle" id="sidebarToggle">
                         <span id="toggleIcon">☰</span>
                     </button>
                     <h1 class="page-title" id="pageTitle">
@@ -732,7 +670,7 @@
                     </div>
 
                     <div class="widget-card">
-                        <div class="stat-value">$1,247.50 <span style="font-size: 1rem; color: #6b7280;">BOB</span></div>
+                        <div class="stat-value" id="todayAmount">$1,247.50 <span style="font-size: 1rem; color: #6b7280;">BOB</span></div>
                         <div class="stat-label">VENTAS DE HOY</div>
                         <div class="stat-change positive">
                             <span>↗</span>
@@ -743,7 +681,7 @@
 
                 <div class="stats-row">
                     <div class="widget-card">
-                        <div class="stat-value">$1,247</div>
+                        <div class="stat-value" id="monthAmount">$1,247</div>
                         <div class="stat-label">VENTAS DEL MES</div>
                         <div class="stat-change positive">
                             <span>↗</span>
@@ -752,7 +690,7 @@
                     </div>
 
                     <div class="widget-card">
-                        <div class="stat-value">4</div>
+                        <div class="stat-value" id="productsCount">4</div>
                         <div class="stat-label">PRODUCTOS ACTIVOS</div>
                         <div class="stat-change positive">
                             <span>↗</span>
@@ -781,31 +719,12 @@
                         </thead>
                         <tbody id="transactionsTable">
                             <tr>
-                                <td>Juan Pérez</td>
-                                <td>2025-08-23</td>
-                                <td class="transaction-amount">$34.00</td>
-                                <td><span class="transaction-status status-completed">Para llevar</span></td>
-                                <td>-</td>
-                                <td>#1007</td>
-                                <td><button style="background: none; border: none; color: #ff7043; cursor: pointer;">👁️</button></td>
-                            </tr>
-                            <tr>
-                                <td>María González</td>
-                                <td>2025-08-23</td>
-                                <td class="transaction-amount">$41.00</td>
-                                <td><span class="transaction-status status-pending">Mesa</span></td>
-                                <td>5</td>
-                                <td>#1006</td>
-                                <td><button style="background: none; border: none; color: #ff7043; cursor: pointer;">👁️</button></td>
-                            </tr>
-                            <tr>
-                                <td>SIN NOMBRE</td>
-                                <td>2025-08-21</td>
-                                <td class="transaction-amount">$5.00</td>
-                                <td><span class="transaction-status status-completed">Para llevar</span></td>
-                                <td>-</td>
-                                <td>#1005</td>
-                                <td><button style="background: none; border: none; color: #ff7043; cursor: pointer;">👁️</button></td>
+                                <td colspan="7" style="text-align:center;padding:2rem;color:#6b7280">
+                                    <div class="loading">
+                                        <div class="spinner"></div>
+                                        Cargando ventas recientes...
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -815,6 +734,7 @@
     </div>
 
     <script>
+        // Variables globales
         let currentUser = null;
         let authToken = localStorage.getItem('pos_token');
         const API_BASE = '/api';
@@ -825,7 +745,9 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🎨 Iniciando Dashboard Moderno...');
-            initializeDashboard();
+            
+            // Esperar a que sidebar.js se inicialice
+            setTimeout(initializeDashboard, 100);
         });
 
         async function initializeDashboard() {
@@ -847,7 +769,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Error en inicialización:', error);
+                console.error('⚠ Error en inicialización:', error);
                 cleanupAndRedirect();
             } finally {
                 authCheckInProgress = false;
@@ -882,99 +804,252 @@
             document.getElementById('securityLoading').style.display = 'none';
             document.getElementById('appContainer').style.display = 'flex';
             
-            setupUserInterface();
             await loadDashboardData();
             initializeCharts();
-            setupEventListeners();
             startPeriodicCheck();
+            startAutoRefresh();
         }
 
-        function setupUserInterface() {
-            if (!currentUser || !isAuthenticated) {
-                cleanupAndRedirect();
+        async function loadDashboardData() {
+            try {
+                const [dashboardResponse, salesResponse] = await Promise.allSettled([
+                    fetch(`${API_BASE}/reports/dashboard`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    }),
+                    fetch(`${API_BASE}/sales/today`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    })
+                ]);
+
+                let dashboardData = null;
+                let salesData = null;
+
+                if (dashboardResponse.status === 'fulfilled' && dashboardResponse.value.ok) {
+                    const data = await dashboardResponse.value.json();
+                    dashboardData = data.dashboard;
+                }
+
+                if (salesResponse.status === 'fulfilled' && salesResponse.value.ok) {
+                    const data = await salesResponse.value.json();
+                    salesData = data.today_sales || [];
+                }
+
+                updateDashboardStats(dashboardData);
+                updateTransactionsTable(salesData);
+
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                updateDashboardStats(null);
+                updateTransactionsTable([]);
+            }
+        }
+
+        function updateDashboardStats(dashboardData) {
+            if (dashboardData) {
+                const today = dashboardData.today || {};
+                const thisMonth = dashboardData.this_month || {};
+
+                // Actualizar ventas de hoy
+                const todayAmountEl = document.getElementById('todayAmount');
+                if (todayAmountEl && today.amount !== undefined) {
+                    todayAmountEl.innerHTML = `$${today.amount.toFixed(2)} <span style="font-size: 1rem; color: #6b7280;">BOB</span>`;
+                }
+
+                // Actualizar ventas del mes
+                const monthAmountEl = document.getElementById('monthAmount');
+                if (monthAmountEl && thisMonth.amount !== undefined) {
+                    monthAmountEl.textContent = `$${thisMonth.amount.toFixed(2)}`;
+                }
+
+                // Actualizar productos activos
+                const productsCountEl = document.getElementById('productsCount');
+                if (productsCountEl && dashboardData.total_products !== undefined) {
+                    productsCountEl.textContent = dashboardData.total_products;
+                }
+            }
+        }
+
+        function updateTransactionsTable(salesData) {
+            const tableBody = document.getElementById('transactionsTable');
+            
+            if (!salesData || salesData.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align:center;padding:2rem;color:#6b7280">
+                            No hay ventas registradas hoy
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
-            document.getElementById('userName').textContent = currentUser.full_name;
-            document.getElementById('userRole').textContent = currentUser.role.toUpperCase();
-            
-            const avatar = document.getElementById('userAvatar');
-            avatar.textContent = currentUser.role === 'admin' ? '👨‍💼' : '👨‍💻';
-            
-            generateSidebarMenu();
+            tableBody.innerHTML = salesData.slice(0, 10).map(sale => {
+                const date = new Date(sale.created_at);
+                const dateStr = date.toLocaleDateString('es-ES');
+                
+                return `
+                    <tr>
+                        <td>${sale.customer_name || 'SIN NOMBRE'}</td>
+                        <td>${dateStr}</td>
+                        <td class="transaction-amount">$${sale.total.toFixed(2)}</td>
+                        <td>
+                            <span class="transaction-status ${sale.order_type === 'takeaway' ? 'status-completed' : 'status-pending'}">
+                                ${sale.order_type === 'takeaway' ? 'Para llevar' : 'Mesa'}
+                            </span>
+                        </td>
+                        <td>${sale.table_number || '-'}</td>
+                        <td>#${sale.id}</td>
+                        <td>
+                            <button style="background: none; border: none; color: #ff7043; cursor: pointer;" 
+                                    onclick="viewSaleDetails(${sale.id})" title="Ver detalles">
+                                👁️
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        function generateSidebarMenu() {
-            const sidebarNav = document.getElementById('sidebarNav');
-            
-            if (currentUser.role === 'admin') {
-                sidebarNav.innerHTML = `
-                    <div class="nav-section">
-                        <div class="nav-section-title">Principal</div>
-                        <button class="nav-item active" onclick="navigateTo('dashboard', 'Dashboard', '📊')">
-                            <span class="nav-item-icon">📊</span>
-                            <span class="nav-item-text">Dashboard</span>
-                        </button>
-                        <button class="nav-item" onclick="navigateTo('pos', 'Punto de Venta', '🛒')">
-                            <span class="nav-item-icon">🛒</span>
-                            <span class="nav-item-text">Punto de Venta</span>
-                            <span class="nav-badge">3</span>
-                        </button>
-                    </div>
-                    
-                    <div class="nav-section">
-                        <div class="nav-section-title">Inventario</div>
-                        <button class="nav-item" onclick="navigateTo('products', 'Productos', '📦')">
-                            <span class="nav-item-icon">📦</span>
-                            <span class="nav-item-text">Productos</span>
-                        </button>
-                        <button class="nav-item" onclick="navigateTo('categories', 'Categorías', '🏷️')">
-                            <span class="nav-item-icon">🏷️</span>
-                            <span class="nav-item-text">Categorías</span>
-                        </button>
-                    </div>
-                    
-                    <div class="nav-section">
-                        <div class="nav-section-title">Reportes</div>
-                        <button class="nav-item" onclick="navigateTo('reports', 'Reportes', '📈')">
-                            <span class="nav-item-icon">📈</span>
-                            <span class="nav-item-text">Reportes</span>
-                        </button>
-                    </div>
-                    
-                    <div class="nav-section">
-                        <div class="nav-section-title">Admin</div>
-                        <button class="nav-item" onclick="navigateTo('create-user', 'Crear Usuario', '➕')">
-                            <span class="nav-item-icon">➕</span>
-                            <span class="nav-item-text">Crear Usuario</span>
-                        </button>
-                    </div>
-                `;
-            } else {
-                sidebarNav.innerHTML = `
-                    <div class="nav-section">
-                        <div class="nav-section-title">Principal</div>
-                        <button class="nav-item active" onclick="navigateTo('dashboard', 'Dashboard', '📊')">
-                            <span class="nav-item-icon">📊</span>
-                            <span class="nav-item-text">Dashboard</span>
-                        </button>
-                        <button class="nav-item" onclick="navigateTo('pos', 'Punto de Venta', '🛒')">
-                            <span class="nav-item-icon">🛒</span>
-                            <span class="nav-item-text">Punto de Venta</span>
-                        </button>
-                    </div>
-                    
-                    <div class="nav-section">
-                        <div class="nav-section-title">Mis Ventas</div>
-                        <button class="nav-item" onclick="navigateTo('my-sales', 'Mis Ventas', '📋')">
-                            <span class="nav-item-icon">📋</span>
-                            <span class="nav-item-text">Mis Ventas</span>
-                        </button>
-                    </div>
-                `;
+        function viewSaleDetails(saleId) {
+            alert(`Ver detalles de la venta #${saleId}\n(Función próximamente)`);
+        }
+
+        function initializeCharts() {
+            // Chart 1: Ventas mensuales
+            const ctx1 = document.getElementById('supplyDemandChart');
+            if (ctx1) {
+                supplyDemandChart = new Chart(ctx1.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                        datasets: [{
+                            label: 'Ventas ($)',
+                            data: [1250, 1890, 2340, 1980, 2100, 2450, 2180, 2890, 2340, 2100, 2650, 2890],
+                            backgroundColor: '#ff8a65',
+                            borderRadius: 8,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { display: false } 
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { 
+                                    color: '#f3f4f6', 
+                                    borderDash: [2, 2] 
+                                },
+                                ticks: {
+                                    color: '#6b7280',
+                                    font: { size: 12 },
+                                    callback: function(value) { 
+                                        return '$' + value; 
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { 
+                                    color: '#6b7280', 
+                                    font: { size: 12 } 
+                                }
+                            }
+                        },
+                        elements: { 
+                            bar: { borderWidth: 0 } 
+                        }
+                    }
+                });
+            }
+
+            // Chart 2: Productos por categoría
+            const ctx2 = document.getElementById('distributionChart');
+            if (ctx2) {
+                distributionChart = new Chart(ctx2.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Comidas', 'Bebidas', 'Postres'],
+                        datasets: [{
+                            data: [45, 35, 20],
+                            backgroundColor: ['#ff8a65', '#64b5f6', '#81c784'],
+                            borderWidth: 0,
+                            cutout: '70%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    font: { size: 12 },
+                                    color: '#6b7280'
+                                }
+                            }
+                        }
+                    }
+                });
             }
         }
 
+        function startPeriodicCheck() {
+            setInterval(async () => {
+                if (!isAuthenticated || authCheckInProgress) return;
+                
+                try {
+                    const isValid = await verifyToken();
+                    if (!isValid) {
+                        cleanupAndRedirect();
+                    }
+                } catch (error) {
+                    console.error('Error en verificación periódica:', error);
+                }
+            }, 10 * 60 * 1000); // Cada 10 minutos
+        }
+
+        function startAutoRefresh() {
+            // Auto-refresh de datos cada 2 minutos
+            setInterval(() => {
+                if (isAuthenticated && !authCheckInProgress) {
+                    const currentPage = document.getElementById('currentPage').textContent;
+                    if (currentPage === 'Dashboard') {
+                        loadDashboardData().catch(console.error);
+                    }
+                }
+            }, 120000); // 2 minutos
+        }
+
+        function cleanupAndRedirect() {
+            localStorage.removeItem('pos_token');
+            localStorage.removeItem('pos_user');
+            currentUser = null;
+            authToken = null;
+            isAuthenticated = false;
+            redirectToLogin();
+        }
+
+        function redirectToLogin() {
+            window.location.href = '/login';
+        }
+
+        // Funciones de compatibilidad con sidebar.js
+        function logout() {
+            if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                cleanupAndRedirect();
+            }
+        }
+
+        // Alias para compatibilidad
+        window.appLogout = logout;
+
+        // Navegación (para compatibilidad con el código original)
         function navigateTo(section, title, icon) {
             if (!isAuthenticated) {
                 cleanupAndRedirect();
@@ -984,11 +1059,6 @@
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
-            event.target.closest('.nav-item').classList.add('active');
-            
-            document.getElementById('pageTitle').innerHTML = `${icon} ${title}`;
-            document.getElementById('currentPage').textContent = title;
             
             const routes = {
                 'dashboard': '/dashboard',
@@ -1005,245 +1075,8 @@
             }
         }
 
-        function initializeCharts() {
-            const ctx1 = document.getElementById('supplyDemandChart').getContext('2d');
-            supplyDemandChart = new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-                    datasets: [{
-                        label: 'Ventas ($)',
-                        data: [1250, 1890, 2340, 1980, 2100, 2450, 2180, 2890, 2340, 2100, 2650, 2890],
-                        backgroundColor: '#ff8a65',
-                        borderRadius: 8,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#f3f4f6',
-                                borderDash: [2, 2]
-                            },
-                            ticks: {
-                                color: '#6b7280',
-                                font: {
-                                    size: 12
-                                },
-                                callback: function(value) {
-                                    return '$' + value;
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#6b7280',
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        }
-                    },
-                    elements: {
-                        bar: {
-                            borderWidth: 0
-                        }
-                    }
-                }
-            });
-
-            const ctx2 = document.getElementById('distributionChart').getContext('2d');
-            distributionChart = new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Comidas', 'Bebidas', 'Postres'],
-                    datasets: [{
-                        data: [45, 35, 20],
-                        backgroundColor: [
-                            '#ff8a65',
-                            '#64b5f6', 
-                            '#81c784'
-                        ],
-                        borderWidth: 0,
-                        cutout: '70%'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true,
-                                font: {
-                                    size: 12
-                                },
-                                color: '#6b7280'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        async function loadDashboardData() {
-            try {
-                const dashboardResponse = await fetch(`${API_BASE}/reports/dashboard`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                }).catch(() => null);
-
-                const salesResponse = await fetch(`${API_BASE}/sales/today`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                }).catch(() => null);
-
-                let dashboardData = null;
-                let salesData = null;
-
-                if (dashboardResponse?.ok) {
-                    const data = await dashboardResponse.json();
-                    dashboardData = data.dashboard;
-                }
-
-                if (salesResponse?.ok) {
-                    const data = await salesResponse.json();
-                    salesData = data.today_sales || [];
-                }
-
-                updateDashboardStats(dashboardData);
-                updateTransactionsTable(salesData);
-
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-                updateDashboardStats(null);
-                updateTransactionsTable(null);
-            }
-        }
-
-        function updateDashboardStats(dashboardData) {
-            const today = dashboardData?.today || {};
-            const thisMonth = dashboardData?.this_month || {};
-        }
-
-        function updateTransactionsTable(salesData) {
-            const tableBody = document.getElementById('transactionsTable');
-            
-            if (salesData && salesData.length > 0) {
-                tableBody.innerHTML = salesData.slice(0, 5).map(sale => `
-                    <tr>
-                        <td>${sale.customer_name || 'SIN NOMBRE'}</td>
-                        <td>${new Date(sale.created_at).toLocaleDateString('es-ES')}</td>
-                        <td class="transaction-amount">${sale.total.toFixed(2)}</td>
-                        <td><span class="transaction-status ${sale.order_type === 'takeaway' ? 'status-completed' : 'status-pending'}">${sale.order_type === 'takeaway' ? 'Para llevar' : 'Mesa'}</span></td>
-                        <td>${sale.table_number || '-'}</td>
-                        <td>#${sale.id}</td>
-                        <td><button style="background: none; border: none; color: #ff7043; cursor: pointer;">👁️</button></td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        function toggleSidebar() {
-            if (window.innerWidth <= 768) {
-                toggleMobileSidebar();
-                return;
-            }
-
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const toggleIcon = document.getElementById('toggleIcon');
-            
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-            
-            if (sidebar.classList.contains('collapsed')) {
-                toggleIcon.textContent = '→';
-            } else {
-                toggleIcon.textContent = '☰';
-            }
-            
-            setTimeout(() => {
-                if (supplyDemandChart) supplyDemandChart.resize();
-                if (distributionChart) distributionChart.resize();
-            }, 350);
-        }
-
-        function setupEventListeners() {
-            updateMenuButton();
-
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    const sidebar = document.getElementById('sidebar');
-                    const toggleBtn = document.querySelector('.mobile-menu-btn');
-                    const sidebarToggle = document.querySelector('.sidebar-toggle');
-                    
-                    if (sidebar && !sidebar.contains(e.target) && 
-                        !toggleBtn?.contains(e.target) && 
-                        !sidebarToggle?.contains(e.target)) {
-                        sidebar.classList.remove('mobile-open');
-                    }
-                }
-            });
-
-            window.addEventListener('resize', function() {
-                updateMenuButton();
-                resetSidebarState();
-                
-                setTimeout(() => {
-                    if (supplyDemandChart) supplyDemandChart.resize();
-                    if (distributionChart) distributionChart.resize();
-                }, 100);
-            });
-        }
-
-        function updateMenuButton() {
-            const existingMobileBtn = document.querySelector('.mobile-menu-btn');
-            const sidebarToggle = document.querySelector('.sidebar-toggle');
-            
-            if (window.innerWidth <= 768) {
-                if (sidebarToggle) sidebarToggle.style.display = 'none';
-                if (!existingMobileBtn) {
-                    addMobileMenuButton();
-                }
-            } else {
-                if (sidebarToggle) sidebarToggle.style.display = 'flex';
-                if (existingMobileBtn) {
-                    existingMobileBtn.remove();
-                }
-            }
-        }
-
-        function resetSidebarState() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const toggleIcon = document.getElementById('toggleIcon');
-
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('collapsed');
-                mainContent.classList.remove('expanded');
-                if (toggleIcon) toggleIcon.textContent = '☰';
-            } else {
-                sidebar.classList.remove('mobile-open');
-                if (toggleIcon && sidebar.classList.contains('collapsed')) {
-                    toggleIcon.textContent = '→';
-                } else if (toggleIcon) {
-                    toggleIcon.textContent = '☰';
-                }
-            }
-            
+        // Resize de charts cuando cambia el sidebar
+        function resizeChartsOnSidebarToggle() {
             setTimeout(() => {
                 if (supplyDemandChart) {
                     supplyDemandChart.resize();
@@ -1251,85 +1084,25 @@
                 if (distributionChart) {
                     distributionChart.resize();
                 }
-            }, 400);
+            }, 350);
         }
 
-        function addMobileMenuButton() {
-            const topBar = document.querySelector('.top-bar-left');
-            const existingBtn = document.querySelector('.mobile-menu-btn');
-            
-            if (!existingBtn && topBar) {
-                const menuBtn = document.createElement('button');
-                menuBtn.innerHTML = '☰';
-                menuBtn.className = 'mobile-menu-btn';
-                menuBtn.style.cssText = `
-                    background: linear-gradient(135deg, #ff8a65, #ff7043);
-                    border: none;
-                    color: white;
-                    font-size: 1.2rem;
-                    cursor: pointer;
-                    padding: 0.6rem;
-                    border-radius: 8px;
-                    margin-right: 1rem;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                `;
-                menuBtn.onclick = toggleMobileSidebar;
-                topBar.insertBefore(menuBtn, topBar.firstChild);
+        // Escuchar eventos de resize
+        window.addEventListener('resize', function() {
+            resizeChartsOnSidebarToggle();
+        });
+
+        // Escuchar clicks en el toggle del sidebar
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.sidebar-toggle') || e.target.closest('.mobile-menu-btn')) {
+                resizeChartsOnSidebarToggle();
             }
-        }
-
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('mobile-open');
-        }
-
-        function startPeriodicCheck() {
-            setInterval(async () => {
-                if (!isAuthenticated || authCheckInProgress) return;
-                
-                try {
-                    const isValid = await verifyToken();
-                    if (!isValid) {
-                        cleanupAndRedirect();
-                    }
-                } catch (error) {
-                    console.error('❌ Error en verificación periódica:', error);
-                }
-            }, 10 * 60 * 1000);
-        }
-
-        function cleanupAndRedirect() {
-            localStorage.removeItem('pos_token');
-            localStorage.removeItem('pos_user');
-            currentUser = null;
-            authToken = null;
-            isAuthenticated = false;
-            redirectToLogin();
-        }
-
-        function redirectToLogin() {
-            window.location.href = '/login';
-        }
-
-        function logout() {
-            if (confirm('¿Está seguro que desea cerrar sesión?')) {
-                cleanupAndRedirect();
-            }
-        }
-
-        setInterval(() => {
-            if (isAuthenticated && !authCheckInProgress) {
-                const currentPage = document.getElementById('currentPage').textContent;
-                if (currentPage === 'Dashboard') {
-                    loadDashboardData().catch(console.error);
-                }
-            }
-        }, 120000);
+        });
 
         console.log('✨ Dashboard Moderno inicializado correctamente');
     </script>
+
+    <!-- Sidebar Universal -->
+    <script src="/js/sidebar.js" defer></script>
 </body>
 </html>

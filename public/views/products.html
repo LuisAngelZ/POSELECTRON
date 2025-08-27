@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Producto - Sistema POS</title>
+    <link rel="stylesheet" href="/css/sidebar.css">
     <style>
         * {
             margin: 0;
@@ -512,7 +513,7 @@
 
         <!-- Breadcrumb -->
         <div class="breadcrumb">
-            <a href="/dashboard.html">Dashboard</a>
+            <a href="/dashboard">Dashboard</a>
             <span>›</span>
             <a href="#" onclick="showSection('products')">Productos</a>
             <span>›</span>
@@ -650,7 +651,7 @@
 
         // Verificar autenticación
         if (!authToken) {
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         }
 
         // Inicializar página
@@ -1200,8 +1201,9 @@
 
         // Mostrar sección (para breadcrumb)
         function showSection(section) {
-            window.location.href = '/dashboard.html';
+            window.location.href = '/dashboard';
         }
     </script>
+  <script src="/js/sidebar.js" defer></script>
 </body>
 </html>
