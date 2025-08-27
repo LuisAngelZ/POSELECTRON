@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Reportes POS</title>
+    <title>Reportes - Sistema POS</title>
     <style>
         * {
             margin: 0;
@@ -12,129 +12,460 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fafbfc;
+            color: #1a1d29;
+            overflow-x: hidden;
+        }
+
+        /* ===== SIDEBAR STYLES (Universal) ===== */
+        .app-container {
+            display: flex;
             min-height: 100vh;
-            color: #333;
         }
 
-        .header {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 1rem 2rem;
+        .sidebar-modern {
+            width: 280px;
+            background: #ffffff;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            border-right: 1px solid #e8eaed;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-modern.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem 1.5rem;
+            border-bottom: 1px solid #e8eaed;
+        }
+
+        .sidebar-logo {
+            display: flex;
             align-items: center;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
         }
 
-        .header h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
-
-        .nav-buttons {
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+            border-radius: 12px;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: white;
+        }
+
+        .brand-text h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a1d29;
+            margin-bottom: 0.25rem;
+        }
+
+        .brand-text p {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .user-details h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1a1d29;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-role {
+            font-size: 0.7rem;
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+            padding: 0 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #f3f4f6;
+            color: #ff7043;
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            color: #ff7043;
+            box-shadow: 0 2px 8px rgba(255, 112, 67, 0.15);
+        }
+
+        .nav-item-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+            margin-right: 1rem;
+        }
+
+        .nav-item-text {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .nav-badge {
+            background: #ff7043;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e8eaed;
+        }
+
+        .logout-btn {
+            width: 100%;
+            background: #f8f9fa;
+            color: #6b7280;
+            border: 1px solid #e8eaed;
+            padding: 0.875rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            background: #fafbfc;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e8eaed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
             gap: 1rem;
         }
 
-        .nav-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+        .sidebar-toggle {
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+            border: none;
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
+            font-size: 1.2rem;
             cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            font-size: 0.9rem;
+            padding: 0.6rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
 
-        .nav-btn:hover {
-            background: rgba(255,255,255,0.3);
+        .sidebar-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(255, 112, 67, 0.3);
         }
 
-        .container {
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1d29;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            font-size: 0.85rem;
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+
+        .security-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+        }
+
+        .security-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== CONTENIDO DE REPORTES ===== */
+        .content-area {
             padding: 2rem;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
+        }
+
+        .reports-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2.5rem;
+            background: linear-gradient(135deg, #fff8f5, #fff3e0);
+            border-radius: 16px;
+            border: 2px solid #ffe0b2;
+        }
+
+        .reports-header h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1a1d29;
+            margin-bottom: 0.5rem;
+        }
+
+        .reports-header p {
+            font-size: 1.1rem;
+            color: #6b7280;
+        }
+
+        .time-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .time-filter {
+            background: white;
+            border: 2px solid #e5e7eb;
+            color: #1a1d29;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .time-filter:hover {
+            border-color: #ff8a65;
+            background: #fff8f5;
+        }
+
+        .time-filter.active {
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+            color: white;
+            border-color: #ff7043;
+            box-shadow: 0 4px 15px rgba(255, 112, 67, 0.3);
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
 
         .stat-card {
-            background: rgba(255,255,255,0.95);
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: transform 0.3s;
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8eaed;
+            transition: all 0.3s ease;
+            text-align: center;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
 
         .stat-icon {
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            color: #667eea;
+            color: #1a1d29;
             margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            color: #6c757d;
-            font-size: 0.9rem;
+            color: #6b7280;
+            font-size: 0.95rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
         .charts-section {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 2rem;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
         }
 
         .chart-card {
-            background: rgba(255,255,255,0.95);
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8eaed;
         }
 
         .chart-title {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #1a1d29;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #fff8f5, #fff3e0);
+            border-radius: 12px;
+            border: 2px dashed #ff8a65;
+            color: #6b7280;
+        }
+
+        .chart-placeholder-icon {
+            font-size: 3rem;
+            color: #ff8a65;
             margin-bottom: 1rem;
-            color: #333;
         }
 
         .recent-sales {
-            background: rgba(255,255,255,0.95);
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8eaed;
         }
 
         .sales-list {
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
         }
 
@@ -142,13 +473,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
+            padding: 1.25rem;
+            border-bottom: 1px solid #f3f4f6;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
         }
 
         .sale-item:hover {
-            background: #f8f9fa;
+            background: #fff8f5;
+            border-color: #ffe0b2;
         }
 
         .sale-item:last-child {
@@ -156,72 +490,96 @@
         }
 
         .sale-info h4 {
-            margin-bottom: 0.25rem;
-            color: #333;
+            margin-bottom: 0.5rem;
+            color: #1a1d29;
+            font-weight: 600;
         }
 
         .sale-info p {
-            font-size: 0.85rem;
-            color: #6c757d;
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
         }
 
         .sale-amount {
             font-weight: 700;
-            color: #667eea;
-            font-size: 1.1rem;
+            color: #ff7043;
+            font-size: 1.2rem;
         }
 
         .top-products {
-            background: rgba(255,255,255,0.95);
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8eaed;
         }
 
         .product-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-item:hover {
+            background: #fff8f5;
         }
 
         .product-item:last-child {
             border-bottom: none;
         }
 
+        .product-rank {
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 1rem;
+        }
+
         .product-name {
             font-weight: 600;
-            color: #333;
+            color: #1a1d29;
+            flex: 1;
         }
 
         .product-sales {
-            color: #667eea;
-            font-weight: 600;
+            color: #ff7043;
+            font-weight: 700;
+            font-size: 1rem;
         }
 
         .refresh-btn {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            background: #667eea;
+            background: linear-gradient(135deg, #ff8a65, #ff7043);
             color: white;
             border: none;
-            width: 60px;
-            height: 60px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(255, 112, 67, 0.4);
+            transition: all 0.3s ease;
             z-index: 1000;
         }
 
         .refresh-btn:hover {
             transform: scale(1.1);
-            background: #5a6fd8;
+            box-shadow: 0 6px 25px rgba(255, 112, 67, 0.5);
         }
 
         .refresh-btn:active {
@@ -231,60 +589,60 @@
         .loading {
             text-align: center;
             padding: 2rem;
-            color: white;
+            color: #6b7280;
             font-size: 1.1rem;
         }
 
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #ff7043;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
         .error-message {
-            background: #dc3545;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
-            padding: 1rem;
-            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
             margin: 1rem 0;
             text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
         }
 
-        .time-filters {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
         }
 
-        .time-filter {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-        }
-
-        .time-filter.active {
-            background: white;
-            color: #667eea;
-        }
-
-        .time-filter:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-                flex-direction: column;
-                gap: 1rem;
+            .sidebar-modern {
+                width: 260px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
             }
 
-            .header h1 {
-                font-size: 1.5rem;
+            .sidebar-modern.mobile-open {
+                transform: translateX(0);
             }
 
-            .container {
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .content-area {
                 padding: 1rem;
+            }
+
+            .reports-header {
+                padding: 1.5rem;
             }
 
             .stats-grid {
@@ -292,22 +650,25 @@
                 gap: 1rem;
             }
 
-            .charts-section {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .nav-buttons {
-                gap: 0.5rem;
-            }
-
-            .nav-btn {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.8rem;
+            .stat-card {
+                padding: 1.5rem;
             }
 
             .time-filters {
-                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            .time-filter {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .sidebar-toggle {
+                display: none;
+            }
+
+            .breadcrumb {
+                display: none;
             }
         }
 
@@ -327,7 +688,7 @@
         .chart-card,
         .recent-sales,
         .top-products {
-            animation: slideIn 0.5s ease-out;
+            animation: slideIn 0.6s ease-out;
         }
 
         /* Scrollbar personalizado */
@@ -341,60 +702,102 @@
         }
 
         .sales-list::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
+            background: #ff8a65;
             border-radius: 3px;
         }
 
         .sales-list::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
+            background: #ff7043;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>📊 Dashboard - Reportes POS</h1>
-        <div class="nav-buttons">
-            <a href="/pos" class="nav-btn">🏪 Ir al POS</a>
-            <button class="nav-btn" onclick="logout()">Cerrar Sesión</button>
-        </div>
+    <div class="security-loading" id="securityLoading">
+        <div class="security-spinner"></div>
+        <h2>Verificando Acceso</h2>
+        <p>Cargando reportes...</p>
     </div>
 
-    <div class="container">
-        <div class="time-filters">
-            <button class="time-filter active" data-period="today" onclick="changePeriod('today')">Hoy</button>
-            <button class="time-filter" data-period="week" onclick="changePeriod('week')">Esta Semana</button>
-            <button class="time-filter" data-period="month" onclick="changePeriod('month')">Este Mes</button>
-        </div>
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- SIDEBAR será generado por sidebar.js -->
 
-        <div class="stats-grid" id="statsGrid">
-            <div class="loading">Cargando estadísticas...</div>
-        </div>
+        <main class="main-content" id="mainContent">
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <span id="toggleIcon">☰</span>
+                    </button>
+                    <h1 class="page-title">
+                        📊 Reportes
+                    </h1>
+                </div>
+                <div class="breadcrumb">
+                    <span>🏠</span>
+                    <span>Sistema POS</span>
+                    <span>›</span>
+                    <span>Reportes</span>
+                </div>
+            </div>
 
-        <div class="charts-section">
-            <div class="chart-card">
-                <h3 class="chart-title">📈 Ventas del Día por Hora</h3>
-                <div id="hourlyChart">
-                    <div style="text-align: center; padding: 2rem; color: #666;">
-                        Gráfico de ventas por hora<br>
-                        <small>(Próximamente con Chart.js)</small>
+            <div class="content-area">
+                <div class="reports-header">
+                    <h2>Dashboard de Reportes</h2>
+                    <p>Análisis completo de ventas y rendimiento del negocio</p>
+                </div>
+
+                <div class="time-filters">
+                    <button class="time-filter active" data-period="today" onclick="changePeriod('today')">Hoy</button>
+                    <button class="time-filter" data-period="week" onclick="changePeriod('week')">Esta Semana</button>
+                    <button class="time-filter" data-period="month" onclick="changePeriod('month')">Este Mes</button>
+                </div>
+
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            Cargando estadísticas...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-section">
+                    <div class="chart-card">
+                        <h3 class="chart-title">
+                            📈 Ventas del Día por Hora
+                        </h3>
+                        <div class="chart-placeholder">
+                            <div class="chart-placeholder-icon">📊</div>
+                            <div>Gráfico de ventas por hora</div>
+                            <div style="font-size: 0.9rem; margin-top: 0.5rem;">(Próximamente con Chart.js)</div>
+                        </div>
+                    </div>
+
+                    <div class="top-products">
+                        <h3 class="chart-title">
+                            🏆 Productos Más Vendidos
+                        </h3>
+                        <div id="topProductsList">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                Cargando productos...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-sales">
+                    <h3 class="chart-title">
+                        🧾 Ventas Recientes
+                    </h3>
+                    <div class="sales-list" id="recentSalesList">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            Cargando ventas...
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="top-products">
-                <h3 class="chart-title">🏆 Productos Más Vendidos</h3>
-                <div id="topProductsList">
-                    <div class="loading">Cargando productos...</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="recent-sales">
-            <h3 class="chart-title">🧾 Ventas Recientes</h3>
-            <div class="sales-list" id="recentSalesList">
-                <div class="loading">Cargando ventas...</div>
-            </div>
-        </div>
+        </main>
     </div>
 
     <button class="refresh-btn" onclick="refreshData()" title="Actualizar datos">
@@ -402,6 +805,7 @@
     </button>
 
     <script>
+        // Variables globales
         let currentPeriod = 'today';
         let refreshInterval;
         const API_BASE = '/api';
@@ -409,16 +813,24 @@
 
         // Verificar autenticación
         if (!authToken) {
-            window.location.href = '/';
+            window.location.href = '/login';
         }
 
-        // Inicializar dashboard
+        // Inicializar página
         document.addEventListener('DOMContentLoaded', function() {
-            loadDashboard();
+            // Esperar a que sidebar.js se inicialice
+            setTimeout(initializeReports, 100);
+        });
+
+        async function initializeReports() {
+            document.getElementById('securityLoading').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            
+            await loadDashboard();
             
             // Auto-refresh cada 30 segundos
             refreshInterval = setInterval(refreshData, 30000);
-        });
+        }
 
         async function loadDashboard() {
             try {
@@ -524,8 +936,9 @@
             
             if (sales.length === 0) {
                 salesList.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: #666;">
-                        No hay ventas registradas hoy
+                    <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem; color: #ff8a65;">📋</div>
+                        <div>No hay ventas registradas hoy</div>
                     </div>
                 `;
                 return;
@@ -556,8 +969,9 @@
             
             if (products.length === 0) {
                 productsList.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: #666;">
-                        No hay productos vendidos hoy
+                    <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem; color: #ff8a65;">🏆</div>
+                        <div>No hay productos vendidos hoy</div>
                     </div>
                 `;
                 return;
@@ -565,10 +979,8 @@
 
             productsList.innerHTML = products.map((product, index) => `
                 <div class="product-item">
-                    <div>
-                        <span style="color: #667eea; font-weight: bold;">#${index + 1}</span>
-                        <span class="product-name">${product.product_name}</span>
-                    </div>
+                    <div class="product-rank">${index + 1}</div>
+                    <div class="product-name">${product.product_name}</div>
                     <div class="product-sales">${product.total_quantity} vendidos</div>
                 </div>
             `).join('');
@@ -599,7 +1011,7 @@
         }
 
         function showError(message) {
-            const container = document.querySelector('.container');
+            const container = document.querySelector('.content-area');
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
             errorDiv.textContent = message;
@@ -612,13 +1024,17 @@
             }, 5000);
         }
 
+        // Funciones de compatibilidad
         function logout() {
             if (confirm('¿Está seguro que desea cerrar sesión?')) {
                 clearInterval(refreshInterval);
                 localStorage.removeItem('pos_token');
-                window.location.href = '/';
+                localStorage.removeItem('pos_user');
+                window.location.href = '/login';
             }
         }
+
+        window.appLogout = logout;
 
         // Limpiar interval al salir
         window.addEventListener('beforeunload', function() {
@@ -634,6 +1050,8 @@
             }
         });
     </script>
-  <script src="/js/sidebar.js" defer></script>
+
+    <!-- Sidebar Universal -->
+    <script src="/js/sidebar.js" defer></script>
 </body>
 </html>

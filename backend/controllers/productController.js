@@ -1,4 +1,4 @@
-// server/controllers/productController.js
+// server/controllers/productController.js - CRUD Completo
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 
@@ -142,7 +142,7 @@ class ProductController {
         }
     }
 
-    // Actualizar producto
+    // Actualizar producto - NUEVO MÉTODO
     static async update(req, res) {
         try {
             const { id } = req.params;
@@ -157,7 +157,7 @@ class ProductController {
                 });
             }
 
-            // Validar datos
+            // Validar datos requeridos
             if (!name || !price || !category_id) {
                 return res.status(400).json({
                     success: false,
@@ -165,6 +165,7 @@ class ProductController {
                 });
             }
 
+            // Validar precio
             if (isNaN(price) || price <= 0) {
                 return res.status(400).json({
                     success: false,
@@ -172,6 +173,7 @@ class ProductController {
                 });
             }
 
+            // Validar stock
             if (stock !== undefined && (isNaN(stock) || stock < 0)) {
                 return res.status(400).json({
                     success: false,
@@ -254,25 +256,108 @@ class ProductController {
                 });
             }
 
-            // Por ahora obtener todos y filtrar (en producción se haría en la BD)
-            const allProducts = await Product.findAll();
-            const searchTerm = q.toLowerCase().trim();
-            
-            const filteredProducts = allProducts.filter(product => 
-                product.name.toLowerCase().includes(searchTerm) ||
-                (product.description && product.description.toLowerCase().includes(searchTerm)) ||
-                (product.category_name && product.category_name.toLowerCase().includes(searchTerm))
-            );
+            const searchTerm = q.trim();
+            const products = await Product.search(searchTerm);
 
             res.json({
                 success: true,
                 search_term: q,
-                results_count: filteredProducts.length,
-                products: filteredProducts
+                results_count: products.length,
+                products
             });
 
         } catch (error) {
             console.error('Error en búsqueda de productos:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Actualizar stock - MÉTODO ADICIONAL ÚTIL
+    static async updateStock(req, res) {
+        try {
+            const { id } = req.params;
+            const { stock, operation } = req.body; // operation: 'set', 'add', 'subtract'
+
+            // Verificar que el producto existe
+            const existingProduct = await Product.findById(id);
+            if (!existingProduct) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Producto no encontrado'
+                });
+            }
+
+            // Validar stock
+            if (stock === undefined || isNaN(stock)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El valor de stock es requerido y debe ser numérico'
+                });
+            }
+
+            let newStock;
+            switch (operation) {
+                case 'add':
+                    newStock = existingProduct.stock + parseInt(stock);
+                    break;
+                case 'subtract':
+                    newStock = existingProduct.stock - parseInt(stock);
+                    if (newStock < 0) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'No hay suficiente stock disponible'
+                        });
+                    }
+                    break;
+                case 'set':
+                default:
+                    newStock = parseInt(stock);
+                    break;
+            }
+
+            if (newStock < 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El stock no puede ser negativo'
+                });
+            }
+
+            await Product.updateStock(id, newStock);
+
+            res.json({
+                success: true,
+                message: 'Stock actualizado exitosamente',
+                old_stock: existingProduct.stock,
+                new_stock: newStock
+            });
+
+        } catch (error) {
+            console.error('Error actualizando stock:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Obtener productos con stock bajo - MÉTODO ADICIONAL ÚTIL
+    static async getLowStock(req, res) {
+        try {
+            const { threshold = 10 } = req.query; // umbral por defecto: 10
+            const products = await Product.findLowStock(parseInt(threshold));
+
+            res.json({
+                success: true,
+                threshold: parseInt(threshold),
+                count: products.length,
+                products
+            });
+
+        } catch (error) {
+            console.error('Error obteniendo productos con stock bajo:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor'

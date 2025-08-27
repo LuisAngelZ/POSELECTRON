@@ -674,22 +674,29 @@
                 if (response.ok && data.success) {
                     // Guardar datos de autenticación
                     localStorage.setItem('pos_token', data.token);
-                    localStorage.setItem('pos_user', JSON.stringify(data.user));
-                    
-                    console.log('✅ Login exitoso para:', data.user.full_name);
-                    
-                    // Mostrar notificación de éxito con rol
-                    const roleText = data.user.role === 'admin' ? '👑 Administrador' : '👨‍💼 Cajero';
-                    showNotification(`🎉 ¡Bienvenido, ${data.user.full_name}! (${roleText})`, 'success');
-                    
-                    // Efecto de éxito en el formulario
-                    successEffect();
-                    
-                    // Redirigir después de la animación
-                    setTimeout(() => {
-                        console.log('🚀 Redirigiendo al dashboard...');
-                        window.location.href = '/dashboard';
-                    }, 2000);
+localStorage.setItem('pos_user', JSON.stringify(data.user));
+
+const role = String(data.user.role || '').toLowerCase().trim();
+
+// (Opcional) mapa bonito para el texto del rol
+const roleLabels = { admin: '👑 Administrador', venta: '👨‍💼 Cajero' };
+const roleText = roleLabels[role] || '👤 Usuario';
+showNotification(`🎉 ¡Bienvenido, ${data.user.full_name}! (${roleText})`, 'success');
+
+successEffect();
+
+// Decide destino por rol
+const target = role === 'admin' ? '/dashboard' : '/pos';
+
+// (Opcional) limpia “última sección” para no forzar POS/Dashboard de sesiones anteriores
+localStorage.removeItem('lastSection');
+
+// Redirigir después de la animación
+setTimeout(() => {
+  console.log('🚀 Redirigiendo a:', target);
+  // Usa replace para evitar volver al login con “atrás”
+  window.location.replace(target); // o window.location.href = target;
+}, 2000);
                     
                 } else {
                     throw new Error(data.message || 'Credenciales incorrectas');
@@ -1048,8 +1055,8 @@
             // Cajero rápido: Ctrl + Shift + C
             if (e.ctrlKey && e.shiftKey && e.key === 'C') {
                 e.preventDefault();
-                document.getElementById('username').value = 'cajero';
-                document.getElementById('password').value = '123456';
+                document.getElementById('username').value = 'cajero1';
+                document.getElementById('password').value = 'cajero1';
                 showNotification('🔧 Credenciales cajero cargadas', 'success', 2000);
             }
         });

@@ -28,7 +28,6 @@ class UniversalSidebar {
       dashboard: '/dashboard',
       pos: '/pos',
       products: '/products',
-      categories: '/categories', 
       reports: '/reports',
       'create-user': '/create-user',
       'my-sales': '/dashboard'
@@ -291,50 +290,50 @@ class UniversalSidebar {
     this.setActivePageFromURL();
   }
 
-  getMenuSections(isAdmin) {
-    const baseSections = [
+getMenuSections(isAdmin) {
+  if (isAdmin) {
+    // Admin: Dashboard + resto de secciones
+    return [
       {
         title: 'Principal',
         items: [
           { key: 'dashboard', icon: '📊', text: 'Dashboard', href: this.routes.dashboard },
-          { key: 'pos', icon: '🛒', text: 'Punto de Venta', href: this.routes.pos, badge: '3' }
+          { key: 'pos', icon: '🛒', text: 'Punto de Venta', href: this.routes.pos }
+        ]
+      },
+      {
+        title: 'Inventario',
+        items: [
+          { key: 'products', icon: '📦', text: 'Productos', href: this.routes.products }
+        ]
+      },
+      {
+        title: 'Reportes',
+        items: [
+          { key: 'reports', icon: '📈', text: 'Reportes', href: this.routes.reports }
+        ]
+      },
+      {
+        title: 'Administración',
+        items: [
+          { key: 'create-user', icon: '➕', text: 'Crear Usuario', href: this.routes['create-user'] }
         ]
       }
     ];
-
-    if (isAdmin) {
-      baseSections.push(
-        {
-          title: 'Inventario',
-          items: [
-            { key: 'products', icon: '📦', text: 'Productos', href: this.routes.products },
-            { key: 'categories', icon: '🏷️', text: 'Categorías', href: this.routes.categories }
-          ]
-        },
-        {
-          title: 'Reportes',
-          items: [
-            { key: 'reports', icon: '📈', text: 'Reportes', href: this.routes.reports }
-          ]
-        },
-        {
-          title: 'Administración',
-          items: [
-            { key: 'create-user', icon: '➕', text: 'Crear Usuario', href: this.routes['create-user'] }
-          ]
-        }
-      );
-    } else {
-      baseSections.push({
-        title: 'Mis Ventas',
-        items: [
-          { key: 'my-sales', icon: '📋', text: 'Mis Ventas', href: this.routes['my-sales'] }
-        ]
-      });
-    }
-
-    return baseSections;
   }
+
+  // NO admin: solo POS
+  return [
+    {
+      title: 'Principal',
+      items: [
+        { key: 'pos', icon: '🛒', text: 'Punto de Venta', href: this.routes.pos }
+      ]
+    }
+  ];
+}
+
+
 
   createNavItemHTML(item) {
     const badgeHTML = item.badge ? `<span class="nav-badge">${item.badge}</span>` : '';
