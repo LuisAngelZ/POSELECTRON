@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Reportes POS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .recent-sales {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .sales-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .sale-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .sale-item:hover {
+            background: #f8f9fa;
+        }
+
+        .sale-item:last-child {
+            border-bottom: none;
+        }
+
+        .sale-info h4 {
+            margin-bottom: 0.25rem;
+            color: #333;
+        }
+
+        .sale-info p {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .sale-amount {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .top-products {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .product-sales {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1);
+            background: #5a6fd8;
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .error-message {
+            background: #dc3545;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .time-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .time-filter {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .time-filter.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .time-filter:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .charts-section {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .nav-buttons {
+                gap: 0.5rem;
+            }
+
+            .nav-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .time-filters {
+                justify-content: center;
+            }
+        }
+
+        /* Animaciones */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card,
+        .chart-card,
+        .recent-sales,
+        .top-products {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        /* Scrollbar personalizado */
+        .sales-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sales-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .sales-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .sales-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Dashboard - Reportes POS</h1>
+        <div class="nav-buttons">
+            <a href="/pos.html" class="nav-btn">🏪 Ir al POS</a>
+            <button class="nav-btn" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="time-filters">
+            <button class="time-filter active" data-period="today" onclick="changePeriod('today')">Hoy</button>
+            <button class="time-filter" data-period="week" onclick="changePeriod('week')">Esta Semana</button>
+            <button class="time-filter" data-period="month" onclick="changePeriod('month')">Este Mes</button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="loading">Cargando estadísticas...</div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3 class="chart-title">📈 Ventas del Día por Hora</h3>
+                <div id="hourlyChart">
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        Gráfico de ventas por hora<br>
+                        <small>(Próximamente con Chart.js)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="top-products">
+                <h3 class="chart-title">🏆 Productos Más Vendidos</h3>
+                <div id="topProductsList">
+                    <div class="loading">Cargando productos...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recent-sales">
+            <h3 class="chart-title">🧾 Ventas Recientes</h3>
+            <div class="sales-list" id="recentSalesList">
+                <div class="loading">Cargando ventas...</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshData()" title="Actualizar datos">
+        🔄
+    </button>
+
+    <script>
+        let currentPeriod = 'today';
+        let refreshInterval;
+        const API_BASE = '/api';
+        let authToken = localStorage.getItem('pos_token');
+
+        // Verificar autenticación
+        if (!authToken) {
+            window.location.href = '/';
+        }
+
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            
+            // Auto-refresh cada 30 segundos
+            refreshInterval = setInterval(refreshData, 30000);
+        });
+
+        async function loadDashboard() {
+            try {
+                await Promise.all([
+                    loadStats(),
+                    loadRecentSales(),
+                    loadTopProducts()
+                ]);
+            } catch (error) {
+                console.error('Error cargando dashboard:', error);
+                showError('Error cargando los datos del dashboard');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/reports/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) throw new Error('Error cargando estadísticas');
+
+                const data = await response.json();
+                renderStats(data.dashboard);
+                
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+                showError('Error cargando estadísticas');
+            }
+        }
+
+        async function loadRecentSales() {
+            try {
+                const response = await fetch(`${API_BASE}/sales/today`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) throw new Error('Error cargando ventas');
+
+                const data = await response.json();
+                renderRecentSales(data.today_sales || []);
+                
+            } catch (error) {
+                console.error('Error cargando ventas:', error);
+                showError('Error cargando ventas recientes');
+            }
+        }
+
+        async function loadTopProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/reports/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) throw new Error('Error cargando productos');
+
+                const data = await response.json();
+                renderTopProducts(data.dashboard.top_products_today || []);
+                
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                showError('Error cargando productos populares');
+            }
+        }
+
+        function renderStats(dashboard) {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            const stats = [
+                {
+                    icon: '💰',
+                    value: `$${dashboard.today.amount.toFixed(2)}`,
+                    label: 'Ventas de Hoy'
+                },
+                {
+                    icon: '🧾',
+                    value: dashboard.today.sales,
+                    label: 'Órdenes de Hoy'
+                },
+                {
+                    icon: '📊',
+                    value: `$${dashboard.today.average.toFixed(2)}`,
+                    label: 'Promedio por Venta'
+                },
+                {
+                    icon: '📅',
+                    value: `$${dashboard.this_month.amount.toFixed(2)}`,
+                    label: 'Ventas del Mes'
+                }
+            ];
+
+            statsGrid.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <div class="stat-icon">${stat.icon}</div>
+                    <div class="stat-value">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderRecentSales(sales) {
+            const salesList = document.getElementById('recentSalesList');
+            
+            if (sales.length === 0) {
+                salesList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        No hay ventas registradas hoy
+                    </div>
+                `;
+                return;
+            }
+
+            salesList.innerHTML = sales.slice(0, 10).map(sale => {
+                const date = new Date(sale.created_at);
+                const timeStr = date.toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                return `
+                    <div class="sale-item">
+                        <div class="sale-info">
+                            <h4>Venta #${sale.id}</h4>
+                            <p>👤 ${sale.customer_name || 'Cliente'} - ${timeStr}</p>
+                            <p>👨‍💼 ${sale.user_name}</p>
+                        </div>
+                        <div class="sale-amount">$${sale.total.toFixed(2)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTopProducts(products) {
+            const productsList = document.getElementById('topProductsList');
+            
+            if (products.length === 0) {
+                productsList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        No hay productos vendidos hoy
+                    </div>
+                `;
+                return;
+            }
+
+            productsList.innerHTML = products.map((product, index) => `
+                <div class="product-item">
+                    <div>
+                        <span style="color: #667eea; font-weight: bold;">#${index + 1}</span>
+                        <span class="product-name">${product.product_name}</span>
+                    </div>
+                    <div class="product-sales">${product.total_quantity} vendidos</div>
+                </div>
+            `).join('');
+        }
+
+        function changePeriod(period) {
+            currentPeriod = period;
+            
+            // Actualizar botones activos
+            document.querySelectorAll('.time-filter').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-period="${period}"]`).classList.add('active');
+            
+            // Recargar datos
+            loadDashboard();
+        }
+
+        async function refreshData() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            refreshBtn.style.transform = 'scale(0.9) rotate(180deg)';
+            
+            await loadDashboard();
+            
+            setTimeout(() => {
+                refreshBtn.style.transform = 'scale(1) rotate(0deg)';
+            }, 500);
+        }
+
+        function showError(message) {
+            const container = document.querySelector('.container');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            container.insertBefore(errorDiv, container.firstChild);
+            
+            setTimeout(() => {
+                if (container.contains(errorDiv)) {
+                    container.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+
+        function logout() {
+            if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                clearInterval(refreshInterval);
+                localStorage.removeItem('pos_token');
+                window.location.href = '/';
+            }
+        }
+
+        // Limpiar interval al salir
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+
+        // Actualizar cuando la página vuelve a estar activa
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                refreshData();
+            }
+        });
+    </script>
+</body>
+</html>
