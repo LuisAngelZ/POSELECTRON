@@ -614,6 +614,38 @@
             transform: scale(1.05);
             box-shadow: 0 2px 8px rgba(255, 112, 67, 0.3);
         }
+
+        /* Prevenir overflow en el contenedor principal */
+.content-area {
+    padding: 2rem;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
+    max-width: 100%;
+}
+
+.widgets-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+    max-width: 100%; /* Asegurar que no exceda el contenedor */
+    overflow: hidden; /* Prevenir desbordamiento */
+}
+
+/* Canvas de Chart.js responsivo */
+.chart-container canvas,
+.pie-chart-container canvas {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Contenedor de charts más flexible */
+.chart-widget {
+    grid-row: span 2;
+    min-height: 500px;
+    max-width: 100%; /* Limitar ancho máximo */
+    overflow: hidden; /* Prevenir desbordamiento */
+}
     </style>
 </head>
 <body>
@@ -1076,16 +1108,37 @@
         }
 
         // Resize de charts cuando cambia el sidebar
-        function resizeChartsOnSidebarToggle() {
-            setTimeout(() => {
-                if (supplyDemandChart) {
-                    supplyDemandChart.resize();
-                }
-                if (distributionChart) {
-                    distributionChart.resize();
-                }
-            }, 350);
+      // Función mejorada para resize de charts
+function resizeChartsOnSidebarToggle() {
+    // Esperar a que termine la animación del sidebar (300ms)
+    setTimeout(() => {
+        try {
+            // Forzar recálculo del layout
+            const chartsContainer = document.querySelector('.widgets-grid');
+            if (chartsContainer) {
+                chartsContainer.style.display = 'none';
+                chartsContainer.offsetHeight; // Trigger reflow
+                chartsContainer.style.display = 'grid';
+            }
+            
+            // Resize de los charts con nuevas dimensiones
+            if (supplyDemandChart) {
+                supplyDemandChart.resize();
+                supplyDemandChart.update('none'); // Update sin animación
+            }
+            
+            if (distributionChart) {
+                distributionChart.resize();
+                distributionChart.update('none');
+            }
+            
+            console.log('Charts redimensionados correctamente');
+            
+        } catch (error) {
+            console.warn('Error redimensionando charts:', error);
         }
+    }, 350); // 50ms extra después de la animación
+}
 
         // Escuchar eventos de resize
         window.addEventListener('resize', function() {
