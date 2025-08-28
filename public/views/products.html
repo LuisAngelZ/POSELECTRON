@@ -279,37 +279,6 @@
             padding: 0.5rem 1rem;
             border-radius: 20px;
         }
-
-        .security-loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            color: white;
-        }
-
-        .security-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* ===== CONTENIDO PRINCIPAL ===== */
         .content-area {
             padding: 2rem;
@@ -411,23 +380,24 @@
             background: white;
         }
 
-        .products-grid {
+        .products-grid, .categories-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
 
-        .product-card {
+        .product-card, .category-card {
             background: white;
             border-radius: 16px;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             border: 1px solid #e8eaed;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .product-card:hover {
+        .product-card:hover, .category-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
         }
@@ -443,6 +413,23 @@
             overflow: hidden;
         }
 
+        .category-header {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-icon {
+            font-size: 3rem;
+            color: #ff7043;
+            opacity: 0.7;
+        }
+
         .product-image img {
             width: 100%;
             height: 100%;
@@ -455,7 +442,7 @@
             opacity: 0.5;
         }
 
-        .product-info {
+        .product-info, .category-info {
             padding: 1.5rem;
         }
 
@@ -466,7 +453,7 @@
             margin-bottom: 1rem;
         }
 
-        .product-name {
+        .product-name, .category-name {
             font-size: 1.2rem;
             font-weight: 700;
             color: #1a1d29;
@@ -480,6 +467,22 @@
             border-radius: 12px;
             font-size: 0.75rem;
             font-weight: 600;
+        }
+
+        .category-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .category-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            color: #6b7280;
         }
 
         .product-price {
@@ -496,10 +499,12 @@
             margin-bottom: 1.5rem;
             max-height: 2.8rem;
             overflow: hidden;
-            display: block;
+            display: -webkit-box;
+            /*-webkit-line-clamp: 2;*/
+            -webkit-box-orient: vertical;
         }
 
-        .product-actions {
+        .product-actions, .category-actions {
             display: flex;
             gap: 0.5rem;
         }
@@ -508,6 +513,31 @@
             padding: 0.5rem 1rem;
             font-size: 0.8rem;
             flex: 1;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-small.btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .btn-small.btn-warning:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-1px);
+        }
+
+        .btn-small.btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-small.btn-danger:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
         }
 
         .empty-state {
@@ -535,51 +565,6 @@
             color: #6b7280;
             margin-bottom: 2rem;
         }
-
-        .loading-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .loading-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            animation: pulse 2s infinite;
-        }
-
-        .loading-image {
-            width: 100%;
-            height: 200px;
-            background: #e5e7eb;
-        }
-
-        .loading-content {
-            padding: 1.5rem;
-        }
-
-        .loading-line {
-            height: 1rem;
-            background: #e5e7eb;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-        }
-
-        .loading-line.short {
-            width: 60%;
-        }
-
-        .loading-line.medium {
-            width: 80%;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
         /* ===== ESTILOS PARA FORMULARIO ===== */
         .form-card {
             background: white;
@@ -710,87 +695,6 @@
             padding-left: 2.5rem;
         }
 
-        /* ===== CATEGORÍAS ===== */
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .category-option {
-            padding: 1.5rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            background: white;
-        }
-
-        .category-option:hover {
-            border-color: #ff8a65;
-            background: #fff8f5;
-            transform: translateY(-2px);
-        }
-
-        .category-option.selected {
-            border-color: #ff7043;
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            color: #1a1d29;
-            box-shadow: 0 4px 15px rgba(255, 112, 67, 0.2);
-        }
-
-        .category-name {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .category-desc {
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
-
-        .category-option.selected .category-desc {
-            color: #8b5a2b;
-        }
-
-        .quick-actions {
-            background: linear-gradient(135deg, #fff8f5, #fff3e0);
-            border: 2px solid #ffe0b2;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .quick-actions-title {
-            font-weight: 700;
-            color: #ff7043;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-        }
-
-        .quick-action-btn {
-            background: linear-gradient(135deg, #ff8a65, #ff7043);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-right: 1rem;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .quick-action-btn:hover {
-            background: linear-gradient(135deg, #ff7043, #f4511e);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 112, 67, 0.3);
-        }
-
         /* ===== BOTONES ===== */
         .btn {
             padding: 1rem 2rem;
@@ -835,24 +739,6 @@
             transform: translateY(-1px);
         }
 
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-        }
-
         .button-group {
             display: flex;
             gap: 1.5rem;
@@ -871,6 +757,11 @@
             animation: spin 1s linear infinite;
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* ===== MODAL ===== */
         .modal {
             position: fixed;
@@ -879,7 +770,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.5);
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 1000;
@@ -888,6 +779,7 @@
         }
 
         .modal.show {
+            display: flex;
             opacity: 1;
         }
 
@@ -978,7 +870,6 @@
         .hidden {
             display: none;
         }
-
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .sidebar-modern {
@@ -1013,11 +904,7 @@
                 align-items: center;
             }
 
-            .category-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .products-grid {
+            .products-grid, .categories-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -1049,79 +936,7 @@
     </style>
 </head>
 <body>
-    <div class="security-loading" id="securityLoading">
-        <div class="security-spinner"></div>
-        <h2>Verificando Acceso</h2>
-        <p>Autenticando usuario...</p>
-    </div>
-
-    <div class="app-container" id="appContainer" style="display: none;">
-        <!-- SIDEBAR INTEGRADO -->
-        <nav class="sidebar-modern" id="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <div class="logo-icon">🪟</div>
-                    <div class="brand-text">
-                        <h2>Sistema POS</h2>
-                        <p>Punto de Venta</p>
-                    </div>
-                </div>
-                <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">👤</div>
-                    <div class="user-details">
-                        <h4 id="userName">Administrador</h4>
-                        <span class="user-role" id="userRole">ADMIN</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="sidebar-nav" id="sidebarNav">
-                <div class="nav-section">
-                    <div class="nav-section-title">Principal</div>
-                    <a href="/dashboard" class="nav-item">
-                        <span class="nav-item-icon">📊</span>
-                        <span class="nav-item-text">Dashboard</span>
-                    </a>
-                    <a href="/pos" class="nav-item">
-                        <span class="nav-item-icon">🛒</span>
-                        <span class="nav-item-text">Punto de Venta</span>
-                        <span class="nav-badge">3</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <div class="nav-section-title">Inventario</div>
-                    <a href="/products" class="nav-item active">
-                        <span class="nav-item-icon">📦</span>
-                        <span class="nav-item-text">Productos</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <div class="nav-section-title">Reportes</div>
-                    <a href="/reports" class="nav-item">
-                        <span class="nav-item-icon">📈</span>
-                        <span class="nav-item-text">Reportes</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <div class="nav-section-title">Administración</div>
-                    <a href="/create-user" class="nav-item">
-                        <span class="nav-item-icon">➕</span>
-                        <span class="nav-item-text">Crear Usuario</span>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="sidebar-footer">
-                <button type="button" class="logout-btn" onclick="logout()">
-                    <span>🚪</span>
-                    Cerrar Sesión
-                </button>
-            </div>
-        </nav>
-
+    <div class="app-container">
         <main class="main-content" id="mainContent">
             <div class="top-bar">
                 <div class="top-bar-left">
@@ -1143,17 +958,22 @@
             <div class="content-area">
                 <!-- Tab Navigation -->
                 <div class="tab-header">
-                    <button class="tab-btn active" onclick="switchTab('list')">
-                        📋 Lista de Productos
+                    <button class="tab-btn active" onclick="switchTab('products')">
+                        📋 Productos
                     </button>
-                    <button class="tab-btn" onclick="switchTab('create')">
+                    <button class="tab-btn" onclick="switchTab('categories')">
+                        🏷️ Categorías
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('create-product')">
                         ➕ Crear Producto
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('create-category')">
+                        ➕ Nueva Categoría
                     </button>
                 </div>
 
                 <!-- TAB: Lista de Productos -->
-                <div id="listTab" class="tab-content active">
-                    <!-- Header de búsqueda -->
+                <div id="productsTab" class="tab-content active">
                     <div class="products-header">
                         <div>
                             <h2 style="font-size: 1.5rem; font-weight: 700; color: #1a1d29; margin-bottom: 0.5rem;">
@@ -1167,7 +987,6 @@
                         </div>
                     </div>
 
-                    <!-- Filtros -->
                     <div class="filter-section">
                         <label for="categoryFilter">Filtrar por categoría:</label>
                         <select id="categoryFilter" class="filter-select" onchange="filterByCategory()">
@@ -1182,40 +1001,28 @@
                         </select>
                     </div>
 
-                    <!-- Grid de productos -->
-                    <div id="productsContainer">
-                        <div class="loading-grid">
-                            <!-- Loading placeholders -->
-                            <div class="loading-card">
-                                <div class="loading-image"></div>
-                                <div class="loading-content">
-                                    <div class="loading-line"></div>
-                                    <div class="loading-line short"></div>
-                                    <div class="loading-line medium"></div>
-                                </div>
-                            </div>
-                            <div class="loading-card">
-                                <div class="loading-image"></div>
-                                <div class="loading-content">
-                                    <div class="loading-line"></div>
-                                    <div class="loading-line short"></div>
-                                    <div class="loading-line medium"></div>
-                                </div>
-                            </div>
-                            <div class="loading-card">
-                                <div class="loading-image"></div>
-                                <div class="loading-content">
-                                    <div class="loading-line"></div>
-                                    <div class="loading-line short"></div>
-                                    <div class="loading-line medium"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="productsContainer"></div>
                 </div>
 
+                <!-- TAB: Lista de Categorías -->
+                <div id="categoriesTab" class="tab-content">
+                    <div class="products-header">
+                        <div>
+                            <h2 style="font-size: 1.5rem; font-weight: 700; color: #1a1d29; margin-bottom: 0.5rem;">
+                                Gestión de Categorías
+                            </h2>
+                            <p style="color: #6b7280;">Organiza y administra las categorías de productos</p>
+                        </div>
+                        
+                        <div class="search-section">
+                            <input type="text" id="searchCategoriesInput" class="search-input" placeholder="Buscar categorías...">
+                        </div>
+                    </div>
+
+                    <div id="categoriesContainer"></div>
+                </div>
                 <!-- TAB: Crear Producto -->
-                <div id="createTab" class="tab-content">
+                <div id="create-productTab" class="tab-content">
                     <div class="form-card">
                         <div class="form-header">
                             <h2 id="formTitle">Nuevo Producto</h2>
@@ -1225,7 +1032,6 @@
                         <form id="productForm">
                             <input type="hidden" id="editingProductId">
                             
-                            <!-- Información Básica -->
                             <div class="form-section">
                                 <h3 class="section-title">
                                     <span>📝</span>
@@ -1275,7 +1081,6 @@
                                 </div>
                             </div>
 
-                            <!-- Categoría -->
                             <div class="form-section">
                                 <h3 class="section-title">
                                     <span>🏷️</span>
@@ -1288,19 +1093,8 @@
                                         <option value="">Seleccionar categoría</option>
                                     </select>
                                 </div>
-
-                                <div class="quick-actions">
-                                    <div class="quick-actions-title">⚡ Acciones Rápidas</div>
-                                    <button type="button" class="quick-action-btn" onclick="createNewCategory()">
-                                        ➕ Nueva Categoría
-                                    </button>
-                                    <button type="button" class="quick-action-btn" onclick="refreshCategories()">
-                                        🔄 Actualizar Lista
-                                    </button>
-                                </div>
                             </div>
 
-                            <!-- Botones -->
                             <div class="button-group">
                                 <button type="button" class="btn btn-secondary" onclick="cancelForm()">
                                     <span>✖</span>
@@ -1314,16 +1108,61 @@
                         </form>
                     </div>
                 </div>
+
+                <!-- TAB: Crear Categoría -->
+                <div id="create-categoryTab" class="tab-content">
+                    <div class="form-card">
+                        <div class="form-header">
+                            <h2 id="categoryFormTitle">Nueva Categoría</h2>
+                            <p id="categoryFormDescription">Completa la información para crear una nueva categoría</p>
+                        </div>
+
+                        <form id="categoryForm">
+                            <input type="hidden" id="editingCategoryId">
+                            
+                            <div class="form-section">
+                                <h3 class="section-title">
+                                    <span>🏷️</span>
+                                    Información de la Categoría
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <label for="categoryName" class="form-label required">Nombre de la Categoría</label>
+                                    <input type="text" id="categoryName" name="name" class="form-input" 
+                                           placeholder="Ej: Bebidas, Comidas, Postres..." required maxlength="100">
+                                    <div class="input-helper">Máximo 100 caracteres</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="categoryDescription" class="form-label">Descripción</label>
+                                    <textarea id="categoryDescription" name="description" class="form-input form-textarea" 
+                                              placeholder="Descripción detallada de la categoría..." maxlength="255"></textarea>
+                                    <div class="input-helper">Opcional - Máximo 255 caracteres</div>
+                                </div>
+                            </div>
+
+                            <div class="button-group">
+                                <button type="button" class="btn btn-secondary" onclick="cancelCategoryForm()">
+                                    <span>✖</span>
+                                    Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="categorySubmitBtn">
+                                    <span>💾</span>
+                                    <span id="categorySubmitBtnText">Crear Categoría</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
-
     <!-- Modal para editar producto -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">Editar Producto</h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <h2 class="modal-title">Editar Producto</h2>
+                <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
             </div>
             
             <form id="modalProductForm">
@@ -1367,139 +1206,172 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">
                         Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary" id="modalSubmitBtn">
-                        💾 Actualizar Producto
+                        Actualizar Producto
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal para editar categoría -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Editar Categoría</h2>
+                <button class="modal-close" onclick="closeModal('categoryModal')">&times;</button>
+            </div>
+            
+            <form id="modalCategoryForm">
+                <input type="hidden" id="modalCategoryId">
+                
+                <div class="form-group">
+                    <label for="modalCategoryName" class="form-label required">Nombre de la Categoría</label>
+                    <input type="text" id="modalCategoryName" name="name" class="form-input" 
+                           placeholder="Nombre de la categoría" required maxlength="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="modalCategoryDescription" class="form-label">Descripción</label>
+                    <textarea id="modalCategoryDescription" name="description" class="form-input form-textarea" 
+                              placeholder="Descripción de la categoría..." maxlength="255"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('categoryModal')">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="modalCategorySubmitBtn">
+                        Actualizar Categoría
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         // Variables globales
-        const API_BASE = '/api';
-        let authToken = localStorage.getItem('pos_token');
         let products = [];
         let categories = [];
         let filteredProducts = [];
+        let filteredCategories = [];
         let currentEditingId = null;
-        let activeTab = 'list';
 
-        // Verificar autenticación
-        if (!authToken) {
-            window.location.href = '/login';
-        }
+        // Datos de ejemplo
+        const sampleCategories = [
+            { id: 1, name: 'Bebidas', description: 'Bebidas frías y calientes' },
+            { id: 2, name: 'Comidas', description: 'Platos principales y aperitivos' },
+            { id: 3, name: 'Postres', description: 'Dulces y postres variados' },
+            { id: 4, name: 'Snacks', description: 'Aperitivos y bocadillos' }
+        ];
 
-        // Inicializar página
+        const sampleProducts = [
+            {
+                id: 1,
+                name: 'Pizza Margherita',
+                price: 85.50,
+                category_id: 2,
+                category_name: 'Comidas',
+                description: 'Pizza clásica con tomate, mozzarella y albahaca fresca',
+                stock: 15,
+                image_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'
+            },
+            {
+                id: 2,
+                name: 'Coca Cola 500ml',
+                price: 12.00,
+                category_id: 1,
+                category_name: 'Bebidas',
+                description: 'Bebida gaseosa clásica en botella de 500ml',
+                stock: 48,
+                image_url: 'https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=400&h=300&fit=crop'
+            },
+            {
+                id: 3,
+                name: 'Cheesecake de Fresa',
+                price: 35.75,
+                category_id: 3,
+                category_name: 'Postres',
+                description: 'Delicioso cheesecake con cobertura de fresas frescas',
+                stock: 8,
+                image_url: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&h=300&fit=crop'
+            },
+            {
+                id: 4,
+                name: 'Hamburguesa Clásica',
+                price: 65.00,
+                category_id: 2,
+                category_name: 'Comidas',
+                description: 'Hamburguesa con carne de res, lechuga, tomate y queso',
+                stock: 22,
+                image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop'
+            },
+            {
+                id: 5,
+                name: 'Café Americano',
+                price: 18.50,
+                category_id: 1,
+                category_name: 'Bebidas',
+                description: 'Café negro americano servido caliente',
+                stock: 0,
+                image_url: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&h=300&fit=crop'
+            },
+            {
+                id: 6,
+                name: 'Papas Fritas',
+                price: 25.00,
+                category_id: 4,
+                category_name: 'Snacks',
+                description: 'Papas fritas crujientes con sal',
+                stock: 30,
+                image_url: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=400&h=300&fit=crop'
+            }
+        ];
+
+        // Inicializar aplicación
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initializePage, 100);
+            initializeApp();
         });
 
-        async function initializePage() {
-            document.getElementById('securityLoading').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'flex';
-            
-            setupSidebar();
+        function initializeApp() {
             setupEventListeners();
-            await loadCategories();
-            await loadProducts();
+            loadData();
             setupSearch();
-        }
-
-        function setupSidebar() {
-            // Configurar toggle del sidebar
-            const toggleBtn = document.getElementById('sidebarToggle');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', function() {
-                    const sidebar = document.getElementById('sidebar');
-                    const mainContent = document.getElementById('mainContent');
-                    
-                    if (window.innerWidth <= 768) {
-                        // Móvil
-                        sidebar.classList.toggle('mobile-open');
-                    } else {
-                        // Desktop
-                        sidebar.classList.toggle('collapsed');
-                        mainContent.classList.toggle('expanded');
-                        
-                        const icon = document.getElementById('toggleIcon');
-                        if (icon) {
-                            icon.textContent = sidebar.classList.contains('collapsed') ? '→' : '☰';
-                        }
-                    }
-                });
-            }
-
-            // Cerrar sidebar al hacer clic fuera en móvil
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth > 768) return;
-                
-                const sidebar = document.getElementById('sidebar');
-                const toggleBtn = document.getElementById('sidebarToggle');
-                
-                const isClickInSidebar = sidebar && sidebar.contains(e.target);
-                const isClickToggleBtn = toggleBtn && toggleBtn.contains(e.target);
-                
-                if (!isClickInSidebar && !isClickToggleBtn) {
-                    sidebar.classList.remove('mobile-open');
-                }
-            });
         }
 
         function setupEventListeners() {
             document.getElementById('productForm').addEventListener('submit', handleCreateSubmit);
             document.getElementById('modalProductForm').addEventListener('submit', handleEditSubmit);
-            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('categoryForm').addEventListener('submit', handleCreateCategorySubmit);
+            document.getElementById('modalCategoryForm').addEventListener('submit', handleEditCategorySubmit);
             
             // Cerrar modal al hacer clic fuera
-            document.getElementById('productModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeModal();
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    closeModal(e.target.id);
+                }
+            });
+
+            // Escape para cerrar modal
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal('productModal');
+                    closeModal('categoryModal');
                 }
             });
         }
 
-        // Sistema de tabs
-        function switchTab(tabName) {
-            // Actualizar botones
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            // Actualizar contenido
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(tabName + 'Tab').classList.add('active');
-
-            activeTab = tabName;
-
-            if (tabName === 'list') {
-                loadProducts();
-            }
-        }
-
-        async function loadCategories() {
-            try {
-                const response = await fetch(`${API_BASE}/categories`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    categories = data.categories || [];
-                    populateCategorySelects();
-                } else {
-                    throw new Error('Error cargando categorías');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error cargando categorías', 'error');
-            }
+        function loadData() {
+            categories = [...sampleCategories];
+            products = [...sampleProducts];
+            filteredProducts = [...products];
+            filteredCategories = [...categories];
+            
+            populateCategorySelects();
+            renderProducts();
+            renderCategories();
         }
 
         function populateCategorySelects() {
@@ -1512,7 +1384,7 @@
             selects.forEach((select, index) => {
                 if (!select) return;
                 
-                if (index === 2) { // Filter select
+                if (index === 2) {
                     select.innerHTML = '<option value="">Todas las categorías</option>';
                 } else {
                     select.innerHTML = '<option value="">Seleccionar categoría</option>';
@@ -1523,38 +1395,50 @@
                 });
             });
         }
+        // Sistema de tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
 
-        async function loadProducts() {
-            try {
-                const response = await fetch(`${API_BASE}/products`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Tab').classList.add('active');
 
-                if (response.ok) {
-                    const data = await response.json();
-                    products = data.products || [];
-                    filteredProducts = [...products];
-                    renderProducts();
-                } else {
-                    throw new Error('Error cargando productos');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error cargando productos', 'error');
-                renderEmptyState();
+            if (tabName === 'categories') {
+                renderCategories();
+            } else if (tabName === 'products') {
+                renderProducts();
             }
         }
 
+        // PRODUCTOS
         function renderProducts() {
             const container = document.getElementById('productsContainer');
             
             if (filteredProducts.length === 0) {
-                renderEmptyState();
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <h3 class="empty-title">No hay productos</h3>
+                        <p class="empty-description">
+                            ${products.length === 0 ? 
+                                'Comienza agregando tu primer producto al inventario' : 
+                                'No se encontraron productos con los filtros aplicados'
+                            }
+                        </p>
+                        <button class="btn btn-primary" onclick="switchTab('create-product'); document.querySelector('.tab-btn[onclick*=create-product]').click();">
+                            ➕ ${products.length === 0 ? 'Crear Primer Producto' : 'Crear Producto'}
+                        </button>
+                    </div>
+                `;
                 return;
             }
 
             const productsHTML = filteredProducts.map(product => `
-                <div class="product-card">
+                <div class="product-card" onclick="viewProduct(${product.id})">
                     <div class="product-image">
                         ${product.image_url ? 
                             `<img src="${product.image_url}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -1578,16 +1462,17 @@
                             ''
                         }
                         
-                        ${product.stock !== undefined ? 
-                            `<div style="font-size: 0.9rem; color: #6b7280; margin-bottom: 1rem;">Stock: ${product.stock}</div>` : 
-                            ''
-                        }
+                        <div style="font-size: 0.9rem; margin-bottom: 1rem;">
+                            <span style="color: ${product.stock > 10 ? '#10b981' : product.stock > 0 ? '#f59e0b' : '#ef4444'};">
+                                Stock: ${product.stock} ${product.stock === 0 ? '(Agotado)' : ''}
+                            </span>
+                        </div>
                         
                         <div class="product-actions">
-                            <button class="btn btn-warning btn-small" onclick="editProduct(${product.id})">
+                            <button class="btn-small btn-warning" onclick="event.stopPropagation(); editProduct(${product.id})">
                                 ✏️ Editar
                             </button>
-                            <button class="btn btn-danger btn-small" onclick="deleteProduct(${product.id}, '${product.name.replace(/'/g, "\\'")}')">
+                            <button class="btn-small btn-danger" onclick="event.stopPropagation(); deleteProduct(${product.id}, '${product.name.replace(/'/g, "\\'")}')">
                                 🗑️ Eliminar
                             </button>
                         </div>
@@ -1598,28 +1483,79 @@
             container.innerHTML = `<div class="products-grid">${productsHTML}</div>`;
         }
 
-        function renderEmptyState() {
-            const container = document.getElementById('productsContainer');
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">📦</div>
-                    <h3 class="empty-title">No hay productos</h3>
-                    <p class="empty-description">
-                        Comienza agregando tu primer producto al inventario
-                    </p>
-                    <button class="btn btn-primary" onclick="switchTab('create')">
-                        ➕ Crear Primer Producto
-                    </button>
-                </div>
-            `;
-        }
+        // CATEGORÍAS
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            
+            if (filteredCategories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🏷️</div>
+                        <h3 class="empty-title">No hay categorías</h3>
+                        <p class="empty-description">
+                            ${categories.length === 0 ? 
+                                'Comienza creando tu primera categoría' : 
+                                'No se encontraron categorías con los filtros aplicados'
+                            }
+                        </p>
+                        <button class="btn btn-primary" onclick="switchTab('create-category'); document.querySelector('.tab-btn[onclick*=create-category]').click();">
+                            ➕ ${categories.length === 0 ? 'Crear Primera Categoría' : 'Crear Categoría'}
+                        </button>
+                    </div>
+                `;
+                return;
+            }
 
+            const categoriesHTML = filteredCategories.map(category => {
+                const productCount = products.filter(p => p.category_id === category.id).length;
+                return `
+                    <div class="category-card" onclick="viewCategory(${category.id})">
+                        <div class="category-header">
+                            <div class="category-icon">🏷️</div>
+                        </div>
+                        
+                        <div class="category-info">
+                            <h3 class="category-name">${category.name}</h3>
+                            
+                            ${category.description ? 
+                                `<p class="category-description">${category.description}</p>` : 
+                                '<p class="category-description">Sin descripción</p>'
+                            }
+                            
+                            <div class="category-stats">
+                                <span>${productCount} producto${productCount !== 1 ? 's' : ''}</span>
+                                <span>ID: ${category.id}</span>
+                            </div>
+                            
+                            <div class="category-actions">
+                                <button class="btn-small btn-warning" onclick="event.stopPropagation(); editCategory(${category.id})">
+                                    ✏️ Editar
+                                </button>
+                                <button class="btn-small btn-danger" onclick="event.stopPropagation(); deleteCategory(${category.id}, '${category.name.replace(/'/g, "\\'")}', ${productCount})">
+                                    🗑️ Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div class="categories-grid">${categoriesHTML}</div>`;
+        }
         function setupSearch() {
             let searchTimeout;
+            
             document.getElementById('searchInput').addEventListener('input', function(e) {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     handleSearch(e);
+                }, 300);
+            });
+
+            document.getElementById('searchCategoriesInput').addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    handleCategorySearch(e);
                 }, 300);
             });
         }
@@ -1638,6 +1574,21 @@
             }
             
             renderProducts();
+        }
+
+        function handleCategorySearch(e) {
+            const query = e.target.value.toLowerCase().trim();
+            
+            if (query === '') {
+                filteredCategories = [...categories];
+            } else {
+                filteredCategories = categories.filter(category => 
+                    category.name.toLowerCase().includes(query) ||
+                    (category.description && category.description.toLowerCase().includes(query))
+                );
+            }
+            
+            renderCategories();
         }
 
         function filterByCategory() {
@@ -1673,61 +1624,96 @@
             renderProducts();
         }
 
-        async function editProduct(productId) {
-            try {
-                const response = await fetch(`${API_BASE}/products/${productId}`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const product = data.product;
-                    
-                    currentEditingId = productId;
-                    document.getElementById('modalProductId').value = product.id;
-                    document.getElementById('modalProductName').value = product.name;
-                    document.getElementById('modalProductPrice').value = product.price;
-                    document.getElementById('modalProductCategory').value = product.category_id;
-                    document.getElementById('modalProductDescription').value = product.description || '';
-                    document.getElementById('modalProductStock').value = product.stock || 0;
-                    document.getElementById('modalProductImage').value = product.image_url || '';
-                    
-                    showModal();
-                } else {
-                    throw new Error('Error cargando producto');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error cargando producto para editar', 'error');
+        // CRUD PRODUCTOS
+        function viewProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                showNotification(`Viendo: ${product.name}`, 'success');
             }
         }
 
-        async function deleteProduct(productId, productName) {
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) {
+                showNotification('Producto no encontrado', 'error');
+                return;
+            }
+            
+            currentEditingId = productId;
+            document.getElementById('modalProductId').value = product.id;
+            document.getElementById('modalProductName').value = product.name;
+            document.getElementById('modalProductPrice').value = product.price;
+            document.getElementById('modalProductCategory').value = product.category_id;
+            document.getElementById('modalProductDescription').value = product.description || '';
+            document.getElementById('modalProductStock').value = product.stock || 0;
+            document.getElementById('modalProductImage').value = product.image_url || '';
+            
+            showModal('productModal');
+        }
+
+        function deleteProduct(productId, productName) {
             if (!confirm(`¿Estás seguro de eliminar el producto "${productName}"?\n\nEsta acción no se puede deshacer.`)) {
                 return;
             }
 
             try {
-                const response = await fetch(`${API_BASE}/products/${productId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showNotification('Producto eliminado exitosamente', 'success');
-                    await loadProducts();
-                } else {
-                    throw new Error(result.message || 'Error eliminando producto');
-                }
+                products = products.filter(p => p.id !== productId);
+                filteredProducts = filteredProducts.filter(p => p.id !== productId);
+                renderProducts();
+                populateCategorySelects();
+                showNotification('Producto eliminado exitosamente', 'success');
             } catch (error) {
                 console.error('Error:', error);
-                showNotification(error.message, 'error');
+                showNotification('Error eliminando producto', 'error');
             }
         }
 
-        async function handleCreateSubmit(e) {
+        // CRUD CATEGORÍAS
+        function viewCategory(categoryId) {
+            const category = categories.find(c => c.id === categoryId);
+            if (category) {
+                showNotification(`Viendo categoría: ${category.name}`, 'success');
+            }
+        }
+
+        function editCategory(categoryId) {
+            const category = categories.find(c => c.id === categoryId);
+            if (!category) {
+                showNotification('Categoría no encontrada', 'error');
+                return;
+            }
+            
+            currentEditingId = categoryId;
+            document.getElementById('modalCategoryId').value = category.id;
+            document.getElementById('modalCategoryName').value = category.name;
+            document.getElementById('modalCategoryDescription').value = category.description || '';
+            
+            showModal('categoryModal');
+        }
+
+        function deleteCategory(categoryId, categoryName, productCount) {
+            if (productCount > 0) {
+                showNotification(`No se puede eliminar la categoría "${categoryName}" porque tiene ${productCount} producto(s) asociado(s).`, 'error');
+                return;
+            }
+
+            if (!confirm(`¿Estás seguro de eliminar la categoría "${categoryName}"?\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
+
+            try {
+                categories = categories.filter(c => c.id !== categoryId);
+                filteredCategories = filteredCategories.filter(c => c.id !== categoryId);
+                renderCategories();
+                populateCategorySelects();
+                showNotification('Categoría eliminada exitosamente', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error eliminando categoría', 'error');
+            }
+        }
+        // FORMULARIOS
+        function handleCreateSubmit(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
@@ -1735,6 +1721,7 @@
             const submitBtnText = document.getElementById('submitBtnText');
             
             const productData = {
+                id: Date.now(),
                 name: formData.get('name').trim(),
                 price: parseFloat(formData.get('price')),
                 category_id: parseInt(formData.get('category_id')),
@@ -1743,7 +1730,9 @@
                 image_url: formData.get('image_url')?.trim() || null
             };
 
-            // Validaciones
+            const category = categories.find(c => c.id === productData.category_id);
+            productData.category_name = category ? category.name : 'Sin categoría';
+
             if (!productData.name || !productData.price || !productData.category_id) {
                 showNotification('Por favor completa todos los campos requeridos', 'error');
                 return;
@@ -1758,47 +1747,93 @@
                 submitBtn.disabled = true;
                 submitBtnText.textContent = 'Creando...';
 
-                const response = await fetch(`${API_BASE}/products`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(productData)
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showNotification('Producto creado exitosamente', 'success');
+                setTimeout(() => {
+                    products.push(productData);
+                    filteredProducts = [...products];
+                    renderProducts();
                     resetForm();
-                    await loadProducts();
-                    // Cambiar a la pestaña de lista después de crear
+                    showNotification('Producto creado exitosamente', 'success');
+                    
                     setTimeout(() => {
-                        switchTab('list');
-                        document.querySelector('.tab-btn[onclick="switchTab(\'list\')"]').click();
+                        switchTab('products');
+                        document.querySelector('.tab-btn[onclick*="products"]').click();
                     }, 1500);
-                } else {
-                    throw new Error(result.message || 'Error creando producto');
-                }
+
+                    submitBtn.disabled = false;
+                    submitBtnText.textContent = 'Crear Producto';
+                }, 1000);
 
             } catch (error) {
                 console.error('Error:', error);
-                showNotification(error.message, 'error');
-            } finally {
+                showNotification('Error creando producto', 'error');
                 submitBtn.disabled = false;
                 submitBtnText.textContent = 'Crear Producto';
             }
         }
 
-        async function handleEditSubmit(e) {
+        function handleCreateCategorySubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const submitBtn = document.getElementById('categorySubmitBtn');
+            const submitBtnText = document.getElementById('categorySubmitBtnText');
+            
+            const categoryData = {
+                id: Date.now(),
+                name: formData.get('name').trim(),
+                description: formData.get('description')?.trim() || null
+            };
+
+            if (!categoryData.name) {
+                showNotification('El nombre de la categoría es requerido', 'error');
+                return;
+            }
+
+            const existingCategory = categories.find(c => 
+                c.name.toLowerCase() === categoryData.name.toLowerCase()
+            );
+            
+            if (existingCategory) {
+                showNotification('Ya existe una categoría con ese nombre', 'error');
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtnText.textContent = 'Creando...';
+
+                setTimeout(() => {
+                    categories.push(categoryData);
+                    filteredCategories = [...categories];
+                    renderCategories();
+                    populateCategorySelects();
+                    resetCategoryForm();
+                    showNotification('Categoría creada exitosamente', 'success');
+                    
+                    setTimeout(() => {
+                        switchTab('categories');
+                        document.querySelector('.tab-btn[onclick*="categories"]').click();
+                    }, 1500);
+
+                    submitBtn.disabled = false;
+                    submitBtnText.textContent = 'Crear Categoría';
+                }, 1000);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error creando categoría', 'error');
+                submitBtn.disabled = false;
+                submitBtnText.textContent = 'Crear Categoría';
+            }
+        }
+        function handleEditSubmit(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
             const submitBtn = document.getElementById('modalSubmitBtn');
-            const productId = document.getElementById('modalProductId').value;
+            const productId = parseInt(document.getElementById('modalProductId').value);
             
-            const productData = {
+            const updatedData = {
                 name: formData.get('name').trim(),
                 price: parseFloat(formData.get('price')),
                 category_id: parseInt(formData.get('category_id')),
@@ -1807,13 +1842,15 @@
                 image_url: formData.get('image_url')?.trim() || null
             };
 
-            // Validaciones
-            if (!productData.name || !productData.price || !productData.category_id) {
+            const category = categories.find(c => c.id === updatedData.category_id);
+            updatedData.category_name = category ? category.name : 'Sin categoría';
+
+            if (!updatedData.name || !updatedData.price || !updatedData.category_id) {
                 showNotification('Por favor completa todos los campos requeridos', 'error');
                 return;
             }
 
-            if (productData.price <= 0) {
+            if (updatedData.price <= 0) {
                 showNotification('El precio debe ser mayor a 0', 'error');
                 return;
             }
@@ -1822,201 +1859,134 @@
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="loading-spinner"></span> Actualizando...';
 
-                const response = await fetch(`${API_BASE}/products/${productId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(productData)
-                });
+                setTimeout(() => {
+                    const productIndex = products.findIndex(p => p.id === productId);
+                    if (productIndex !== -1) {
+                        products[productIndex] = { ...products[productIndex], ...updatedData };
+                        filteredProducts = [...products];
+                        renderProducts();
+                        closeModal('productModal');
+                        showNotification('Producto actualizado exitosamente', 'success');
+                    } else {
+                        throw new Error('Producto no encontrado');
+                    }
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    showNotification('Producto actualizado exitosamente', 'success');
-                    closeModal();
-                    await loadProducts();
-                } else {
-                    throw new Error(result.message || 'Error actualizando producto');
-                }
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '💾 Actualizar Producto';
+                }, 1000);
 
             } catch (error) {
                 console.error('Error:', error);
-                showNotification(error.message, 'error');
-            } finally {
+                showNotification('Error actualizando producto', 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '💾 Actualizar Producto';
             }
         }
 
-        function showModal() {
-            const modal = document.getElementById('productModal');
+        function handleEditCategorySubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const submitBtn = document.getElementById('modalCategorySubmitBtn');
+            const categoryId = parseInt(document.getElementById('modalCategoryId').value);
+            
+            const updatedData = {
+                name: formData.get('name').trim(),
+                description: formData.get('description')?.trim() || null
+            };
+
+            if (!updatedData.name) {
+                showNotification('El nombre de la categoría es requerido', 'error');
+                return;
+            }
+
+            const existingCategory = categories.find(c => 
+                c.id !== categoryId && 
+                c.name.toLowerCase() === updatedData.name.toLowerCase()
+            );
+            
+            if (existingCategory) {
+                showNotification('Ya existe una categoría con ese nombre', 'error');
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading-spinner"></span> Actualizando...';
+
+                setTimeout(() => {
+                    const categoryIndex = categories.findIndex(c => c.id === categoryId);
+                    if (categoryIndex !== -1) {
+                        categories[categoryIndex] = { ...categories[categoryIndex], ...updatedData };
+                        
+                        products.forEach(product => {
+                            if (product.category_id === categoryId) {
+                                product.category_name = updatedData.name;
+                            }
+                        });
+                        
+                        filteredCategories = [...categories];
+                        filteredProducts = [...products];
+                        renderCategories();
+                        renderProducts();
+                        populateCategorySelects();
+                        closeModal('categoryModal');
+                        showNotification('Categoría actualizada exitosamente', 'success');
+                    } else {
+                        throw new Error('Categoría no encontrada');
+                    }
+
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '💾 Actualizar Categoría';
+                }, 1000);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error actualizando categoría', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '💾 Actualizar Categoría';
+            }
+        }
+        // MODALES
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
         }
 
-        function closeModal() {
-            const modal = document.getElementById('productModal');
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
             modal.classList.remove('show');
             document.body.style.overflow = 'auto';
             currentEditingId = null;
         }
 
+        // FORMULARIOS
         function resetForm() {
             document.getElementById('productForm').reset();
+        }
+
+        function resetCategoryForm() {
+            document.getElementById('categoryForm').reset();
         }
 
         function cancelForm() {
             if (confirm('¿Estás seguro? Se perderán todos los datos ingresados.')) {
                 resetForm();
-                switchTab('list');
-                document.querySelector('.tab-btn[onclick="switchTab(\'list\')"]').click();
+                switchTab('products');
+                document.querySelector('.tab-btn[onclick*="products"]').click();
             }
         }
 
-        // Crear nueva categoría
-        function createNewCategory() {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 2000;
-            `;
-
-            modal.innerHTML = `
-                <div style="
-                    background: white;
-                    border-radius: 16px;
-                    padding: 2rem;
-                    max-width: 500px;
-                    width: 90%;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                ">
-                    <h3 style="margin-bottom: 1rem; color: #1e293b; font-size: 1.3rem;">
-                        🏷️ Crear Nueva Categoría
-                    </h3>
-                    
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">
-                            Nombre de la Categoría *
-                        </label>
-                        <input type="text" id="modalCategoryName" style="
-                            width: 100%;
-                            padding: 0.75rem;
-                            border: 2px solid #e5e7eb;
-                            border-radius: 8px;
-                            font-size: 1rem;
-                        " placeholder="Ej: Bebidas, Comidas, Postres..." maxlength="100" required>
-                    </div>
-                    
-                    <div style="margin-bottom: 2rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">
-                            Descripción
-                        </label>
-                        <textarea id="modalCategoryDesc" style="
-                            width: 100%;
-                            padding: 0.75rem;
-                            border: 2px solid #e5e7eb;
-                            border-radius: 8px;
-                            font-size: 1rem;
-                            min-height: 80px;
-                            resize: vertical;
-                            font-family: inherit;
-                        " placeholder="Describe el tipo de productos..." maxlength="255"></textarea>
-                    </div>
-                    
-                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                        <button onclick="closeCategoryModal()" style="
-                            background: #f1f5f9;
-                            color: #475569;
-                            border: 1px solid #e2e8f0;
-                            padding: 0.75rem 1.5rem;
-                            border-radius: 8px;
-                            cursor: pointer;
-                            font-weight: 600;
-                        ">Cancelar</button>
-                        
-                        <button onclick="submitNewCategory()" id="modalCategorySubmitBtn" style="
-                            background: linear-gradient(135deg, #ff8a65, #ff7043);
-                            color: white;
-                            border: none;
-                            padding: 0.75rem 1.5rem;
-                            border-radius: 8px;
-                            cursor: pointer;
-                            font-weight: 600;
-                        ">Crear Categoría</button>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(modal);
-            document.getElementById('modalCategoryName').focus();
-
-            // Cerrar modal
-            window.closeCategoryModal = function() {
-                document.body.removeChild(modal);
-                delete window.closeCategoryModal;
-                delete window.submitNewCategory;
-            };
-
-            // Enviar nueva categoría
-            window.submitNewCategory = async function() {
-                const name = document.getElementById('modalCategoryName').value.trim();
-                const description = document.getElementById('modalCategoryDesc').value.trim();
-                const submitBtn = document.getElementById('modalCategorySubmitBtn');
-
-                if (!name) {
-                    showNotification('El nombre de la categoría es requerido', 'error');
-                    return;
-                }
-
-                try {
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Creando...';
-
-                    const response = await fetch(`${API_BASE}/categories`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ name, description: description || null })
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        showNotification('Categoría creada exitosamente', 'success');
-                        await loadCategories();
-                        closeCategoryModal();
-                    } else {
-                        throw new Error(result.message || 'Error creando categoría');
-                    }
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    showNotification(error.message, 'error');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Crear Categoría';
-                }
-            };
+        function cancelCategoryForm() {
+            if (confirm('¿Estás seguro? Se perderán todos los datos ingresados.')) {
+                resetCategoryForm();
+                switchTab('categories');
+                document.querySelector('.tab-btn[onclick*="categories"]').click();
+            }
         }
 
-        // Actualizar categorías
-        function refreshCategories() {
-            showNotification('Actualizando categorías...', 'success');
-            loadCategories();
-        }
-
-        // Mostrar notificaciones
+        // NOTIFICACIONES
         function showNotification(message, type = 'success') {
             const existing = document.querySelector('.notification');
             if (existing) existing.remove();
@@ -2039,16 +2009,20 @@
             }, 4000);
         }
 
-        // Funciones de compatibilidad
+        // COMPATIBILIDAD CON SIDEBAR UNIVERSAL
         function logout() {
             if (confirm('¿Está seguro que desea cerrar sesión?')) {
-                localStorage.removeItem('pos_token');
-                localStorage.removeItem('pos_user');
-                window.location.href = '/login';
+                showNotification('Cerrando sesión...', 'success');
+                // localStorage.removeItem('pos_token');
+                // window.location.href = '/login';
             }
         }
 
+        // Funciones globales para compatibilidad
         window.appLogout = logout;
     </script>
+
+    <!-- Cargar sidebar universal -->
+    <script src="/js/sidebar.js" defer></script>
 </body>
 </html>
