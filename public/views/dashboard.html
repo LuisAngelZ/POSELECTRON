@@ -281,36 +281,6 @@
             border-radius: 20px;
         }
 
-        .security-loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            color: white;
-        }
-
-        .security-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* ===== CONTENIDO DEL DASHBOARD ===== */
         .content-area {
             padding: 2rem;
@@ -649,13 +619,8 @@
     </style>
 </head>
 <body>
-    <div class="security-loading" id="securityLoading">
-        <div class="security-spinner"></div>
-        <h2>🔒 Verificando Acceso</h2>
-        <p>Autenticando usuario...</p>
-    </div>
 
-    <div class="app-container" id="appContainer" style="display: none;">
+    <div class="app-container" id="appContainer">
         <!-- SIDEBAR será generado por sidebar.js -->
 
         <main class="main-content" id="mainContent">
@@ -792,13 +757,8 @@
                 if (authCheckInProgress) return;
                 authCheckInProgress = true;
 
-                const isValid = await verifyToken();
-                
-                if (isValid) {
-                    await initializeDashboardContent();
-                } else {
-                    cleanupAndRedirect();
-                }
+                await initializeDashboardContent();
+             
                 
             } catch (error) {
                 console.error('⚠ Error en inicialización:', error);
@@ -808,34 +768,9 @@
             }
         }
 
-        async function verifyToken() {
-            try {
-                const response = await fetch(`${API_BASE}/auth/verify-token`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) return false;
-
-                const data = await response.json();
-                if (!data.success || !data.user) return false;
-
-                currentUser = data.user;
-                isAuthenticated = true;
-                return true;
-                
-            } catch (error) {
-                return false;
-            }
-        }
 
         async function initializeDashboardContent() {
-            document.getElementById('securityLoading').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'flex';
-            
+
             await loadDashboardData();
             initializeCharts();
             startPeriodicCheck();

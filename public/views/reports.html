@@ -280,36 +280,6 @@
             border-radius: 20px;
         }
 
-        .security-loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            color: white;
-        }
-
-        .security-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* ===== CONTENIDO DE REPORTES ===== */
         .content-area {
             padding: 2rem;
@@ -663,10 +633,6 @@
                 font-size: 0.8rem;
             }
 
-            .sidebar-toggle {
-                display: none;
-            }
-
             .breadcrumb {
                 display: none;
             }
@@ -682,6 +648,11 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .stat-card,
@@ -712,15 +683,7 @@
     </style>
 </head>
 <body>
-    <div class="security-loading" id="securityLoading">
-        <div class="security-spinner"></div>
-        <h2>Verificando Acceso</h2>
-        <p>Cargando reportes...</p>
-    </div>
-
-    <div class="app-container" id="appContainer" style="display: none;">
-        <!-- SIDEBAR será generado por sidebar.js -->
-
+    <div class="app-container">
         <main class="main-content" id="mainContent">
             <div class="top-bar">
                 <div class="top-bar-left">
@@ -808,24 +771,70 @@
         // Variables globales
         let currentPeriod = 'today';
         let refreshInterval;
-        const API_BASE = '/api';
-        let authToken = localStorage.getItem('pos_token');
 
-        // Verificar autenticación
-        if (!authToken) {
-            window.location.href = '/login';
-        }
+        // Datos de muestra para simular API
+        const sampleDashboardData = {
+            today: {
+                amount: 1247.50,
+                sales: 23,
+                average: 54.24
+            },
+            this_month: {
+                amount: 18456.75
+            },
+            top_products_today: [
+                { product_name: 'Pizza Margherita', total_quantity: 8 },
+                { product_name: 'Hamburguesa Clásica', total_quantity: 6 },
+                { product_name: 'Coca Cola 500ml', total_quantity: 15 },
+                { product_name: 'Café Americano', total_quantity: 12 },
+                { product_name: 'Papas Fritas', total_quantity: 9 }
+            ]
+        };
+
+        const sampleTodaySales = [
+            {
+                id: 1,
+                customer_name: 'Juan Pérez',
+                user_name: 'María García',
+                total: 85.50,
+                created_at: new Date().toISOString()
+            },
+            {
+                id: 2,
+                customer_name: 'Ana López',
+                user_name: 'Carlos Ruiz',
+                total: 127.25,
+                created_at: new Date(Date.now() - 1800000).toISOString()
+            },
+            {
+                id: 3,
+                customer_name: 'Pedro Martínez',
+                user_name: 'María García',
+                total: 43.75,
+                created_at: new Date(Date.now() - 3600000).toISOString()
+            },
+            {
+                id: 4,
+                customer_name: 'Cliente',
+                user_name: 'Carlos Ruiz',
+                total: 98.00,
+                created_at: new Date(Date.now() - 5400000).toISOString()
+            },
+            {
+                id: 5,
+                customer_name: 'Laura Sánchez',
+                user_name: 'María García',
+                total: 156.50,
+                created_at: new Date(Date.now() - 7200000).toISOString()
+            }
+        ];
 
         // Inicializar página
         document.addEventListener('DOMContentLoaded', function() {
-            // Esperar a que sidebar.js se inicialice
             setTimeout(initializeReports, 100);
         });
 
         async function initializeReports() {
-            document.getElementById('securityLoading').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'flex';
-            
             await loadDashboard();
             
             // Auto-refresh cada 30 segundos
@@ -847,14 +856,10 @@
 
         async function loadStats() {
             try {
-                const response = await fetch(`${API_BASE}/reports/dashboard`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (!response.ok) throw new Error('Error cargando estadísticas');
-
-                const data = await response.json();
-                renderStats(data.dashboard);
+                // Simular carga de API
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                renderStats(sampleDashboardData);
                 
             } catch (error) {
                 console.error('Error cargando estadísticas:', error);
@@ -864,14 +869,10 @@
 
         async function loadRecentSales() {
             try {
-                const response = await fetch(`${API_BASE}/sales/today`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (!response.ok) throw new Error('Error cargando ventas');
-
-                const data = await response.json();
-                renderRecentSales(data.today_sales || []);
+                // Simular carga de API
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                renderRecentSales(sampleTodaySales);
                 
             } catch (error) {
                 console.error('Error cargando ventas:', error);
@@ -881,14 +882,10 @@
 
         async function loadTopProducts() {
             try {
-                const response = await fetch(`${API_BASE}/reports/dashboard`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-
-                if (!response.ok) throw new Error('Error cargando productos');
-
-                const data = await response.json();
-                renderTopProducts(data.dashboard.top_products_today || []);
+                // Simular carga de API
+                await new Promise(resolve => setTimeout(resolve, 400));
+                
+                renderTopProducts(sampleDashboardData.top_products_today);
                 
             } catch (error) {
                 console.error('Error cargando productos:', error);
@@ -958,7 +955,7 @@
                             <p>👤 ${sale.customer_name || 'Cliente'} - ${timeStr}</p>
                             <p>👨‍💼 ${sale.user_name}</p>
                         </div>
-                        <div class="sale-amount">$${sale.total.toFixed(2)}</div>
+                        <div class="sale-amount">${sale.total.toFixed(2)}</div>
                     </div>
                 `;
             }).join('');
@@ -995,7 +992,7 @@
             });
             document.querySelector(`[data-period="${period}"]`).classList.add('active');
             
-            // Recargar datos
+            // Recargar datos con simulación de cambio
             loadDashboard();
         }
 
@@ -1024,16 +1021,18 @@
             }, 5000);
         }
 
-        // Funciones de compatibilidad
+        // Funciones de compatibilidad con sidebar
         function logout() {
             if (confirm('¿Está seguro que desea cerrar sesión?')) {
                 clearInterval(refreshInterval);
-                localStorage.removeItem('pos_token');
-                localStorage.removeItem('pos_user');
-                window.location.href = '/login';
+                // Simular logout
+                console.log('Cerrando sesión...');
+                // localStorage.removeItem('pos_token');
+                // window.location.href = '/login';
             }
         }
 
+        // Función global para compatibilidad
         window.appLogout = logout;
 
         // Limpiar interval al salir

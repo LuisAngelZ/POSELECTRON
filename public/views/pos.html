@@ -345,37 +345,6 @@
       justify-content: center;
     }
 
-    /* === LOADING SCREEN === */
-    .security-loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #ff8a65 0%, #ff7043 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      color: white;
-    }
-
-    .security-spinner {
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top: 3px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 1rem;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
     /* ====== ESTILOS POS ESPECÍFICOS ====== */
     .pos-content {
       --orange1: #ff8a65;
@@ -744,14 +713,14 @@
   </style>
 </head>
 <body>
-  <!-- Loading Screen -->
+  <!-- Loading Screen 
   <div class="security-loading" id="securityLoading">
     <div class="security-spinner"></div>
     <h2>🔒 Verificando Acceso</h2>
     <p>Autenticando usuario...</p>
-  </div>
+  </div>-->
 
-  <div class="app-container" id="appContainer" style="display:none;">
+  <div class="app-container" id="appContainer">
     <!-- SIDEBAR (será generado por sidebar.js) -->
     
     <!-- MAIN CONTENT -->
@@ -883,52 +852,23 @@
 
     // ===== INICIALIZACIÓN =====
     document.addEventListener('DOMContentLoaded', () => {
-      if (!authToken) {
-        location.href = '/login';
-        return;
-      }
       
       // Esperar a que sidebar.js se inicialice
       setTimeout(initPOS, 100);
     });
 
     async function initPOS() {
-      try {
-        // Verificar autenticación
-        await verifyToken();
-        
-        // Mostrar contenido tras auth
-        document.getElementById('securityLoading').style.display = 'none';
-        document.getElementById('appContainer').style.display = 'flex';
+  try {
+    // Inicializar funcionalidades POS directamente
+    await checkPrinterStatus();
+    await Promise.all([loadCategories(), loadProducts()]);
+    setupPOSEventListeners();
 
-        // Inicializar funcionalidades POS
-        await checkPrinterStatus();
-        await Promise.all([loadCategories(), loadProducts()]);
-        setupPOSEventListeners();
-
-      } catch (e) {
-        console.error('Error inicializando POS:', e);
-        alert('Error inicializando POS');
-        localStorage.removeItem('pos_token');
-        location.href = '/login';
-      }
-    }
-
-    // ===== AUTENTICACIÓN =====
-    async function verifyToken() {
-      const response = await fetch(`${API_BASE}/auth/verify-token`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) throw new Error('Token inválido');
-      
-      const data = await response.json();
-      currentUser = data.user;
-    }
+  } catch (e) {
+    console.error('Error inicializando POS:', e);
+    alert('Error inicializando POS');
+  }
+}
 
     // ===== CATEGORÍAS =====
     async function loadCategories() {
