@@ -1313,12 +1313,14 @@
 
                                 <div class="form-grid">
 
-                                    <div class="form-group">
-                                        <label for="productImage" class="form-label">URL de Imagen</label>
-                                        <input type="url" id="productImage" name="image_url" class="form-input" 
-                                               placeholder="https://ejemplo.com/imagen.jpg">
-                                        <div class="input-helper">Opcional - URL de la imagen</div>
-                                    </div>
+<div class="form-group full-width">
+  <label for="productImage" class="form-label">Imagen del Producto</label>
+  <input type="file" id="productImage" name="image" class="form-input" accept="image/png,image/jpeg,image/webp">
+  <div class="input-helper">Opcional - JPG/PNG/WebP máx. 2MB</div>
+
+  <!-- Preview opcional -->
+  <img id="productImagePreview" style="display:none;margin-top:10px;max-height:160px;border-radius:12px;object-fit:cover;">
+</div>
                                 </div>
                             </div>
 
@@ -1435,10 +1437,14 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="modalProductImage" class="form-label">URL de Imagen</label>
-                    <input type="url" id="modalProductImage" name="image_url" class="form-input" 
-                           placeholder="https://ejemplo.com/imagen.jpg">
-                </div>
+    <label for="modalProductImage" class="form-label">Cambiar Imagen</label>
+    <input type="file" id="modalProductImage" name="image" class="form-input" 
+           accept="image/*" onchange="previewModalImage(this)">
+    <div class="input-helper">Opcional - Selecciona una nueva imagen</div>
+    <div id="modalImagePreview" class="image-preview">
+        <img id="modalPreviewImg" src="" alt="Imagen actual" style="max-width: 200px; max-height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none;">
+    </div>
+</div>
 
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">
@@ -1532,6 +1538,23 @@
                     closeModal('categoryModal');
                 }
             });
+
+            // Vista previa de la imagen
+document.addEventListener('change', function (e) {
+  if (e.target && e.target.id === 'productImage') {
+    const file = e.target.files && e.target.files[0];
+    const preview = document.getElementById('productImagePreview');
+    if (!preview) return;
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = 'block';
+    } else {
+      preview.removeAttribute('src');
+      preview.style.display = 'none';
+    }
+  }
+});
+
         }
 
         async function loadData() {
@@ -1896,14 +1919,12 @@ function renderCategories() {
         }
 
         // EDIT FUNCTIONS
-     function editProduct(productId) {
+function editProduct(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) {
         showNotification('Producto no encontrado', 'error');
         return;
     }
-    
-    console.log('Editando producto:', product);
     
     currentEditingId = productId;
     document.getElementById('modalProductId').value = product.id;
@@ -1911,7 +1932,16 @@ function renderCategories() {
     document.getElementById('modalProductPrice').value = product.price || '';
     document.getElementById('modalProductCategory').value = product.category_id || '';
     document.getElementById('modalProductDescription').value = product.description || '';
-    document.getElementById('modalProductImage').value = product.image_url || '';
+    
+    // Mostrar imagen actual si existe
+    const modalPreviewImg = document.getElementById('modalPreviewImg');
+    if (product.image_url) {
+        modalPreviewImg.src = product.image_url;
+        modalPreviewImg.style.display = 'block';
+    } else {
+        modalPreviewImg.style.display = 'none';
+    }
+    
     showModal('productModal');
 }
 
@@ -1931,143 +1961,127 @@ function renderCategories() {
         }
 
         // CRUD PRODUCTOS - Métodos reales
-     async function handleCreateSubmit(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const submitBtn = document.getElementById('submitBtn');
-    const submitBtnText = document.getElementById('submitBtnText');
-    
-    const productData = {
-        name: formData.get('name').trim(),
-        price: parseFloat(formData.get('price')),
-        category_id: parseInt(formData.get('category_id')),
-        description: formData.get('description')?.trim() || null,
-        image_url: formData.get('image_url')?.trim() || null
-        // SIN stock
-    };
+// === CREAR PRODUCTO con archivo ===
+async function handleCreateSubmit(e) {
+  e.preventDefault();
 
-    if (!productData.name || !productData.price || !productData.category_id) {
-        showNotification('Por favor completa todos los campos requeridos', 'error');
-        return;
+  const submitBtn = document.getElementById('submitBtn');
+  const submitBtnText = document.getElementById('submitBtnText');
+
+  const name = document.getElementById('productName').value.trim();
+  const price = document.getElementById('productPrice').value;
+  const categoryId = document.getElementById('productCategory').value;
+  const description = (document.getElementById('productDescription').value || '').trim();
+  const imageFile = document.getElementById('productImage').files[0];
+
+  // Validaciones mínimas
+  if (!name) return showNotification('El nombre del producto es requerido', 'error');
+  if (!price || parseFloat(price) <= 0) return showNotification('El precio debe ser mayor a 0', 'error');
+  if (!categoryId) return showNotification('Debe seleccionar una categoría', 'error');
+
+  // Construir FormData (multipart/form-data)
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('price', price);
+  fd.append('category_id', categoryId);
+  fd.append('description', description);
+  if (imageFile) fd.append('image', imageFile); // <-- AQUÍ VA EL ARCHIVO
+
+  try {
+    submitBtn.disabled = true;
+    submitBtnText.textContent = 'Creando...';
+
+    const response = await fetch(`${API_BASE}/products`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}` // ¡NO pongas Content-Type aquí!
+      },
+      body: fd
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || `Error HTTP: ${response.status}`);
     }
 
-    if (productData.price <= 0) {
-        showNotification('El precio debe ser mayor a 0', 'error');
-        return;
-    }
+    await loadProducts();
+    renderProducts();
+    resetForm();
+    showNotification('Producto creado exitosamente', 'success');
 
-    try {
-        submitBtn.disabled = true;
-        submitBtnText.textContent = 'Creando...';
+    setTimeout(() => {
+      switchTab('products');
+      document.querySelector('.tab-btn[onclick*="products"]').click();
+    }, 1000);
 
-        const response = await fetch(`${API_BASE}/products`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(productData)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.message || 'Error creando producto');
-        }
-
-        await loadProducts();
-        renderProducts();
-        resetForm();
-        showNotification('Producto creado exitosamente', 'success');
-        
-        setTimeout(() => {
-            switchTab('products');
-            document.querySelector('.tab-btn[onclick*="products"]').click();
-        }, 1500);
-
-    } catch (error) {
-        console.error('Error:', error);
-        showNotification(error.message || 'Error creando producto', 'error');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtnText.textContent = 'Crear Producto';
-    }
+  } catch (err) {
+    console.error(err);
+    showNotification(err.message || 'Error creando producto', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtnText.textContent = 'Crear Producto';
+  }
 }
 
-       async function handleEditSubmit(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const submitBtn = document.getElementById('modalSubmitBtn');
-    const productId = parseInt(document.getElementById('modalProductId').value);
-    
-    console.log('=== ENVIANDO ACTUALIZACIÓN (SIN STOCK) ===');
-    console.log('Product ID:', productId);
-    
-    const updatedData = {
-        name: formData.get('name')?.trim() || '',
-        price: formData.get('price') || '0',
-        category_id: formData.get('category_id') || '',
-        description: formData.get('description')?.trim() || '',
-        image_url: formData.get('image_url')?.trim() || ''
-        // SIN stock
-    };
+// === ACTUALIZAR PRODUCTO (usa FormData; conserva imagen si no eliges una nueva) ===
+async function handleEditSubmit(e) {
+  e.preventDefault();
 
-    console.log('Datos procesados (SIN STOCK):', updatedData);
+  const submitBtn = document.getElementById('modalSubmitBtn');
+  const productId = parseInt(document.getElementById('modalProductId').value);
 
-    // Validaciones en frontend
-    if (!updatedData.name) {
-        showNotification('El nombre del producto es requerido', 'error');
-        return;
-    }
+  // Arma el FormData
+  const fd = new FormData();
+  fd.append('name', document.getElementById('modalProductName').value.trim());
+  fd.append('price', document.getElementById('modalProductPrice').value);
+  fd.append('category_id', document.getElementById('modalProductCategory').value);
+  fd.append('description', (document.getElementById('modalProductDescription').value || '').trim());
 
-    if (!updatedData.price || isNaN(parseFloat(updatedData.price)) || parseFloat(updatedData.price) <= 0) {
-        showNotification('El precio debe ser un número mayor a 0', 'error');
-        return;
-    }
+  // Solo si el usuario elige una nueva imagen la enviamos
+  const newFile = document.getElementById('modalProductImage').files[0];
+  if (newFile) fd.append('image', newFile);
 
-    if (!updatedData.category_id) {
-        showNotification('La categoría es requerida', 'error');
-        return;
-    }
+  // Validaciones rápidas
+  if (!fd.get('name')) return showNotification('El nombre del producto es requerido', 'error');
+  if (!fd.get('price') || isNaN(parseFloat(fd.get('price'))) || parseFloat(fd.get('price')) <= 0) {
+    return showNotification('El precio debe ser un número mayor a 0', 'error');
+  }
+  if (!fd.get('category_id')) return showNotification('La categoría es requerida', 'error');
 
-    try {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="loading-spinner"></span> Actualizando...';
+  try {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading-spinner"></span> Actualizando...';
 
-        console.log('Enviando PUT request a:', `${API_BASE}/products/${productId}`);
+    const resp = await fetch(`${API_BASE}/products/${productId}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${authToken}` }, // ¡NO pongas Content-Type!
+      body: fd
+    });
 
-        const response = await fetch(`${API_BASE}/products/${productId}`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(updatedData)
-        });
+    const result = await resp.json();
+    if (!resp.ok || !result.success) throw new Error(result.message || `Error HTTP: ${resp.status}`);
 
-        console.log('Response status:', response.status);
+    await loadProducts();
+    renderProducts();
+    closeModal('productModal');
+    showNotification('Producto actualizado exitosamente', 'success');
 
-        const result = await response.json();
-        console.log('Response data:', result);
-
-        if (!response.ok) {
-            throw new Error(result.message || `Error HTTP: ${response.status}`);
-        }
-
-        await loadProducts();
-        renderProducts();
-        closeModal('productModal');
-        showNotification('Producto actualizado exitosamente', 'success');
-
-    } catch (error) {
-        console.error('ERROR AL ACTUALIZAR:', error);
-        showNotification(error.message || 'Error actualizando producto', 'error');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '💾 Actualizar Producto';
-    }
+  } catch (error) {
+    console.error('ERROR AL ACTUALIZAR:', error);
+    showNotification(error.message || 'Error actualizando producto', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '💾 Actualizar Producto';
+  }
+}
+function previewModalImage(input) {
+  const file = input.files && input.files[0];
+  const img = document.getElementById('modalPreviewImg');
+  if (!img) return;
+  if (file) {
+    img.src = URL.createObjectURL(file);
+    img.style.display = 'block';
+  }
 }
 
         async function deleteProduct(productId, productName) {
@@ -2262,9 +2276,14 @@ function renderCategories() {
         }
 
         // FORM FUNCTIONS
-        function resetForm() {
-            document.getElementById('productForm').reset();
-        }
+       function resetForm() {
+  document.getElementById('productForm').reset();
+  const preview = document.getElementById('productImagePreview');
+  if (preview) {
+    preview.removeAttribute('src');
+    preview.style.display = 'none';
+  }
+}
 
         function resetCategoryForm() {
             document.getElementById('categoryForm').reset();
@@ -2320,6 +2339,41 @@ function renderCategories() {
 
         // Global functions for compatibility
         window.appLogout = logout;
+
+
+        // Funciones para vista previa de imágenes
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+function previewModalImage(input) {
+    const previewImg = document.getElementById('modalPreviewImg');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
     </script>
 
     <!-- Cargar sidebar universal -->

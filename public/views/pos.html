@@ -512,17 +512,25 @@
     }
 
     .product-image {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--orange1), var(--orange2));
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 0.6rem;
-      font-size: 1.25rem;
-    }
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--orange1), var(--orange2));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.6rem;
+  font-size: 1.25rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
     .product-name {
       font-weight: 700;
@@ -969,7 +977,15 @@ function renderProducts(list = products) {
 
   grid.innerHTML = list.map(product => `
     <div class="product-card" onclick="addToCart(${product.id})" data-category="${product.category_id}">
-      <div class="product-image">🍽️</div>
+      <div class="product-image">
+        ${product.image_url ? 
+          `<img src="${product.image_url}" alt="${product.name}" 
+               style="width:100%;height:100%;object-fit:cover;border-radius:12px;" 
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+           <div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-size:2rem;color:#ff7043;">🍽️</div>` :
+          `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#ff7043;">🍽️</div>`
+        }
+      </div>
       <div class="product-name">${product.name}</div>
       <div class="product-price">Bs ${parseInt(product.price)}</div>
     </div>

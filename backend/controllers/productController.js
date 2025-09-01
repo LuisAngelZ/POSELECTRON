@@ -3,24 +3,6 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 
 class ProductController {
-    // Obtener todos los productos
-    static async getAll(req, res) {
-        try {
-            const products = await Product.findAll();
-            
-            res.json({
-                success: true,
-                products
-            });
-
-        } catch (error) {
-            console.error('Error obteniendo productos:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error interno del servidor'
-            });
-        }
-    }
 
     // Obtener productos por categoría
     static async getByCategory(req, res) {
@@ -80,147 +62,85 @@ class ProductController {
         }
     }
 
- static async create(req, res) {
-    try {
-        const { name, description, price, category_id, image_url } = req.body;
+   static async getAll(req, res) {
+        try {
+            const products = await Product.findAll();
+            
+            res.json({
+                success: true,
+                products
+            });
 
-        // Validar datos requeridos (SIN STOCK)
-        if (!name || !price || !category_id) {
-            return res.status(400).json({
+        } catch (error) {
+            console.error('Error obteniendo productos:', error);
+            res.status(500).json({
                 success: false,
-                message: 'Nombre, precio y categoría son requeridos'
+                message: 'Error interno del servidor'
             });
         }
-
-        // Validar precio
-        if (isNaN(price) || price <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'El precio debe ser un número mayor a 0'
-            });
-        }
-
-        // Verificar que la categoría existe
-        const category = await Category.findById(category_id);
-        if (!category) {
-            return res.status(400).json({
-                success: false,
-                message: 'La categoría especificada no existe'
-            });
-        }
-
-        const newProduct = await Product.create({
-            name: name.trim(),
-            description: description ? description.trim() : null,
-            price: parseFloat(price),
-            category_id: parseInt(category_id),
-            image_url: image_url ? image_url.trim() : null
-            // SIN stock
-        });
-
-        res.status(201).json({
-            success: true,
-            message: 'Producto creado exitosamente',
-            product: newProduct
-        });
-
-    } catch (error) {
-        console.error('Error creando producto:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error interno del servidor'
-        });
     }
+
+  // server/controllers/productController.js
+static async create(req, res) {
+  try {
+    const { name, description, price, category_id, image_url } = req.body;
+
+    if (!name || !price || !category_id) {
+      return res.status(400).json({ success:false, message:'Nombre, precio y categoría son requeridos' });
+    }
+    if (isNaN(price) || price <= 0) {
+      return res.status(400).json({ success:false, message:'El precio debe ser un número mayor a 0' });
+    }
+
+    // Construir la URL final de imagen
+    const finalImageUrl = req.file
+      ? `/uploads/products/${req.file.filename}`
+      : (image_url ? image_url.trim() : null);
+
+    const newProduct = await Product.create({
+      name: name.trim(),
+      description: description ? description.trim() : null,
+      price: parseFloat(price),
+      category_id: parseInt(category_id),
+      image_url: finalImageUrl
+    });
+
+    return res.status(201).json({ success:true, message:'Producto creado exitosamente', product:newProduct });
+  } catch (error) {
+    console.error('Error creando producto:', error);
+    return res.status(500).json({ success:false, message:'Error interno del servidor' });
+  }
 }
 
-    // Actualizar producto - NUEVO MÉTODO
- static async update(req, res) {
-    try {
-        const { id } = req.params;
-        const { name, description, price, category_id, image_url } = req.body;
+static async update(req, res) {
+  try {
+    const { id } = req.params;
+    const { name, description, price, category_id, image_url } = req.body;
 
-        // LOGGING PARA DEBUG
-        console.log('=== ACTUALIZANDO PRODUCTO (SIN STOCK) ===');
-        console.log('ID del producto:', id);
-        console.log('Datos recibidos:', { name, description, price, category_id, image_url });
-
-        // Verificar que el producto existe
-        const existingProduct = await Product.findById(id);
-        if (!existingProduct) {
-            console.log('Producto no encontrado con ID:', id);
-            return res.status(404).json({
-                success: false,
-                message: 'Producto no encontrado'
-            });
-        }
-
-        console.log('Producto existente:', existingProduct);
-
-        // Validaciones básicas
-        if (!name || name.trim() === '') {
-            return res.status(400).json({
-                success: false,
-                message: 'El nombre del producto es requerido'
-            });
-        }
-
-        if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'El precio debe ser un número mayor a 0'
-            });
-        }
-
-        if (!category_id || isNaN(parseInt(category_id))) {
-            return res.status(400).json({
-                success: false,
-                message: 'La categoría es requerida'
-            });
-        }
-
-        // Verificar que la categoría existe
-        const category = await Category.findById(category_id);
-        if (!category) {
-            return res.status(400).json({
-                success: false,
-                message: 'La categoría especificada no existe'
-            });
-        }
-
-        // Preparar datos para actualización (SIN STOCK)
-        const updateData = {
-            name: name.trim(),
-            description: description && description.trim() !== '' ? description.trim() : null,
-            price: parseFloat(price),
-            category_id: parseInt(category_id),
-            image_url: image_url && image_url.trim() !== '' ? image_url.trim() : null
-        };
-
-        console.log('Datos para actualización:', updateData);
-
-        const updatedProduct = await Product.update(id, updateData);
-
-        console.log('Producto actualizado exitosamente:', updatedProduct);
-
-        res.json({
-            success: true,
-            message: 'Producto actualizado exitosamente',
-            product: updatedProduct
-        });
-
-    } catch (error) {
-        console.error('ERROR COMPLETO al actualizar producto:', {
-            message: error.message,
-            stack: error.stack,
-            data: req.body
-        });
-        
-        res.status(500).json({
-            success: false,
-            message: 'Error interno del servidor',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+    if (!name || !price || !category_id) {
+      return res.status(400).json({ success:false, message:'Nombre, precio y categoría son requeridos' });
     }
+    if (isNaN(price) || price <= 0) {
+      return res.status(400).json({ success:false, message:'El precio debe ser un número mayor a 0' });
+    }
+
+    const finalImageUrl = req.file
+      ? `/uploads/products/${req.file.filename}`
+      : (image_url ? image_url.trim() : null);
+
+    const updated = await Product.update(id, {
+      name: name.trim(),
+      description: description ? description.trim() : null,
+      price: parseFloat(price),
+      category_id: parseInt(category_id),
+      image_url: finalImageUrl
+    });
+
+    return res.json({ success:true, message:'Producto actualizado', product: updated });
+  } catch (error) {
+    console.error('Error actualizando producto:', error);
+    return res.status(500).json({ success:false, message:'Error interno del servidor' });
+  }
 }
 
     // Eliminar producto (soft delete)

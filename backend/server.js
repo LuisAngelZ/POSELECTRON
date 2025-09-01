@@ -48,7 +48,7 @@ app.use((req, res, next) => {
 
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../public')));
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // RUTAS BÁSICAS SIN DEPENDENCIAS EXTERNAS PRIMERO
 app.get('/', (req, res) => {
     res.redirect('/login');
