@@ -380,165 +380,412 @@
             background: white;
         }
 
-        .products-grid, .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
+        /* ===== ESTILOS MEJORADOS PARA LAS TARJETAS ===== */
 
-        .product-card, .category-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e8eaed;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+/* Grid más compacto con más columnas */
+.products-grid, .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+}
 
-        .product-card:hover, .category-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-        }
+/* Tarjetas más compactas y elegantes */
+.product-card, .category-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: auto;
+    max-width: 100%;
+}
 
-        .product-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
+.product-card:hover, .category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    border-color: #ff8a65;
+}
 
-        .category-header {
-            width: 100%;
-            height: 120px;
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
+/* Imagen del producto más pequeña */
+.product-image {
+    width: 100%;
+    height: 140px; /* Reducido de 200px */
+    background: linear-gradient(135deg, #fff8f3, #ffe8d6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
 
-        .category-icon {
-            font-size: 3rem;
-            color: #ff7043;
-            opacity: 0.7;
-        }
+.category-header {
+    width: 100%;
+    height: 80px; /* Reducido de 120px */
+    background: linear-gradient(135deg, #fff8f3, #ffe8d6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
 
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+.category-icon {
+    font-size: 2rem; /* Reducido de 3rem */
+    color: #ff7043;
+    opacity: 0.7;
+}
 
-        .product-image-placeholder {
-            font-size: 3rem;
-            color: #ff7043;
-            opacity: 0.5;
-        }
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
 
-        .product-info, .category-info {
-            padding: 1.5rem;
-        }
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
 
-        .product-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
+.product-image-placeholder {
+    font-size: 2.5rem; /* Reducido de 3rem */
+    color: #ff7043;
+    opacity: 0.5;
+}
 
-        .product-name, .category-name {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #1a1d29;
-            margin-bottom: 0.25rem;
-        }
+/* Información del producto más compacta */
+.product-info, .category-info {
+    padding: 1rem; /* Reducido de 1.5rem */
+}
 
-        .product-category {
-            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-            color: #ff7043;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
+.product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem; /* Reducido */
+}
 
-        .category-description {
-            color: #6b7280;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-bottom: 1rem;
-        }
+.product-name, .category-name {
+    font-size: 1rem; /* Reducido de 1.2rem */
+    font-weight: 700;
+    color: #1a1d29;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-        .category-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
+.product-category {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.25rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid #e2e8f0;
+}
 
-        .product-price {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #ff7043;
-            margin-bottom: 0.5rem;
-        }
+.category-description {
+    color: #6b7280;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    /* Agregar ambas propiedades para compatibilidad completa */
+    -webkit-line-clamp: 2;
+    line-clamp: 2; /* ← AGREGAR ESTA LÍNEA */
+}
 
-        .product-description {
-            color: #6b7280;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-bottom: 1.5rem;
-            max-height: 2.8rem;
-            overflow: hidden;
-            display: -webkit-box;
-            /*-webkit-line-clamp: 2;*/
-            -webkit-box-orient: vertical;
-        }
+.category-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem; /* Reducido */
+    font-size: 0.75rem; /* Más pequeño */
+    color: #6b7280;
+}
 
-        .product-actions, .category-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
+.product-price {
+    font-size: 1.3rem; /* Reducido de 1.5rem */
+    font-weight: 800;
+    color: #ff7043;
+    margin-bottom: 0.5rem;
+}
 
-        .btn-small {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-            flex: 1;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
+.product-description {
+    color: #6b7280;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    /* Agregar ambas propiedades para compatibilidad completa */
+    -webkit-line-clamp: 2;
+    line-clamp: 2; /* ← AGREGAR ESTA LÍNEA */
+}
 
-        .btn-small.btn-warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-        }
+/* Botones más pequeños y elegantes */
+.product-actions, .category-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1rem;
+}
+.btn-small::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+.btn-small:active::before {
+    width: 100px;
+    height: 100px;
+}
 
-        .btn-small.btn-warning:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            transform: translateY(-1px);
-        }
+/* Botones más modernos y minimalistas */
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    flex: 1;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
+}
 
-        .btn-small.btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
+/* Botón de editar - Color sólido amarillo/naranja */
+.btn-small.btn-warning {
+    background: #f59e0b;
+    color: white;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
 
-        .btn-small.btn-danger:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            transform: translateY(-1px);
-        }
+.btn-small.btn-warning:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btn-small.btn-warning:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+/* Botón de eliminar - Color sólido rojo */
+.btn-small.btn-danger {
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.btn-small.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-small.btn-danger:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+.btn-small.btn-warning-outline {
+    background: white;
+    color: #f59e0b;
+    border: 2px solid #f59e0b;
+    box-shadow: none;
+}
+
+.btn-small.btn-warning-outline:hover {
+    background: #f59e0b;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(245, 158, 11, 0.2);
+}
+
+.btn-small.btn-danger-outline {
+    background: white;
+    color: #ef4444;
+    border: 2px solid #ef4444;
+    box-shadow: none;
+}
+
+.btn-small.btn-danger-outline:hover {
+    background: #ef4444;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(239, 68, 68, 0.2);
+}
+
+
+/* Efectos visuales adicionales */
+.product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ff8a65, #ff7043, #f4511e);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.product-card:hover::before {
+    opacity: 1;
+}
+
+/* Badge de precio más elegante */
+.product-price::before {
+    content: 'Bs. ';
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+/* Estado vacío más compacto */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem; /* Reducido */
+    background: white;
+    border-radius: 12px; /* Más pequeño */
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.empty-icon {
+    font-size: 3rem; /* Reducido de 4rem */
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+
+.empty-title {
+    font-size: 1.3rem; /* Reducido */
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.empty-description {
+    color: #6b7280;
+    margin-bottom: 1.5rem; /* Reducido */
+    font-size: 0.9rem;
+}
+
+/* Responsive mejorado */
+@media (max-width: 1200px) {
+    .products-grid, .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .products-grid, .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+    
+    .product-info, .category-info {
+        padding: 0.875rem;
+    }
+    
+    .product-actions, .category-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .products-grid, .categories-grid {
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+    }
+}
+
+/* Animación sutil al cargar */
+.product-card, .category-card {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mejoras adicionales para el layout */
+.products-header, .categories-header {
+    background: white;
+    padding: 1.25rem 1.5rem; /* Más compacto */
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    margin-bottom: 1.5rem;
+}
+
+.search-input {
+    padding: 0.6rem 1rem; /* Más compacto */
+    border: 2px solid #f0f0f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    min-width: 280px; /* Más pequeño */
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #ff7043;
+    box-shadow: 0 0 0 3px rgba(255, 112, 67, 0.08);
+}
+
+.filter-section {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
+
+.filter-select {
+    padding: 0.4rem 0.8rem; /* Más compacto */
+    border: 2px solid #f0f0f0;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #ff7043;
+    box-shadow: 0 0 0 2px rgba(255, 112, 67, 0.08);
+}
 
         .empty-state {
             text-align: center;
@@ -1065,12 +1312,6 @@
                                 </div>
 
                                 <div class="form-grid">
-                                    <div class="form-group">
-                                        <label for="productStock" class="form-label">Stock</label>
-                                        <input type="number" id="productStock" name="stock" class="form-input" 
-                                               placeholder="0" min="0" value="0">
-                                        <div class="input-helper">Cantidad disponible</div>
-                                    </div>
 
                                     <div class="form-group">
                                         <label for="productImage" class="form-label">URL de Imagen</label>
@@ -1194,12 +1435,6 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="modalProductStock" class="form-label">Stock</label>
-                    <input type="number" id="modalProductStock" name="stock" class="form-input" 
-                           placeholder="0" min="0">
-                </div>
-
-                <div class="form-group">
                     <label for="modalProductImage" class="form-label">URL de Imagen</label>
                     <input type="url" id="modalProductImage" name="image_url" class="form-input" 
                            placeholder="https://ejemplo.com/imagen.jpg">
@@ -1251,7 +1486,7 @@
             </form>
         </div>
     </div>
-    <script>
+<script>
         // Variables globales
         let products = [];
         let categories = [];
@@ -1259,76 +1494,12 @@
         let filteredCategories = [];
         let currentEditingId = null;
 
-        // Datos de ejemplo
-        const sampleCategories = [
-            { id: 1, name: 'Bebidas', description: 'Bebidas frías y calientes' },
-            { id: 2, name: 'Comidas', description: 'Platos principales y aperitivos' },
-            { id: 3, name: 'Postres', description: 'Dulces y postres variados' },
-            { id: 4, name: 'Snacks', description: 'Aperitivos y bocadillos' }
-        ];
+        // BASE URL del API
+        const API_BASE = '/api';
 
-        const sampleProducts = [
-            {
-                id: 1,
-                name: 'Pizza Margherita',
-                price: 85.50,
-                category_id: 2,
-                category_name: 'Comidas',
-                description: 'Pizza clásica con tomate, mozzarella y albahaca fresca',
-                stock: 15,
-                image_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'
-            },
-            {
-                id: 2,
-                name: 'Coca Cola 500ml',
-                price: 12.00,
-                category_id: 1,
-                category_name: 'Bebidas',
-                description: 'Bebida gaseosa clásica en botella de 500ml',
-                stock: 48,
-                image_url: 'https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=400&h=300&fit=crop'
-            },
-            {
-                id: 3,
-                name: 'Cheesecake de Fresa',
-                price: 35.75,
-                category_id: 3,
-                category_name: 'Postres',
-                description: 'Delicioso cheesecake con cobertura de fresas frescas',
-                stock: 8,
-                image_url: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400&h=300&fit=crop'
-            },
-            {
-                id: 4,
-                name: 'Hamburguesa Clásica',
-                price: 65.00,
-                category_id: 2,
-                category_name: 'Comidas',
-                description: 'Hamburguesa con carne de res, lechuga, tomate y queso',
-                stock: 22,
-                image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop'
-            },
-            {
-                id: 5,
-                name: 'Café Americano',
-                price: 18.50,
-                category_id: 1,
-                category_name: 'Bebidas',
-                description: 'Café negro americano servido caliente',
-                stock: 0,
-                image_url: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400&h=300&fit=crop'
-            },
-            {
-                id: 6,
-                name: 'Papas Fritas',
-                price: 25.00,
-                category_id: 4,
-                category_name: 'Snacks',
-                description: 'Papas fritas crujientes con sal',
-                stock: 30,
-                image_url: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=400&h=300&fit=crop'
-            }
-        ];
+        // Token de autenticación (por ahora usamos uno básico)
+        // Token de autenticación
+        let authToken = localStorage.getItem('pos_token') || 'demo-token';
 
         // Inicializar aplicación
         document.addEventListener('DOMContentLoaded', function() {
@@ -1363,12 +1534,96 @@
             });
         }
 
-        function loadData() {
-            categories = [...sampleCategories];
-            products = [...sampleProducts];
+        async function loadData() {
+            try {
+                showNotification('Cargando datos...', 'success');
+                await Promise.all([loadCategories(), loadProducts()]);
+                populateCategorySelects();
+                renderProducts();
+                renderCategories();
+                showNotification('Datos cargados correctamente', 'success');
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                showNotification('Error cargando datos del servidor', 'error');
+                // Si falla, usar datos de muestra como fallback
+                loadSampleData();
+            }
+        }
+
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE}/categories`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error cargando categorías');
+                
+                const data = await response.json();
+                categories = data.categories || [];
+                filteredCategories = [...categories];
+                
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error cargando productos');
+                
+                const data = await response.json();
+                products = data.products || [];
+                filteredProducts = [...products];
+                
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        // Fallback con datos de muestra si falla la conexión
+        function loadSampleData() {
+            categories = [
+                { id: 1, name: 'Bebidas', description: 'Bebidas frías y calientes' },
+                { id: 2, name: 'Comidas', description: 'Platos principales y aperitivos' },
+                { id: 3, name: 'Postres', description: 'Dulces y postres variados' },
+                { id: 4, name: 'Snacks', description: 'Aperitivos y bocadillos' }
+            ];
+
+            products = [
+                {
+                    id: 1,
+                    name: 'Pizza Margherita',
+                    price: 85.50,
+                    category_id: 2,
+                    category_name: 'Comidas',
+                    description: 'Pizza clásica con tomate, mozzarella y albahaca fresca',
+                    image_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'
+                },
+                {
+                    id: 2,
+                    name: 'Coca Cola 500ml',
+                    price: 12.00,
+                    category_id: 1,
+                    category_name: 'Bebidas',
+                    description: 'Bebida gaseosa clásica en botella de 500ml',
+                    image_url: 'https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=400&h=300&fit=crop'
+                }
+            ];
+            
             filteredProducts = [...products];
             filteredCategories = [...categories];
-            
             populateCategorySelects();
             renderProducts();
             renderCategories();
@@ -1395,6 +1650,7 @@
                 });
             });
         }
+
         // Sistema de tabs
         function switchTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1414,134 +1670,134 @@
             }
         }
 
-        // PRODUCTOS
-        function renderProducts() {
-            const container = document.getElementById('productsContainer');
-            
-            if (filteredProducts.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📦</div>
-                        <h3 class="empty-title">No hay productos</h3>
-                        <p class="empty-description">
-                            ${products.length === 0 ? 
-                                'Comienza agregando tu primer producto al inventario' : 
-                                'No se encontraron productos con los filtros aplicados'
-                            }
-                        </p>
-                        <button class="btn btn-primary" onclick="switchTab('create-product'); document.querySelector('.tab-btn[onclick*=create-product]').click();">
-                            ➕ ${products.length === 0 ? 'Crear Primer Producto' : 'Crear Producto'}
-                        </button>
-                    </div>
-                `;
-                return;
-            }
+    // ===== FUNCIÓN MEJORADA PARA RENDERIZAR PRODUCTOS =====
+// Reemplaza la función renderProducts() en tu products.html:
 
-            const productsHTML = filteredProducts.map(product => `
-                <div class="product-card" onclick="viewProduct(${product.id})">
-                    <div class="product-image">
-                        ${product.image_url ? 
-                            `<img src="${product.image_url}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                             <div class="product-image-placeholder" style="display: none;">📦</div>` :
-                            `<div class="product-image-placeholder">📦</div>`
-                        }
-                    </div>
-                    
-                    <div class="product-info">
-                        <div class="product-header">
-                            <div>
-                                <h3 class="product-name">${product.name}</h3>
-                                <span class="product-category">${product.category_name || 'Sin categoría'}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="product-price">Bs. ${parseFloat(product.price).toFixed(2)}</div>
-                        
-                        ${product.description ? 
-                            `<p class="product-description">${product.description}</p>` : 
-                            ''
-                        }
-                        
-                        <div style="font-size: 0.9rem; margin-bottom: 1rem;">
-                            <span style="color: ${product.stock > 10 ? '#10b981' : product.stock > 0 ? '#f59e0b' : '#ef4444'};">
-                                Stock: ${product.stock} ${product.stock === 0 ? '(Agotado)' : ''}
-                            </span>
-                        </div>
-                        
-                        <div class="product-actions">
-                            <button class="btn-small btn-warning" onclick="event.stopPropagation(); editProduct(${product.id})">
-                                ✏️ Editar
-                            </button>
-                            <button class="btn-small btn-danger" onclick="event.stopPropagation(); deleteProduct(${product.id}, '${product.name.replace(/'/g, "\\'")}')">
-                                🗑️ Eliminar
-                            </button>
-                        </div>
+function renderProducts() {
+    const container = document.getElementById('productsContainer');
+    
+    if (filteredProducts.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <h3 class="empty-title">No hay productos</h3>
+                <p class="empty-description">
+                    ${products.length === 0 ? 
+                        'Comienza agregando tu primer producto al inventario' : 
+                        'No se encontraron productos con los filtros aplicados'
+                    }
+                </p>
+                <button class="btn btn-primary" onclick="switchTab('create-product'); document.querySelector('.tab-btn[onclick*=create-product]').click();">
+                    ➕ ${products.length === 0 ? 'Crear Primer Producto' : 'Crear Producto'}
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    const productsHTML = filteredProducts.map(product => `
+        <div class="product-card" onclick="viewProduct(${product.id})">
+            <div class="product-image">
+                ${product.image_url ? 
+                    `<img src="${product.image_url}" alt="${product.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                     <div class="product-image-placeholder" style="display: none;">📦</div>` :
+                    `<div class="product-image-placeholder">📦</div>`
+                }
+            </div>
+            
+            <div class="product-info">
+                <div class="product-header">
+                    <div style="flex: 1; min-width: 0;">
+                        <h3 class="product-name" title="${product.name}">${product.name}</h3>
+                        <span class="product-category">${product.category_name || 'Sin categoría'}</span>
                     </div>
                 </div>
-            `).join('');
+                
+                <div class="product-price">${parseFloat(product.price).toFixed(2)}</div>
+                
+                ${product.description ? 
+                    `<p class="product-description" title="${product.description}">${product.description}</p>` : 
+                    ''
+                }
+                
+                <div class="product-actions">
+                    <button class="btn-small btn-warning" onclick="event.stopPropagation(); editProduct(${product.id})" title="Editar producto">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn-small btn-danger" onclick="event.stopPropagation(); deleteProduct(${product.id}, '${product.name.replace(/'/g, "\\'")}');" title="Eliminar producto">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
 
-            container.innerHTML = `<div class="products-grid">${productsHTML}</div>`;
-        }
+    container.innerHTML = `<div class="products-grid">${productsHTML}</div>`;
+}
 
-        // CATEGORÍAS
-        function renderCategories() {
-            const container = document.getElementById('categoriesContainer');
-            
-            if (filteredCategories.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🏷️</div>
-                        <h3 class="empty-title">No hay categorías</h3>
-                        <p class="empty-description">
-                            ${categories.length === 0 ? 
-                                'Comienza creando tu primera categoría' : 
-                                'No se encontraron categorías con los filtros aplicados'
-                            }
-                        </p>
-                        <button class="btn btn-primary" onclick="switchTab('create-category'); document.querySelector('.tab-btn[onclick*=create-category]').click();">
-                            ➕ ${categories.length === 0 ? 'Crear Primera Categoría' : 'Crear Categoría'}
+// ===== FUNCIÓN MEJORADA PARA RENDERIZAR CATEGORÍAS =====
+// Reemplaza la función renderCategories() en tu products.html:
+
+function renderCategories() {
+    const container = document.getElementById('categoriesContainer');
+    
+    if (filteredCategories.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🏷️</div>
+                <h3 class="empty-title">No hay categorías</h3>
+                <p class="empty-description">
+                    ${categories.length === 0 ? 
+                        'Comienza creando tu primera categoría' : 
+                        'No se encontraron categorías con los filtros aplicados'
+                    }
+                </p>
+                <button class="btn btn-primary" onclick="switchTab('create-category'); document.querySelector('.tab-btn[onclick*=create-category]').click();">
+                    ➕ ${categories.length === 0 ? 'Crear Primera Categoría' : 'Crear Categoría'}
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    const categoriesHTML = filteredCategories.map(category => {
+        const productCount = products.filter(p => p.category_id === category.id).length;
+        return `
+            <div class="category-card" onclick="viewCategory(${category.id})">
+                <div class="category-header">
+                    <div class="category-icon">🏷️</div>
+                </div>
+                
+                <div class="category-info">
+                    <h3 class="category-name" title="${category.name}">${category.name}</h3>
+                    
+                    ${category.description ? 
+                        `<p class="category-description" title="${category.description}">${category.description}</p>` : 
+                        '<p class="category-description">Sin descripción</p>'
+                    }
+                    
+                    <div class="category-stats">
+                        <span><strong>${productCount}</strong> producto${productCount !== 1 ? 's' : ''}</span>
+                        <span>ID: ${category.id}</span>
+                    </div>
+                    
+                    <div class="category-actions">
+                        <button class="btn-small btn-warning" onclick="event.stopPropagation(); editCategory(${category.id})" title="Editar categoría">
+                            ✏️ Editar
+                        </button>
+                        <button class="btn-small btn-danger" onclick="event.stopPropagation(); deleteCategory(${category.id}, '${category.name.replace(/'/g, "\\'")}', ${productCount})" title="Eliminar categoría">
+                            🗑️ Eliminar
                         </button>
                     </div>
-                `;
-                return;
-            }
+                </div>
+            </div>
+        `;
+    }).join('');
 
-            const categoriesHTML = filteredCategories.map(category => {
-                const productCount = products.filter(p => p.category_id === category.id).length;
-                return `
-                    <div class="category-card" onclick="viewCategory(${category.id})">
-                        <div class="category-header">
-                            <div class="category-icon">🏷️</div>
-                        </div>
-                        
-                        <div class="category-info">
-                            <h3 class="category-name">${category.name}</h3>
-                            
-                            ${category.description ? 
-                                `<p class="category-description">${category.description}</p>` : 
-                                '<p class="category-description">Sin descripción</p>'
-                            }
-                            
-                            <div class="category-stats">
-                                <span>${productCount} producto${productCount !== 1 ? 's' : ''}</span>
-                                <span>ID: ${category.id}</span>
-                            </div>
-                            
-                            <div class="category-actions">
-                                <button class="btn-small btn-warning" onclick="event.stopPropagation(); editCategory(${category.id})">
-                                    ✏️ Editar
-                                </button>
-                                <button class="btn-small btn-danger" onclick="event.stopPropagation(); deleteCategory(${category.id}, '${category.name.replace(/'/g, "\\'")}', ${productCount})">
-                                    🗑️ Eliminar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+    container.innerHTML = `<div class="categories-grid">${categoriesHTML}</div>`;
+}
 
-            container.innerHTML = `<div class="categories-grid">${categoriesHTML}</div>`;
-        }
+        // SEARCH FUNCTIONS
         function setupSearch() {
             let searchTimeout;
             
@@ -1624,7 +1880,7 @@
             renderProducts();
         }
 
-        // CRUD PRODUCTOS
+        // VIEW FUNCTIONS
         function viewProduct(productId) {
             const product = products.find(p => p.id === productId);
             if (product) {
@@ -1632,49 +1888,32 @@
             }
         }
 
-        function editProduct(productId) {
-            const product = products.find(p => p.id === productId);
-            if (!product) {
-                showNotification('Producto no encontrado', 'error');
-                return;
-            }
-            
-            currentEditingId = productId;
-            document.getElementById('modalProductId').value = product.id;
-            document.getElementById('modalProductName').value = product.name;
-            document.getElementById('modalProductPrice').value = product.price;
-            document.getElementById('modalProductCategory').value = product.category_id;
-            document.getElementById('modalProductDescription').value = product.description || '';
-            document.getElementById('modalProductStock').value = product.stock || 0;
-            document.getElementById('modalProductImage').value = product.image_url || '';
-            
-            showModal('productModal');
-        }
-
-        function deleteProduct(productId, productName) {
-            if (!confirm(`¿Estás seguro de eliminar el producto "${productName}"?\n\nEsta acción no se puede deshacer.`)) {
-                return;
-            }
-
-            try {
-                products = products.filter(p => p.id !== productId);
-                filteredProducts = filteredProducts.filter(p => p.id !== productId);
-                renderProducts();
-                populateCategorySelects();
-                showNotification('Producto eliminado exitosamente', 'success');
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error eliminando producto', 'error');
-            }
-        }
-
-        // CRUD CATEGORÍAS
         function viewCategory(categoryId) {
             const category = categories.find(c => c.id === categoryId);
             if (category) {
                 showNotification(`Viendo categoría: ${category.name}`, 'success');
             }
         }
+
+        // EDIT FUNCTIONS
+     function editProduct(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) {
+        showNotification('Producto no encontrado', 'error');
+        return;
+    }
+    
+    console.log('Editando producto:', product);
+    
+    currentEditingId = productId;
+    document.getElementById('modalProductId').value = product.id;
+    document.getElementById('modalProductName').value = product.name || '';
+    document.getElementById('modalProductPrice').value = product.price || '';
+    document.getElementById('modalProductCategory').value = product.category_id || '';
+    document.getElementById('modalProductDescription').value = product.description || '';
+    document.getElementById('modalProductImage').value = product.image_url || '';
+    showModal('productModal');
+}
 
         function editCategory(categoryId) {
             const category = categories.find(c => c.id === categoryId);
@@ -1691,87 +1930,179 @@
             showModal('categoryModal');
         }
 
-        function deleteCategory(categoryId, categoryName, productCount) {
-            if (productCount > 0) {
-                showNotification(`No se puede eliminar la categoría "${categoryName}" porque tiene ${productCount} producto(s) asociado(s).`, 'error');
-                return;
-            }
+        // CRUD PRODUCTOS - Métodos reales
+     async function handleCreateSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    
+    const productData = {
+        name: formData.get('name').trim(),
+        price: parseFloat(formData.get('price')),
+        category_id: parseInt(formData.get('category_id')),
+        description: formData.get('description')?.trim() || null,
+        image_url: formData.get('image_url')?.trim() || null
+        // SIN stock
+    };
 
-            if (!confirm(`¿Estás seguro de eliminar la categoría "${categoryName}"?\n\nEsta acción no se puede deshacer.`)) {
+    if (!productData.name || !productData.price || !productData.category_id) {
+        showNotification('Por favor completa todos los campos requeridos', 'error');
+        return;
+    }
+
+    if (productData.price <= 0) {
+        showNotification('El precio debe ser mayor a 0', 'error');
+        return;
+    }
+
+    try {
+        submitBtn.disabled = true;
+        submitBtnText.textContent = 'Creando...';
+
+        const response = await fetch(`${API_BASE}/products`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Error creando producto');
+        }
+
+        await loadProducts();
+        renderProducts();
+        resetForm();
+        showNotification('Producto creado exitosamente', 'success');
+        
+        setTimeout(() => {
+            switchTab('products');
+            document.querySelector('.tab-btn[onclick*="products"]').click();
+        }, 1500);
+
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification(error.message || 'Error creando producto', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtnText.textContent = 'Crear Producto';
+    }
+}
+
+       async function handleEditSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const submitBtn = document.getElementById('modalSubmitBtn');
+    const productId = parseInt(document.getElementById('modalProductId').value);
+    
+    console.log('=== ENVIANDO ACTUALIZACIÓN (SIN STOCK) ===');
+    console.log('Product ID:', productId);
+    
+    const updatedData = {
+        name: formData.get('name')?.trim() || '',
+        price: formData.get('price') || '0',
+        category_id: formData.get('category_id') || '',
+        description: formData.get('description')?.trim() || '',
+        image_url: formData.get('image_url')?.trim() || ''
+        // SIN stock
+    };
+
+    console.log('Datos procesados (SIN STOCK):', updatedData);
+
+    // Validaciones en frontend
+    if (!updatedData.name) {
+        showNotification('El nombre del producto es requerido', 'error');
+        return;
+    }
+
+    if (!updatedData.price || isNaN(parseFloat(updatedData.price)) || parseFloat(updatedData.price) <= 0) {
+        showNotification('El precio debe ser un número mayor a 0', 'error');
+        return;
+    }
+
+    if (!updatedData.category_id) {
+        showNotification('La categoría es requerida', 'error');
+        return;
+    }
+
+    try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading-spinner"></span> Actualizando...';
+
+        console.log('Enviando PUT request a:', `${API_BASE}/products/${productId}`);
+
+        const response = await fetch(`${API_BASE}/products/${productId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        });
+
+        console.log('Response status:', response.status);
+
+        const result = await response.json();
+        console.log('Response data:', result);
+
+        if (!response.ok) {
+            throw new Error(result.message || `Error HTTP: ${response.status}`);
+        }
+
+        await loadProducts();
+        renderProducts();
+        closeModal('productModal');
+        showNotification('Producto actualizado exitosamente', 'success');
+
+    } catch (error) {
+        console.error('ERROR AL ACTUALIZAR:', error);
+        showNotification(error.message || 'Error actualizando producto', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '💾 Actualizar Producto';
+    }
+}
+
+        async function deleteProduct(productId, productName) {
+            if (!confirm(`¿Estás seguro de eliminar el producto "${productName}"?\n\nEsta acción no se puede deshacer.`)) {
                 return;
             }
 
             try {
-                categories = categories.filter(c => c.id !== categoryId);
-                filteredCategories = filteredCategories.filter(c => c.id !== categoryId);
-                renderCategories();
+                const response = await fetch(`${API_BASE}/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Error eliminando producto');
+                }
+
+                await loadProducts();
+                renderProducts();
                 populateCategorySelects();
-                showNotification('Categoría eliminada exitosamente', 'success');
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error eliminando categoría', 'error');
-            }
-        }
-        // FORMULARIOS
-        function handleCreateSubmit(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const submitBtn = document.getElementById('submitBtn');
-            const submitBtnText = document.getElementById('submitBtnText');
-            
-            const productData = {
-                id: Date.now(),
-                name: formData.get('name').trim(),
-                price: parseFloat(formData.get('price')),
-                category_id: parseInt(formData.get('category_id')),
-                description: formData.get('description')?.trim() || null,
-                stock: parseInt(formData.get('stock')) || 0,
-                image_url: formData.get('image_url')?.trim() || null
-            };
-
-            const category = categories.find(c => c.id === productData.category_id);
-            productData.category_name = category ? category.name : 'Sin categoría';
-
-            if (!productData.name || !productData.price || !productData.category_id) {
-                showNotification('Por favor completa todos los campos requeridos', 'error');
-                return;
-            }
-
-            if (productData.price <= 0) {
-                showNotification('El precio debe ser mayor a 0', 'error');
-                return;
-            }
-
-            try {
-                submitBtn.disabled = true;
-                submitBtnText.textContent = 'Creando...';
-
-                setTimeout(() => {
-                    products.push(productData);
-                    filteredProducts = [...products];
-                    renderProducts();
-                    resetForm();
-                    showNotification('Producto creado exitosamente', 'success');
-                    
-                    setTimeout(() => {
-                        switchTab('products');
-                        document.querySelector('.tab-btn[onclick*="products"]').click();
-                    }, 1500);
-
-                    submitBtn.disabled = false;
-                    submitBtnText.textContent = 'Crear Producto';
-                }, 1000);
+                showNotification('Producto eliminado exitosamente', 'success');
 
             } catch (error) {
                 console.error('Error:', error);
-                showNotification('Error creando producto', 'error');
-                submitBtn.disabled = false;
-                submitBtnText.textContent = 'Crear Producto';
+                showNotification(error.message || 'Error eliminando producto', 'error');
             }
         }
 
-        function handleCreateCategorySubmit(e) {
+        // CRUD CATEGORÍAS - Métodos reales
+        async function handleCreateCategorySubmit(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
@@ -1779,7 +2110,6 @@
             const submitBtnText = document.getElementById('categorySubmitBtnText');
             
             const categoryData = {
-                id: Date.now(),
                 name: formData.get('name').trim(),
                 description: formData.get('description')?.trim() || null
             };
@@ -1789,101 +2119,46 @@
                 return;
             }
 
-            const existingCategory = categories.find(c => 
-                c.name.toLowerCase() === categoryData.name.toLowerCase()
-            );
-            
-            if (existingCategory) {
-                showNotification('Ya existe una categoría con ese nombre', 'error');
-                return;
-            }
-
             try {
                 submitBtn.disabled = true;
                 submitBtnText.textContent = 'Creando...';
 
-                setTimeout(() => {
-                    categories.push(categoryData);
-                    filteredCategories = [...categories];
-                    renderCategories();
-                    populateCategorySelects();
-                    resetCategoryForm();
-                    showNotification('Categoría creada exitosamente', 'success');
-                    
-                    setTimeout(() => {
-                        switchTab('categories');
-                        document.querySelector('.tab-btn[onclick*="categories"]').click();
-                    }, 1500);
+                const response = await fetch(`${API_BASE}/categories`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(categoryData)
+                });
 
-                    submitBtn.disabled = false;
-                    submitBtnText.textContent = 'Crear Categoría';
-                }, 1000);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Error creando categoría');
+                }
+
+                await loadCategories();
+                renderCategories();
+                populateCategorySelects();
+                resetCategoryForm();
+                showNotification('Categoría creada exitosamente', 'success');
+                
+                setTimeout(() => {
+                    switchTab('categories');
+                    document.querySelector('.tab-btn[onclick*="categories"]').click();
+                }, 1500);
 
             } catch (error) {
                 console.error('Error:', error);
-                showNotification('Error creando categoría', 'error');
+                showNotification(error.message || 'Error creando categoría', 'error');
+            } finally {
                 submitBtn.disabled = false;
                 submitBtnText.textContent = 'Crear Categoría';
             }
         }
-        function handleEditSubmit(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const submitBtn = document.getElementById('modalSubmitBtn');
-            const productId = parseInt(document.getElementById('modalProductId').value);
-            
-            const updatedData = {
-                name: formData.get('name').trim(),
-                price: parseFloat(formData.get('price')),
-                category_id: parseInt(formData.get('category_id')),
-                description: formData.get('description')?.trim() || null,
-                stock: parseInt(formData.get('stock')) || 0,
-                image_url: formData.get('image_url')?.trim() || null
-            };
 
-            const category = categories.find(c => c.id === updatedData.category_id);
-            updatedData.category_name = category ? category.name : 'Sin categoría';
-
-            if (!updatedData.name || !updatedData.price || !updatedData.category_id) {
-                showNotification('Por favor completa todos los campos requeridos', 'error');
-                return;
-            }
-
-            if (updatedData.price <= 0) {
-                showNotification('El precio debe ser mayor a 0', 'error');
-                return;
-            }
-
-            try {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="loading-spinner"></span> Actualizando...';
-
-                setTimeout(() => {
-                    const productIndex = products.findIndex(p => p.id === productId);
-                    if (productIndex !== -1) {
-                        products[productIndex] = { ...products[productIndex], ...updatedData };
-                        filteredProducts = [...products];
-                        renderProducts();
-                        closeModal('productModal');
-                        showNotification('Producto actualizado exitosamente', 'success');
-                    } else {
-                        throw new Error('Producto no encontrado');
-                    }
-
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '💾 Actualizar Producto';
-                }, 1000);
-
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error actualizando producto', 'error');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '💾 Actualizar Producto';
-            }
-        }
-
-        function handleEditCategorySubmit(e) {
+        async function handleEditCategorySubmit(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
@@ -1900,54 +2175,79 @@
                 return;
             }
 
-            const existingCategory = categories.find(c => 
-                c.id !== categoryId && 
-                c.name.toLowerCase() === updatedData.name.toLowerCase()
-            );
-            
-            if (existingCategory) {
-                showNotification('Ya existe una categoría con ese nombre', 'error');
-                return;
-            }
-
             try {
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="loading-spinner"></span> Actualizando...';
 
-                setTimeout(() => {
-                    const categoryIndex = categories.findIndex(c => c.id === categoryId);
-                    if (categoryIndex !== -1) {
-                        categories[categoryIndex] = { ...categories[categoryIndex], ...updatedData };
-                        
-                        products.forEach(product => {
-                            if (product.category_id === categoryId) {
-                                product.category_name = updatedData.name;
-                            }
-                        });
-                        
-                        filteredCategories = [...categories];
-                        filteredProducts = [...products];
-                        renderCategories();
-                        renderProducts();
-                        populateCategorySelects();
-                        closeModal('categoryModal');
-                        showNotification('Categoría actualizada exitosamente', 'success');
-                    } else {
-                        throw new Error('Categoría no encontrada');
-                    }
+                const response = await fetch(`${API_BASE}/categories/${categoryId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
 
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '💾 Actualizar Categoría';
-                }, 1000);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Error actualizando categoría');
+                }
+
+                await Promise.all([loadCategories(), loadProducts()]);
+                renderCategories();
+                renderProducts();
+                populateCategorySelects();
+                closeModal('categoryModal');
+                showNotification('Categoría actualizada exitosamente', 'success');
 
             } catch (error) {
                 console.error('Error:', error);
-                showNotification('Error actualizando categoría', 'error');
+                showNotification(error.message || 'Error actualizando categoría', 'error');
+            } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '💾 Actualizar Categoría';
             }
         }
-        // MODALES
+
+        async function deleteCategory(categoryId, categoryName, productCount) {
+            if (productCount > 0) {
+                showNotification(`No se puede eliminar la categoría "${categoryName}" porque tiene ${productCount} producto(s) asociado(s).`, 'error');
+                return;
+            }
+
+            if (!confirm(`¿Estás seguro de eliminar la categoría "${categoryName}"?\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/categories/${categoryId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Error eliminando categoría');
+                }
+
+                await Promise.all([loadCategories(), loadProducts()]);
+                renderCategories();
+                renderProducts();
+                populateCategorySelects();
+                showNotification('Categoría eliminada exitosamente', 'success');
+
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification(error.message || 'Error eliminando categoría', 'error');
+            }
+        }
+
+        // MODAL FUNCTIONS
         function showModal(modalId) {
             const modal = document.getElementById(modalId);
             modal.classList.add('show');
@@ -1961,7 +2261,7 @@
             currentEditingId = null;
         }
 
-        // FORMULARIOS
+        // FORM FUNCTIONS
         function resetForm() {
             document.getElementById('productForm').reset();
         }
@@ -1986,7 +2286,7 @@
             }
         }
 
-        // NOTIFICACIONES
+        // NOTIFICATION FUNCTIONS
         function showNotification(message, type = 'success') {
             const existing = document.querySelector('.notification');
             if (existing) existing.remove();
@@ -2009,7 +2309,7 @@
             }, 4000);
         }
 
-        // COMPATIBILIDAD CON SIDEBAR UNIVERSAL
+        // COMPATIBILITY FUNCTIONS
         function logout() {
             if (confirm('¿Está seguro que desea cerrar sesión?')) {
                 showNotification('Cerrando sesión...', 'success');
@@ -2018,7 +2318,7 @@
             }
         }
 
-        // Funciones globales para compatibilidad
+        // Global functions for compatibility
         window.appLogout = logout;
     </script>
 

@@ -1,50 +1,104 @@
-// server/controllers/reportController.js
+// ===== PARTE 2: ACTUALIZAR reportController.js CON DATOS REALES =====
+// Reemplaza completamente tu reportController.js con este código:
+
 const Sale = require('../models/Sale');
 const SaleDetail = require('../models/SaleDetail');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 
 class ReportController {
-    // Reporte de ventas diarias
+    // Dashboard principal con métricas clave - ACTUALIZADO
+    static async dashboard(req, res) {
+        try {
+            console.log('=== GENERANDO DASHBOARD ===');
+
+            // Obtener datos del día actual
+            const todayTotals = await Sale.getTodayTotals();
+            console.log('Totales de hoy:', todayTotals);
+
+            // Obtener datos del mes actual
+            const monthlyTotals = await Sale.getMonthlyTotals();
+            console.log('Totales del mes:', monthlyTotals);
+
+            // Top productos de hoy
+            const topProductsToday = await SaleDetail.getTodayTopProducts(5);
+            console.log('Top productos hoy:', topProductsToday);
+
+            // Ventas recientes de hoy
+            const recentSales = await Sale.getTodaySales();
+            console.log('Ventas recientes:', recentSales.length);
+
+            // Ventas por hora (para gráficos)
+            const hourlySales = await SaleDetail.getHourlySales();
+            
+            res.json({
+                success: true,
+                dashboard: {
+                    today: {
+                        sales: parseInt(todayTotals.total_sales) || 0,
+                        amount: parseFloat(todayTotals.total_amount) || 0,
+                        average: parseFloat(todayTotals.average_sale) || 0
+                    },
+                    this_month: {
+                        sales: parseInt(monthlyTotals.total_sales) || 0,
+                        amount: parseFloat(monthlyTotals.total_amount) || 0,
+                        average: parseFloat(monthlyTotals.average_sale) || 0
+                    },
+                    top_products_today: topProductsToday.map(p => ({
+                        product_name: p.product_name,
+                        total_quantity: parseInt(p.total_quantity),
+                        total_revenue: parseFloat(p.total_revenue || 0),
+                        times_sold: parseInt(p.times_sold || 0)
+                    })),
+                    recent_sales: recentSales.slice(0, 10).map(sale => ({
+                        id: sale.id,
+                        customer_name: sale.customer_name || 'Cliente',
+                        user_name: sale.user_name || sale.user_full_name || 'Usuario',
+                        total: parseFloat(sale.total),
+                        created_at: sale.created_at,
+                        table_number: sale.table_number
+                    })),
+                    hourly_sales: hourlySales
+                }
+            });
+
+        } catch (error) {
+            console.error('ERROR generando dashboard:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
+
+    // Reporte diario actualizado
     static async dailyReport(req, res) {
         try {
             const { date } = req.query;
             const targetDate = date || new Date().toISOString().split('T')[0];
             
+            console.log('=== REPORTE DIARIO ===', targetDate);
+
             const sales = await Sale.findByDateRange(targetDate, targetDate);
-            const totalAmount = sales.reduce((sum, sale) => sum + sale.total, 0);
+            const totalAmount = sales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
             
-            // Agrupar por usuario
+            // Ventas por usuario
             const salesByUser = {};
             sales.forEach(sale => {
-                const userName = sale.user_name || 'Usuario Desconocido';
+                const userName = sale.user_name || sale.user_full_name || 'Usuario Desconocido';
                 if (!salesByUser[userName]) {
                     salesByUser[userName] = { count: 0, amount: 0 };
                 }
                 salesByUser[userName].count += 1;
-                salesByUser[userName].amount += sale.total;
+                salesByUser[userName].amount += parseFloat(sale.total);
             });
 
-            // Productos más vendidos del día
-            const productSales = {};
-            for (const sale of sales) {
-                const details = await SaleDetail.findBySaleId(sale.id);
-                details.forEach(detail => {
-                    if (!productSales[detail.product_name]) {
-                        productSales[detail.product_name] = {
-                            quantity: 0,
-                            revenue: 0
-                        };
-                    }
-                    productSales[detail.product_name].quantity += detail.quantity;
-                    productSales[detail.product_name].revenue += detail.subtotal;
-                });
-            }
-
-            const topProducts = Object.entries(productSales)
-                .map(([name, data]) => ({ name, ...data }))
-                .sort((a, b) => b.quantity - a.quantity)
-                .slice(0, 10);
+            // Top productos del día
+            const topProducts = await SaleDetail.getTodayTopProducts(10);
+            
+            // Ventas por hora
+            const hourlySales = await SaleDetail.getHourlySales(targetDate);
 
             res.json({
                 success: true,
@@ -55,9 +109,14 @@ class ReportController {
                         total_amount: totalAmount,
                         average_sale: sales.length > 0 ? totalAmount / sales.length : 0
                     },
-                    sales_by_user: salesByUser,
+                    sales_by_user: Object.entries(salesByUser).map(([name, data]) => ({
+                        user_name: name,
+                        ...data,
+                        average: data.amount / data.count
+                    })),
                     top_products: topProducts,
-                    detailed_sales: sales
+                    hourly_breakdown: hourlySales,
+                    detailed_sales: sales.slice(0, 50) // Limitar para rendimiento
                 }
             });
 
@@ -70,7 +129,61 @@ class ReportController {
         }
     }
 
-    // Reporte de ventas mensuales
+    // Reporte semanal - NUEVO
+    static async weeklyReport(req, res) {
+        try {
+            const { startDate } = req.query;
+            const start = startDate || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const end = new Date().toISOString().split('T')[0];
+
+            console.log('=== REPORTE SEMANAL ===', start, 'al', end);
+
+            const sales = await Sale.findByDateRange(start, end);
+            const totalAmount = sales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
+
+            // Ventas por día de la semana
+            const dailySales = {};
+            sales.forEach(sale => {
+                const day = new Date(sale.created_at).toISOString().split('T')[0];
+                if (!dailySales[day]) {
+                    dailySales[day] = { count: 0, amount: 0 };
+                }
+                dailySales[day].count += 1;
+                dailySales[day].amount += parseFloat(sale.total);
+            });
+
+            // Top productos de la semana
+            const topProducts = await SaleDetail.getTopProducts(15, 7);
+
+            // Ventas por usuario
+            const salesByUser = await Sale.getSalesByUser(start, end);
+
+            res.json({
+                success: true,
+                report: {
+                    period: { start_date: start, end_date: end },
+                    summary: {
+                        total_sales: sales.length,
+                        total_amount: totalAmount,
+                        average_sale: sales.length > 0 ? totalAmount / sales.length : 0,
+                        days_with_sales: Object.keys(dailySales).length
+                    },
+                    daily_breakdown: dailySales,
+                    top_products: topProducts,
+                    user_performance: salesByUser
+                }
+            });
+
+        } catch (error) {
+            console.error('Error generando reporte semanal:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // Reporte mensual actualizado
     static async monthlyReport(req, res) {
         try {
             const { year, month } = req.query;
@@ -79,10 +192,13 @@ class ReportController {
             const targetMonth = month || (currentDate.getMonth() + 1);
             
             const startDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`;
-            const endDate = new Date(targetYear, targetMonth, 0).toISOString().split('T')[0];
+            const lastDay = new Date(targetYear, targetMonth, 0).getDate();
+            const endDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-${lastDay}`;
             
+            console.log('=== REPORTE MENSUAL ===', startDate, 'al', endDate);
+
             const sales = await Sale.findByDateRange(startDate, endDate);
-            const totalAmount = sales.reduce((sum, sale) => sum + sale.total, 0);
+            const totalAmount = sales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
             
             // Ventas por día del mes
             const dailySales = {};
@@ -92,29 +208,17 @@ class ReportController {
                     dailySales[day] = { count: 0, amount: 0 };
                 }
                 dailySales[day].count += 1;
-                dailySales[day].amount += sale.total;
+                dailySales[day].amount += parseFloat(sale.total);
             });
 
-            // Productos más vendidos del mes
-            const productSales = {};
-            for (const sale of sales) {
-                const details = await SaleDetail.findBySaleId(sale.id);
-                details.forEach(detail => {
-                    if (!productSales[detail.product_name]) {
-                        productSales[detail.product_name] = {
-                            quantity: 0,
-                            revenue: 0
-                        };
-                    }
-                    productSales[detail.product_name].quantity += detail.quantity;
-                    productSales[detail.product_name].revenue += detail.subtotal;
-                });
-            }
+            // Top productos del mes
+            const topProducts = await SaleDetail.getTopProducts(20, 30);
 
-            const topProducts = Object.entries(productSales)
-                .map(([name, data]) => ({ name, ...data }))
-                .sort((a, b) => b.revenue - a.revenue)
-                .slice(0, 15);
+            // Ventas por usuario del mes
+            const salesByUser = await Sale.getSalesByUser(startDate, endDate);
+
+            // Ventas por categoría
+            const salesByCategory = await SaleDetail.getSalesByCategory(startDate, endDate);
 
             res.json({
                 success: true,
@@ -127,7 +231,9 @@ class ReportController {
                         days_with_sales: Object.keys(dailySales).length
                     },
                     daily_sales: dailySales,
-                    top_products: topProducts
+                    top_products: topProducts,
+                    user_performance: salesByUser,
+                    category_performance: salesByCategory
                 }
             });
 
@@ -140,36 +246,38 @@ class ReportController {
         }
     }
 
-    // Reporte de productos
+    // Reporte de productos actualizado
     static async productReport(req, res) {
         try {
+            console.log('=== REPORTE DE PRODUCTOS ===');
+
             const products = await Product.findAll();
-            const topProducts = await SaleDetail.getTopProducts(20);
+            const topProducts = await SaleDetail.getTopProducts(25);
             
-            // Productos con stock bajo
-            const lowStockProducts = products.filter(p => p.stock <= 10);
-            
-            // Productos por categoría
+            // Productos por categoría con ventas
+            const categories = await Category.findAll();
             const productsByCategory = {};
-            products.forEach(product => {
-                const category = product.category_name || 'Sin Categoría';
-                if (!productsByCategory[category]) {
-                    productsByCategory[category] = [];
-                }
-                productsByCategory[category].push(product);
-            });
+            
+            for (const category of categories) {
+                const categoryProducts = await SaleDetail.getTopProductsByCategory(category.id, 10);
+                productsByCategory[category.name] = {
+                    category_info: category,
+                    top_products: categoryProducts,
+                    total_products: products.filter(p => p.category_id === category.id).length
+                };
+            }
 
             res.json({
                 success: true,
                 report: {
                     summary: {
                         total_products: products.length,
-                        low_stock_products: lowStockProducts.length,
-                        categories: Object.keys(productsByCategory).length
+                        active_products: products.filter(p => p.active).length,
+                        categories: categories.length
                     },
                     top_selling_products: topProducts,
-                    low_stock_products: lowStockProducts,
-                    products_by_category: productsByCategory
+                    products_by_category: productsByCategory,
+                    all_products: products.slice(0, 100) // Limitar para rendimiento
                 }
             });
 
@@ -182,50 +290,29 @@ class ReportController {
         }
     }
 
-    // Reporte de ventas por usuario
+    // Reporte de usuarios actualizado
     static async userReport(req, res) {
         try {
             const { startDate, endDate } = req.query;
             const start = startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
             const end = endDate || new Date().toISOString().split('T')[0];
             
-            const sales = await Sale.findByDateRange(start, end);
-            
-            // Agrupar por usuario
-            const userStats = {};
-            sales.forEach(sale => {
-                const userName = sale.user_name || 'Usuario Desconocido';
-                if (!userStats[userName]) {
-                    userStats[userName] = {
-                        sales_count: 0,
-                        total_amount: 0,
-                        average_sale: 0
-                    };
-                }
-                userStats[userName].sales_count += 1;
-                userStats[userName].total_amount += sale.total;
-            });
+            console.log('=== REPORTE DE USUARIOS ===', start, 'al', end);
 
-            // Calcular promedios
-            Object.keys(userStats).forEach(userName => {
-                const stats = userStats[userName];
-                stats.average_sale = stats.total_amount / stats.sales_count;
-            });
-
-            // Ordenar por total de ventas
-            const sortedUsers = Object.entries(userStats)
-                .map(([name, stats]) => ({ name, ...stats }))
-                .sort((a, b) => b.total_amount - a.total_amount);
+            const salesByUser = await Sale.getSalesByUser(start, end);
+            const allSales = await Sale.findByDateRange(start, end);
+            const totalAmount = allSales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
 
             res.json({
                 success: true,
                 report: {
                     period: { start_date: start, end_date: end },
-                    user_performance: sortedUsers,
+                    user_performance: salesByUser,
                     summary: {
-                        total_users: sortedUsers.length,
-                        total_sales: sales.length,
-                        total_amount: sales.reduce((sum, sale) => sum + sale.total, 0)
+                        total_users_with_sales: salesByUser.length,
+                        total_sales: allSales.length,
+                        total_amount: totalAmount,
+                        average_per_user: salesByUser.length > 0 ? totalAmount / salesByUser.length : 0
                     }
                 }
             });
@@ -239,45 +326,52 @@ class ReportController {
         }
     }
 
-    // Dashboard principal con métricas clave
-    static async dashboard(req, res) {
+    // Reporte por rango de fechas personalizado
+    static async customDateReport(req, res) {
         try {
-            // Obtener datos del día actual
-            const todayTotals = await Sale.getTodayTotals();
-            const monthlyTotals = await Sale.getMonthlyTotals();
-            const topProductsToday = await SaleDetail.getTodayTopProducts(5);
-            const topProductsOverall = await SaleDetail.getTopProducts(5);
+            const { startDate, endDate, groupBy } = req.query;
             
-            // Productos con stock bajo
-            const allProducts = await Product.findAll();
-            const lowStockProducts = allProducts.filter(p => p.stock <= 10);
+            if (!startDate || !endDate) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'startDate y endDate son requeridos'
+                });
+            }
+
+            console.log('=== REPORTE PERSONALIZADO ===', startDate, 'al', endDate);
+
+            const sales = await Sale.findByDateRange(startDate, endDate);
+            const totalAmount = sales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
             
-            // Ventas recientes
-            const recentSales = await Sale.findAll(10);
+            // Determinar días entre fechas
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+            // Top productos del período
+            const topProducts = await SaleDetail.getTopProducts(20, daysDiff);
+
+            // Ventas por usuario del período
+            const salesByUser = await Sale.getSalesByUser(startDate, endDate);
 
             res.json({
                 success: true,
-                dashboard: {
-                    today: {
-                        sales: todayTotals.total_sales || 0,
-                        amount: todayTotals.total_amount || 0,
-                        average: todayTotals.average_sale || 0
+                report: {
+                    period: { start_date: startDate, end_date: endDate, days: daysDiff },
+                    summary: {
+                        total_sales: sales.length,
+                        total_amount: totalAmount,
+                        average_sale: sales.length > 0 ? totalAmount / sales.length : 0,
+                        average_per_day: totalAmount / daysDiff
                     },
-                    this_month: {
-                        sales: monthlyTotals.total_sales || 0,
-                        amount: monthlyTotals.total_amount || 0,
-                        average: monthlyTotals.average_sale || 0
-                    },
-                    top_products_today: topProductsToday,
-                    top_products_overall: topProductsOverall,
-                    low_stock_alerts: lowStockProducts.length,
-                    low_stock_products: lowStockProducts.slice(0, 5),
-                    recent_sales: recentSales.slice(0, 5)
+                    top_products: topProducts,
+                    user_performance: salesByUser,
+                    detailed_sales: sales
                 }
             });
 
         } catch (error) {
-            console.error('Error generando dashboard:', error);
+            console.error('Error generando reporte personalizado:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor'

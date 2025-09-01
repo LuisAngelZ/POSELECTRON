@@ -237,6 +237,152 @@ class Sale {
             });
         });
     }
+
+
+        // Obtener totales del día actual
+    static async getTodayTotals() {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const today = new Date().toISOString().split('T')[0];
+            const sql = `
+                SELECT 
+                    COUNT(*) as total_sales,
+                    COALESCE(SUM(total), 0) as total_amount,
+                    COALESCE(AVG(total), 0) as average_sale
+                FROM sales 
+                WHERE DATE(created_at) = ?
+            `;
+            
+            database.getDB().get(sql, [today], (err, row) => {
+                if (err) reject(err);
+                else resolve(row || { total_sales: 0, total_amount: 0, average_sale: 0 });
+            });
+        });
+    }
+
+    // Obtener totales del mes actual
+    static async getMonthlyTotals() {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const startDate = `${year}-${month}-01`;
+            
+            const sql = `
+                SELECT 
+                    COUNT(*) as total_sales,
+                    COALESCE(SUM(total), 0) as total_amount,
+                    COALESCE(AVG(total), 0) as average_sale
+                FROM sales 
+                WHERE DATE(created_at) >= ?
+                AND strftime('%Y-%m', created_at) = ?
+            `;
+            
+            database.getDB().get(sql, [startDate, `${year}-${month}`], (err, row) => {
+                if (err) reject(err);
+                else resolve(row || { total_sales: 0, total_amount: 0, average_sale: 0 });
+            });
+        });
+    }
+
+    // Obtener ventas por rango de fechas
+    static async findByDateRange(startDate, endDate) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT s.*, u.username as user_name
+                FROM sales s
+                LEFT JOIN users u ON s.user_id = u.id
+                WHERE DATE(s.created_at) BETWEEN ? AND ?
+                ORDER BY s.created_at DESC
+            `;
+            
+            database.getDB().all(sql, [startDate, endDate], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+
+    // Obtener ventas de hoy con detalles
+    static async getTodaySales() {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const today = new Date().toISOString().split('T')[0];
+            const sql = `
+                SELECT 
+                    s.*,
+                    u.username as user_name,
+                    u.full_name as user_full_name
+                FROM sales s
+                LEFT JOIN users u ON s.user_id = u.id
+                WHERE DATE(s.created_at) = ?
+                ORDER BY s.created_at DESC
+                LIMIT 20
+            `;
+            
+            database.getDB().all(sql, [today], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+
+    // Obtener ventas por usuario en un período
+    static async getSalesByUser(startDate, endDate) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    u.id as user_id,
+                    u.username,
+                    u.full_name,
+                    COUNT(s.id) as total_sales,
+                    COALESCE(SUM(s.total), 0) as total_amount,
+                    COALESCE(AVG(s.total), 0) as average_sale
+                FROM users u
+                LEFT JOIN sales s ON u.id = s.user_id 
+                    AND DATE(s.created_at) BETWEEN ? AND ?
+                GROUP BY u.id, u.username, u.full_name
+                HAVING total_sales > 0
+                ORDER BY total_amount DESC
+            `;
+            
+            database.getDB().all(sql, [startDate, endDate], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+
+    // Obtener ventas agrupadas por día para gráficos
+    static async getDailySalesChart(days = 30) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    DATE(created_at) as sale_date,
+                    COUNT(*) as total_sales,
+                    SUM(total) as total_amount
+                FROM sales 
+                WHERE created_at >= date('now', '-${days} days')
+                GROUP BY DATE(created_at)
+                ORDER BY sale_date ASC
+            `;
+            
+            database.getDB().all(sql, [], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
 }
 
 module.exports = Sale;

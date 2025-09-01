@@ -452,6 +452,164 @@ class SaleDetail {
             });
         });
     }
+
+
+    // Obtener productos más vendidos de hoy
+    static async getTodayTopProducts(limit = 10) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const today = new Date().toISOString().split('T')[0];
+            const sql = `
+                SELECT 
+                    sd.product_name,
+                    p.id as product_id,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue,
+                    AVG(sd.unit_price) as avg_price,
+                    COUNT(DISTINCT sd.sale_id) as times_sold
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                LEFT JOIN products p ON sd.product_id = p.id
+                WHERE DATE(s.created_at) = ?
+                GROUP BY sd.product_name, sd.product_id
+                ORDER BY total_quantity DESC
+                LIMIT ?
+            `;
+            
+            database.getDB().all(sql, [today, limit], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+
+    // Obtener productos más vendidos en general
+    static async getTopProducts(limit = 10, days = 30) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    sd.product_name,
+                    p.id as product_id,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue,
+                    AVG(sd.unit_price) as avg_price,
+                    COUNT(DISTINCT sd.sale_id) as times_sold,
+                    COUNT(DISTINCT DATE(s.created_at)) as days_sold
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                LEFT JOIN products p ON sd.product_id = p.id
+                WHERE s.created_at >= date('now', '-${days} days')
+                GROUP BY sd.product_name, sd.product_id
+                ORDER BY total_quantity DESC
+                LIMIT ?
+            `;
+            
+            database.getDB().all(sql, [limit], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+
+    // Obtener productos más vendidos por categoría
+    static async getTopProductsByCategory(categoryId, limit = 5) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    sd.product_name,
+                    p.id as product_id,
+                    c.name as category_name,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                LEFT JOIN products p ON sd.product_id = p.id
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.category_id = ?
+                GROUP BY sd.product_name, sd.product_id, c.name
+                ORDER BY total_quantity DESC
+                LIMIT ?
+            `;
+            
+            database.getDB().all(sql, [categoryId, limit], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
+
+    // Obtener ventas por hora del día (para gráficos)
+    static async getHourlySales(date) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const targetDate = date || new Date().toISOString().split('T')[0];
+            const sql = `
+                SELECT 
+                    CAST(strftime('%H', s.created_at) AS INTEGER) as hour,
+                    COUNT(sd.id) as total_items,
+                    SUM(sd.subtotal) as total_amount,
+                    COUNT(DISTINCT sd.sale_id) as total_sales
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                WHERE DATE(s.created_at) = ?
+                GROUP BY CAST(strftime('%H', s.created_at) AS INTEGER)
+                ORDER BY hour ASC
+            `;
+            
+            database.getDB().all(sql, [targetDate], (err, rows) => {
+                if (err) reject(err);
+                else {
+                    // Llenar horas faltantes con 0
+                    const result = [];
+                    for (let i = 0; i < 24; i++) {
+                        const hourData = rows.find(r => r.hour === i) || {
+                            hour: i,
+                            total_items: 0,
+                            total_amount: 0,
+                            total_sales: 0
+                        };
+                        result.push(hourData);
+                    }
+                    resolve(result);
+                }
+            });
+        });
+    }
+
+    // Obtener reporte de ventas por categoría
+    static async getSalesByCategory(startDate, endDate) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    c.id as category_id,
+                    c.name as category_name,
+                    COUNT(DISTINCT sd.product_id) as unique_products,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue,
+                    AVG(sd.unit_price) as avg_price
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                LEFT JOIN products p ON sd.product_id = p.id
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE DATE(s.created_at) BETWEEN ? AND ?
+                GROUP BY c.id, c.name
+                ORDER BY total_revenue DESC
+            `;
+            
+            database.getDB().all(sql, [startDate, endDate], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        });
+    }
 }
 
 module.exports = SaleDetail;

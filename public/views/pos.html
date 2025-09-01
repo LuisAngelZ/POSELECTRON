@@ -603,39 +603,6 @@
       100% { transform: scale(1); }
     }
 
-    .payment-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.8rem;
-    }
-
-    .payment-item {
-      background: #f8fafc;
-      border-radius: 10px;
-      padding: 0.8rem;
-    }
-
-    .payment-label {
-      font-size: 0.7rem;
-      font-weight: 800;
-      color: #666;
-      text-transform: uppercase;
-    }
-
-    .payment-value {
-      font-weight: 800;
-      margin: 0.2rem 0;
-    }
-
-    .payment-input {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1.5px solid #e1e5e9;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 700;
-    }
-
     /* Botones */
     .action-buttons {
       display: grid;
@@ -651,15 +618,32 @@
       cursor: pointer;
     }
 
-    .btn-success {
-      background: linear-gradient(135deg, #28a745, #20c997);
-      color: #fff;
-    }
+   .btn-success {
+  background: linear-gradient(135deg, #ff8a65, #ff7043);
+  color: #fff;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
 
-    .btn-secondary {
-      background: linear-gradient(135deg, #6c757d, #5a6268);
-      color: #fff;
-    }
+.btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff7043, #f4511e);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 112, 67, 0.4);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #ff7043;
+  border: 2px solid #ff7043;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #ff7043;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 112, 67, 0.3);
+}
 
     .btn:disabled {
       opacity: 0.6;
@@ -710,15 +694,74 @@
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
       }
     }
+
+.payment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+
+.payment-item {
+  background: linear-gradient(135deg, #f8f9fb, #ffffff);
+  border: 2px solid #e8eaed;
+  border-radius: 16px;
+  padding: 1.2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-item:hover {
+  /* Quitar estos efectos exagerados */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.payment-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.payment-value {
+  font-weight: 900;
+  font-size: 1.4rem;
+  margin-bottom: 0.8rem;
+  color: #1a1d29;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.payment-input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.payment-input:focus {
+  outline: none;
+  border-color: var(--orange2);
+  box-shadow: 0 0 0 4px rgba(255, 112, 67, 0.15);
+  transform: scale(1.02);
+}
+
+.payment-input::placeholder {
+  color: #9ca3af;
+  font-weight: 500;
+}
   </style>
 </head>
 <body>
-  <!-- Loading Screen 
-  <div class="security-loading" id="securityLoading">
-    <div class="security-spinner"></div>
-    <h2>🔒 Verificando Acceso</h2>
-    <p>Autenticando usuario...</p>
-  </div>-->
 
   <div class="app-container" id="appContainer">
     <!-- SIDEBAR (será generado por sidebar.js) -->
@@ -811,28 +854,26 @@
                     </tbody>
                   </table>
                 </div>
+<div class="payment-grid">
 
-                <div class="totals-payment-section">
-                  <div class="total-main">
-                    <div style="font-weight:800;color:#666;margin-bottom:.3rem">TOTAL:</div>
-                    <div class="total-value" id="totalAmount">Bs 0.00</div>
-                  </div>
-                  <div class="payment-grid">
-                    <div class="payment-item">
-                      <div class="payment-label">Cobrado</div>
-                      <div class="payment-value">Bs <span id="chargedAmount">0.00</span></div>
-                      <input type="number" id="paidAmount" class="payment-input" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="payment-item">
-                      <div class="payment-label">Cambio</div>
-                      <div class="payment-value">Bs <span id="changeAmount">0.00</span></div>
-                    </div>
-                  </div>
-                  <div class="action-buttons">
-                    <button class="btn btn-secondary" onclick="clearCart()">Limpiar</button>
-                    <button class="btn btn-success" id="processBtn" onclick="processSale()" disabled>Registrar Venta (F8)</button>
-                  </div>
-                </div>
+  <div class="payment-item">
+    <div class="payment-label">Cobrado</div>
+    <div class="payment-value">Bs <span id="chargedAmount">0</span></div>
+    <input type="number" id="paidAmount" class="payment-input" placeholder="0.00" step="0.01">
+  </div>
+  <div class="payment-item">
+    <div class="payment-label">Cambio</div>
+    <div class="payment-value">Bs <span id="changeAmount">0</span></div>
+  </div>
+    <div class="payment-item">
+    <div class="payment-label">Total</div>
+    <div class="payment-value" id="totalDisplay">Bs 0</div>
+  </div>
+</div>
+<div class="action-buttons">
+  <button class="btn btn-secondary" onclick="clearCart()">Limpiar</button>
+  <button class="btn btn-success" id="processBtn" onclick="processSale()" disabled>Registrar Venta (F8)</button>
+</div>
               </div>
             </div>
           </div>
@@ -842,361 +883,394 @@
   </div>
 
   <script>
-    // ===== VARIABLES GLOBALES =====
-    let cart = [];
-    let products = [];
-    let categories = [];
-    let currentUser = null;
-    const API_BASE = '/api';
-    let authToken = localStorage.getItem('pos_token');
+// ===== VARIABLES GLOBALES =====
+let cart = [];
+let products = [];
+let categories = [];
+let currentUser = null;
+const API_BASE = '/api';
+let authToken = localStorage.getItem('pos_token');
 
-    // ===== INICIALIZACIÓN =====
-    document.addEventListener('DOMContentLoaded', () => {
-      
-      // Esperar a que sidebar.js se inicialice
-      setTimeout(initPOS, 100);
-    });
+// ===== INICIALIZACIÓN =====
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initPOS, 100);
+});
 
-    async function initPOS() {
+async function initPOS() {
   try {
-    // Inicializar funcionalidades POS directamente
     await checkPrinterStatus();
     await Promise.all([loadCategories(), loadProducts()]);
     setupPOSEventListeners();
-
   } catch (e) {
     console.error('Error inicializando POS:', e);
     alert('Error inicializando POS');
   }
 }
 
-    // ===== CATEGORÍAS =====
-    async function loadCategories() {
-      try {
-        const response = await fetch(`${API_BASE}/categories`, {
-          headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-        const data = await response.json();
-        categories = data.categories || [];
-        renderCategories();
-      } catch (error) {
-        console.error('Error cargando categorías:', error);
-      }
+// ===== CATEGORÍAS =====
+async function loadCategories() {
+  try {
+    const response = await fetch(`${API_BASE}/categories`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const data = await response.json();
+    categories = data.categories || [];
+    renderCategories();
+  } catch (error) {
+    console.error('Error cargando categorías:', error);
+  }
+}
+
+function renderCategories() {
+  const nav = document.getElementById('categoriesNav');
+  nav.innerHTML = '<button class="tab-btn active" data-category="all">Todos</button>';
+  
+  categories.forEach((category) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.dataset.category = category.id;
+    btn.textContent = category.name;
+    nav.appendChild(btn);
+  });
+}
+
+// ===== PRODUCTOS =====
+async function loadProducts() {
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = '<div style="text-align:center;color:#666;padding:1.6rem">Cargando productos...</div>';
+  
+  try {
+    const response = await fetch(`${API_BASE}/products`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    
+    const data = await response.json();
+    products = data.products || [];
+    renderProducts();
+  } catch (error) {
+    console.error('Error cargando productos:', error);
+    grid.innerHTML = `
+      <div style="text-align:center;color:red;padding:1.6rem">
+        <div>Error cargando productos</div>
+        <div style="font-size:0.8rem;margin-top:0.5rem">${error.message}</div>
+        <button onclick="loadProducts()" style="margin-top:0.5rem;padding:0.5rem 1rem;border:1px solid #ccc;border-radius:4px;background:white;cursor:pointer;">Reintentar</button>
+      </div>
+    `;
+  }
+}
+
+function renderProducts(list = products) {
+  const grid = document.getElementById('productsGrid');
+  
+  if (!list.length) {
+    grid.innerHTML = '<div style="text-align:center;color:#666;padding:1.6rem">No se encontraron productos</div>';
+    return;
+  }
+
+  grid.innerHTML = list.map(product => `
+    <div class="product-card" onclick="addToCart(${product.id})" data-category="${product.category_id}">
+      <div class="product-image">🍽️</div>
+      <div class="product-name">${product.name}</div>
+      <div class="product-price">Bs ${parseInt(product.price)}</div>
+    </div>
+  `).join('');
+}
+
+// ===== CARRITO =====
+function addToCart(productId) {
+  const product = products.find(p => p.id === productId);
+  if (!product) return;
+
+  const existingItem = cart.find(item => item.product_id === productId);
+  
+  if (existingItem) {
+    existingItem.quantity++;
+  } else {
+    cart.push({
+      product_id: productId,
+      product_name: product.name,
+      unit_price: product.price,
+      quantity: 1
+    });
+  }
+
+  renderCart();
+}
+
+function renderCart() {
+  const tbody = document.getElementById('salesTableBody');
+  
+  if (!cart.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.2rem;color:#666">No hay productos en el carrito</td></tr>';
+    updateTotals();
+    return;
+  }
+
+  tbody.innerHTML = cart.map((item, index) => `
+    <tr>
+      <td>
+        <button class="btn btn-secondary" onclick="removeFromCart(${index})" 
+                style="padding:.3rem .5rem">✕</button>
+      </td>
+      <td style="text-align:left">${item.product_name}</td>
+      <td>Bs ${parseInt(item.unit_price)}</td>
+      <td>
+        <input type="number" min="1" value="${item.quantity}" 
+               class="payment-input" style="max-width:70px" 
+               onchange="updateQuantity(${index}, this.value)">
+      </td>
+      <td><strong>Bs ${parseInt(item.unit_price * item.quantity)}</strong></td>
+    </tr>
+  `).join('');
+
+  updateTotals();
+}
+
+function updateQuantity(index, value) {
+  const quantity = Math.max(1, parseInt(value));
+  cart[index].quantity = quantity;
+  renderCart();
+}
+
+function removeFromCart(index) {
+  cart.splice(index, 1);
+  renderCart();
+}
+
+function clearCart() {
+  cart = [];
+  renderCart();
+  clearSale();
+}
+
+// ===== TOTALES Y PAGO - MEJORADO =====
+function updateTotals() {
+  const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  
+  // Actualizar el total en la columna correspondiente
+  const totalDisplay = document.getElementById('totalDisplay');
+  if (totalDisplay) {
+    totalDisplay.textContent = `Bs ${parseInt(total)}`;
+  }
+  
+  updatePaymentDisplay();
+}
+
+function updatePaymentDisplay() {
+  const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
+  const change = paid - total;
+  
+  // Actualizar cobrado
+  const chargedAmount = document.getElementById('chargedAmount');
+  if (chargedAmount) {
+    chargedAmount.textContent = parseInt(paid);
+  }
+  
+  // Actualizar cambio
+  const changeAmount = document.getElementById('changeAmount');
+  if (changeAmount) {
+    if (paid > 0 && paid >= total) {
+      changeAmount.textContent = parseInt(change);
+      changeAmount.style.color = '#28a745';
+    } else if (paid > 0 && paid < total) {
+      changeAmount.textContent = `-${parseInt(Math.abs(change))}`;
+      changeAmount.style.color = '#dc3545';
+    } else {
+      changeAmount.textContent = '0';
+      changeAmount.style.color = '#1a1d29';
     }
+  }
+  
+  // Habilitar/deshabilitar botón
+  const processBtn = document.getElementById('processBtn');
+  if (processBtn) {
+    processBtn.disabled = !(paid >= total && cart.length > 0 && total > 0);
+  }
+}
 
-    function renderCategories() {
-      const nav = document.getElementById('categoriesNav');
-      nav.innerHTML = '<button class="tab-btn active" data-category="all">Todos</button>';
+function autoCompletePay() {
+  const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  if (total > 0) {
+    document.getElementById('paidAmount').value = Math.ceil(total);
+    updatePaymentDisplay();
+  }
+}
+
+// ===== EVENT LISTENERS =====
+function setupPOSEventListeners() {
+  const paidInput = document.getElementById('paidAmount');
+  if (paidInput) {
+    paidInput.addEventListener('input', updatePaymentDisplay);
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('tab-btn')) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      e.target.classList.add('active');
       
-      categories.forEach((category) => {
-        const btn = document.createElement('button');
-        btn.className = 'tab-btn';
-        btn.dataset.category = category.id;
-        btn.textContent = category.name;
-        nav.appendChild(btn);
-      });
-    }
-
-    // ===== PRODUCTOS =====
-    async function loadProducts() {
-      const grid = document.getElementById('productsGrid');
-      grid.innerHTML = '<div style="text-align:center;color:#666;padding:1.6rem">Cargando productos...</div>';
-      
-      try {
-        const response = await fetch(`${API_BASE}/products`, {
-          headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-        const data = await response.json();
-        products = data.products || [];
-        renderProducts();
-      } catch (error) {
-        console.error('Error cargando productos:', error);
-        grid.innerHTML = '<div style="text-align:center;color:#666;padding:1.6rem">Error cargando productos</div>';
-      }
-    }
-
-    function renderProducts(list = products) {
-      const grid = document.getElementById('productsGrid');
-      
-      if (!list.length) {
-        grid.innerHTML = '<div style="text-align:center;color:#666;padding:1.6rem">No se encontraron productos</div>';
-        return;
-      }
-
-      grid.innerHTML = list.map(product => `
-        <div class="product-card" onclick="addToCart(${product.id})" data-category="${product.category_id}">
-          <div class="product-image">🍽️</div>
-          <div class="product-name">${product.name}</div>
-          <div class="product-price">Bs ${product.price.toFixed(2)}</div>
-        </div>
-      `).join('');
-    }
-
-    // ===== CARRITO =====
-    function addToCart(productId) {
-      const product = products.find(p => p.id === productId);
-      if (!product) return;
-
-      const existingItem = cart.find(item => item.product_id === productId);
-      
-      if (existingItem) {
-        existingItem.quantity++;
+      const category = e.target.dataset.category;
+      if (category === 'all') {
+        renderProducts(products);
       } else {
-        cart.push({
-          product_id: productId,
-          product_name: product.name,
-          unit_price: product.price,
-          quantity: 1
-        });
+        renderProducts(products.filter(p => p.category_id == category));
       }
-
-      renderCart();
     }
+  });
 
-    function renderCart() {
-      const tbody = document.getElementById('salesTableBody');
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'F8') {
+      e.preventDefault();
       
-      if (!cart.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.2rem;color:#666">No hay productos en el carrito</td></tr>';
-        updateTotals();
-        return;
+      const topBar = document.querySelector('.top-bar');
+      if (topBar) {
+        topBar.style.background = 'linear-gradient(135deg,#28a745,#20c997)';
+        setTimeout(() => topBar.style.background = 'white', 1500);
       }
-
-      tbody.innerHTML = cart.map((item, index) => `
-        <tr>
-          <td>
-            <button class="btn btn-secondary" onclick="removeFromCart(${index})" 
-                    style="padding:.3rem .5rem">✕</button>
-          </td>
-          <td style="text-align:left">${item.product_name}</td>
-          <td>Bs ${item.unit_price.toFixed(2)}</td>
-          <td>
-            <input type="number" min="1" value="${item.quantity}" 
-                   class="payment-input" style="max-width:70px" 
-                   onchange="updateQuantity(${index}, this.value)">
-          </td>
-          <td><strong>Bs ${(item.unit_price * item.quantity).toFixed(2)}</strong></td>
-        </tr>
-      `).join('');
-
-      updateTotals();
-    }
-
-    function updateQuantity(index, value) {
-      const quantity = Math.max(1, parseInt(value));
-      cart[index].quantity = quantity;
-      renderCart();
-    }
-
-    function removeFromCart(index) {
-      cart.splice(index, 1);
-      renderCart();
-    }
-
-    function clearCart() {
-      cart = [];
-      renderCart();
-      clearSale();
-    }
-
-    // ===== TOTALES Y PAGO =====
-    function updateTotals() {
-      const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
       
-      document.getElementById('totalAmount').textContent = `Bs ${total.toFixed(2)}`;
-      document.getElementById('totalToPay').textContent = total.toFixed(2);
-      
-      updatePayment();
+      ventaRapidaF8();
+    }
+  });
+}
+
+// ===== PROCESAMIENTO DE VENTAS =====
+async function processSale() {
+  if (!cart.length) {
+    alert('El carrito está vacío');
+    return;
+  }
+
+  const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
+
+  // Validación mejorada
+  if (paid === 0) {
+    const confirm = window.confirm('No ingresó monto. ¿Venta sin pago registrado?');
+    if (!confirm) return;
+  } else if (paid < total) {
+    alert(`Falta: Bs ${Math.round(total - paid)}`);
+    return;
+  }
+
+  const saleData = {
+    customer_nit: document.getElementById('customerNit').value || '1234',
+    customer_name: document.getElementById('customerName').value || 'SIN NOMBRE',
+    order_type: document.getElementById('orderType').value,
+    payment_type: document.getElementById('paymentType').value,
+    observations: document.getElementById('observations').value || '',
+    total: total,
+    paid_amount: paid,
+    change_amount: paid - total,
+    items: cart.map(item => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      total_price: item.unit_price * item.quantity
+    }))
+  };
+
+  try {
+    const response = await fetch(`${API_BASE}/sales`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(saleData)
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      clearCart();
+      await printSaleTicketAuto(result.sale);
+    } else {
+      throw new Error(result.message || 'Error procesando venta');
     }
 
-    function updatePayment() {
-      const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-      const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-      
-      document.getElementById('chargedAmount').textContent = paid.toFixed(2);
-      document.getElementById('changeAmount').textContent = Math.max(0, paid - total).toFixed(2);
-      
-      const processBtn = document.getElementById('processBtn');
-      processBtn.disabled = !(paid >= total && cart.length > 0);
-    }
+  } catch (error) {
+    console.error('Error procesando venta:', error);
+    alert(`Error procesando venta: ${error.message}`);
+  }
+}
 
-    // ===== EVENT LISTENERS =====
-    function setupPOSEventListeners() {
-      // Pago input
-      document.getElementById('paidAmount').addEventListener('input', updatePayment);
+async function ventaRapidaF8() {
+  if (!cart.length) {
+    alert('Carrito vacío');
+    return;
+  }
 
-      // Tabs de categorías
-      document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('tab-btn')) {
-          // Remover active de todos
-          document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-          
-          // Activar el clickeado
-          e.target.classList.add('active');
-          
-          // Filtrar productos
-          const category = e.target.dataset.category;
-          if (category === 'all') {
-            renderProducts(products);
-          } else {
-            renderProducts(products.filter(p => p.category_id == category));
-          }
-        }
-      });
+  const paidInput = document.getElementById('paidAmount');
+  if (!paidInput.value) {
+    const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+    paidInput.value = Math.ceil(total);
+    updatePaymentDisplay();
+  }
 
-      // Tecla F8 para venta rápida
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'F8') {
-          e.preventDefault();
-          
-          // Efecto visual en topbar
-          const topBar = document.querySelector('.top-bar');
-          if (topBar) {
-            topBar.style.background = 'linear-gradient(135deg,#28a745,#20c997)';
-            setTimeout(() => topBar.style.background = 'white', 1500);
-          }
-          
-          ventaRapidaF8();
-        }
-      });
-    }
+  await processSale();
+}
 
-    // ===== PROCESAMIENTO DE VENTAS =====
-    async function processSale() {
-      if (!cart.length) {
-        alert('El carrito está vacío');
-        return;
-      }
+// ===== UTILIDADES =====
+function clearSale() {
+  const customerNit = document.getElementById('customerNit');
+  const customerName = document.getElementById('customerName');
+  const orderType = document.getElementById('orderType');
+  const paymentType = document.getElementById('paymentType');
+  const observations = document.getElementById('observations');
+  const paidAmount = document.getElementById('paidAmount');
+  
+  if (customerNit) customerNit.value = '1234';
+  if (customerName) customerName.value = 'SIN NOMBRE';
+  if (orderType) orderType.value = 'dine_in';
+  if (paymentType) paymentType.value = 'efectivo';
+  if (observations) observations.value = '';
+  if (paidAmount) paidAmount.value = '';
+  
+  // Limpiar también los valores de cobrado y cambio
+  const chargedAmount = document.getElementById('chargedAmount');
+  const changeAmount = document.getElementById('changeAmount');
+  
+  if (chargedAmount) chargedAmount.textContent = '0';
+  if (changeAmount) changeAmount.textContent = '0';
+}
+async function checkPrinterStatus() {
+  try {
+    const response = await fetch(`${API_BASE}/printer/status`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    await response.json();
+  } catch (error) {
+    // Ignorar errores de impresora
+  }
+}
 
-      const total = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-      const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
+async function printSaleTicketAuto(sale) {
+  try {
+    const response = await fetch(`${API_BASE}/printer/print-sale`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sale_data: sale })
+    });
 
-      if (paid < total) {
-        alert('El monto pagado es insuficiente');
-        return;
-      }
+    const result = await response.json();
+    // No mostrar errores de impresión para no interrumpir flujo
+  } catch (error) {
+    // Ignorar errores de impresión
+  }
+}
 
-      const saleData = {
-        customer_nit: document.getElementById('customerNit').value || '1234',
-        customer_name: document.getElementById('customerName').value || 'SIN NOMBRE',
-        order_type: document.getElementById('orderType').value,
-        payment_type: document.getElementById('paymentType').value,
-        observations: document.getElementById('observations').value || '',
-        total: total,
-        paid_amount: paid,
-        change_amount: paid - total,
-        items: cart.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          total_price: item.unit_price * item.quantity
-        }))
-      };
+function logout() {
+  if (confirm('¿Está seguro que desea cerrar sesión?')) {
+    localStorage.removeItem('pos_token');
+    localStorage.removeItem('pos_user');
+    location.href = '/login';
+  }
+}
 
-      try {
-        const response = await fetch(`${API_BASE}/sales`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(saleData)
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-          //alert(`Venta registrada exitosamente! ID: ${result.sale.id}`);
-          
-          // Limpiar carrito y formulario
-          clearCart();
-          
-          // Intentar imprimir ticket
-          await printSaleTicketAuto(result.sale);
-          
-        } else {
-          throw new Error(result.message || 'Error procesando venta');
-        }
-
-      } catch (error) {
-        console.error('Error procesando venta:', error);
-        alert(`Error procesando venta: ${error.message}`);
-      }
-    }
-
-    async function ventaRapidaF8() {
-      if (!cart.length) {
-        alert('Carrito vacío');
-        return;
-      }
-
-      // Auto-completar pago si está vacío
-      const paidInput = document.getElementById('paidAmount');
-      if (!paidInput.value) {
-        paidInput.value = document.getElementById('totalToPay').textContent;
-        updatePayment();
-      }
-
-      // Procesar venta
-      await processSale();
-    }
-
-    // ===== UTILIDADES =====
-    function clearSale() {
-      document.getElementById('customerNit').value = '1234';
-      document.getElementById('customerName').value = 'SIN NOMBRE';
-      document.getElementById('orderType').value = 'dine_in';
-      document.getElementById('paymentType').value = 'efectivo';
-      document.getElementById('observations').value = '';
-      document.getElementById('paidAmount').value = '';
-    }
-
-    async function checkPrinterStatus() {
-      try {
-        const response = await fetch(`${API_BASE}/printer/status`, {
-          headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-        await response.json();
-      } catch (error) {
-        // Ignorar errores de impresora
-      }
-    }
-
-     async function printSaleTicketAuto(sale) {
-            try {
-                const response = await fetch(`${API_BASE}/printer/print-sale`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ sale_data: sale })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    console.log('✅ Impresión automática exitosa');
-                } else {
-                    throw new Error(result.message);
-                }
-                
-            } catch (error) {
-                console.error('Error en impresión automática:', error);
-                throw error;
-            }
-        }
-    // Función global para logout (compatibilidad con sidebar.js)
-    function logout() {
-      if (confirm('¿Está seguro que desea cerrar sesión?')) {
-        localStorage.removeItem('pos_token');
-        localStorage.removeItem('pos_user');
-        location.href = '/login';
-      }
-    }
-
-    // Alias para compatibilidad
-    window.appLogout = logout;
+window.appLogout = logout;
   </script>
 
   <!-- Cargar sidebar universal -->
