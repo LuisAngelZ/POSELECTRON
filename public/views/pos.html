@@ -909,6 +909,12 @@ async function initPOS() {
     await checkPrinterStatus();
     await Promise.all([loadCategories(), loadProducts()]);
     setupPOSEventListeners();
+    
+    // Agregar indicadores de teclado después de un momento
+    setTimeout(() => {
+      addKeyboardIndicators();
+    }, 1500);
+    
   } catch (e) {
     console.error('Error inicializando POS:', e);
     alert('Error inicializando POS');
@@ -1113,7 +1119,338 @@ function autoCompletePay() {
   }
 }
 
-// ===== EVENT LISTENERS =====
+// ===== FUNCIÓN PARA CIERRE DE CAJA (F3) =====
+async function printDailyCashClose() {
+  try {
+    // Mostrar indicador visual
+    const topBar = document.querySelector('.top-bar');
+    if (topBar) {
+      topBar.style.background = 'linear-gradient(135deg, #17a2b8, #138496)';
+      topBar.style.color = 'white';
+      topBar.style.transition = 'all 0.3s ease';
+      setTimeout(() => {
+        topBar.style.background = 'white';
+        topBar.style.color = '#1a1d29';
+      }, 2500);
+    }
+
+    // Obtener el reporte del día actual
+    const today = new Date().toISOString().split('T')[0];
+    
+    console.log('📊 Generando reporte de cierre de caja para:', today);
+    
+    // Mostrar indicador de carga
+    showLoadingIndicator('Generando reporte de cierre...');
+    
+    const response = await fetch(`${API_BASE}/reports/daily?date=${today}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+
+    hideLoadingIndicator();
+
+    if (!response.ok) {
+      throw new Error('Error obteniendo reporte diario');
+    }
+
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Error en el reporte');
+    }
+
+    const report = data.report;
+
+    // PREGUNTA ÚNICA Y DIRECTA
+    const shouldPrint = confirm('¿Desea imprimir su cierre de caja?');
+    
+    if (!shouldPrint) {
+      console.log('❌ Usuario canceló la impresión del cierre de caja');
+      return;
+    }
+
+    // Preparar datos para impresión
+    const printData = {
+      type: 'daily_close',
+      date: today,
+      user: getCurrentUser(),
+      user_name: getCurrentUser()?.full_name || 'Sistema',
+      summary: report.summary,
+      sales_by_user: report.sales_by_user || [],
+      top_products: report.top_products || [],
+      hourly_breakdown: report.hourly_breakdown || [],
+      detailed_sales: report.detailed_sales || [],
+      total_sales: report.summary?.total_sales || 0,
+      total_amount: report.summary?.total_amount || 0,
+      average_sale: report.summary?.average_sale || 0
+    };
+
+    // Enviar a imprimir
+    showLoadingIndicator('Enviando a impresora...');
+    await printDailyReport(printData);
+    hideLoadingIndicator();
+
+  } catch (error) {
+    hideLoadingIndicator();
+    console.error('❌ Error en cierre de caja:', error);
+    
+    alert(`❌ Error generando reporte de cierre:
+
+${error.message}
+
+Verifica:
+• Conexión de la impresora
+• Estado del servidor
+• Permisos de usuario`);
+  }
+}
+
+// ===== FUNCIÓN PARA IMPRIMIR REPORTE DIARIO =====
+async function printDailyReport(reportData) {
+  try {
+    console.log('🖨️ Enviando reporte diario a impresora...', reportData.date);
+
+    const response = await fetch(`${API_BASE}/printer/daily-report`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ report_data: reportData })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Error enviando a impresora');
+    }
+
+    console.log('✅ Reporte enviado a impresora correctamente');
+    
+    return {
+      success: true,
+      message: 'Reporte de cierre impreso correctamente'
+    };
+
+  } catch (error) {
+    console.error('❌ Error imprimiendo reporte:', error);
+    
+    // Si falla la impresión, mostrar el reporte en pantalla
+    showReportPreview(reportData);
+    
+    throw new Error(`Error de impresión: ${error.message}`);
+  }
+}
+
+// ===== FUNCIÓN PARA MOSTRAR VISTA PREVIA DEL REPORTE =====
+function showReportPreview(reportData) {
+  const summary = reportData.summary || {};
+  const topProducts = reportData.top_products || [];
+  const salesByUser = reportData.sales_by_user || [];
+  
+  let productsList = '';
+  if (topProducts.length > 0) {
+    productsList = topProducts.slice(0, 5).map((product, index) => 
+      `${index + 1}. ${product.product_name || product.name} - ${product.total_quantity || product.quantity} vendidos`
+    ).join('\n');
+  } else {
+    productsList = 'No hay productos vendidos';
+  }
+
+  let usersList = '';
+  if (salesByUser.length > 0) {
+    usersList = salesByUser.map((user, index) => 
+      `${index + 1}. ${user.user_name || user.full_name} - ${user.total_sales || user.count} ventas`
+    ).join('\n');
+  } else {
+    usersList = 'Un solo usuario';
+  }
+  
+  const previewContent = `═══ VISTA PREVIA DEL REPORTE ═══
+
+📅 FECHA: ${reportData.date}
+👤 USUARIO: ${reportData.user?.full_name || reportData.user_name || 'Sistema'}
+
+📊 RESUMEN DEL DÍA:
+• Total de ventas: ${reportData.total_sales || summary.total_sales || 0}
+• Monto total: Bs ${parseInt(reportData.total_amount || summary.total_amount || 0)}
+• Venta promedio: Bs ${parseInt(reportData.average_sale || summary.average_sale || 0)}
+
+🏆 TOP PRODUCTOS:
+${productsList}
+
+👥 VENTAS POR USUARIO:
+${usersList}
+
+══════════════════════════════════`;
+  
+  alert(previewContent);
+}
+
+// ===== FUNCIÓN PARA OBTENER USUARIO ACTUAL =====
+function getCurrentUser() {
+  try {
+    const userData = localStorage.getItem('pos_user');
+    if (userData) {
+      return JSON.parse(userData);
+    }
+    
+    // Si no hay usuario en localStorage, intentar extraer del token
+    const token = localStorage.getItem('pos_token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return {
+          id: payload.id,
+          username: payload.username,
+          full_name: payload.full_name || payload.username,
+          role: payload.role
+        };
+      } catch (e) {
+        console.warn('Error extrayendo usuario del token');
+      }
+    }
+    
+    return {
+      id: 1,
+      username: 'sistema',
+      full_name: 'Sistema POS',
+      role: 'admin'
+    };
+  } catch (error) {
+    console.error('Error obteniendo usuario actual:', error);
+    return {
+      id: 1,
+      username: 'sistema',
+      full_name: 'Sistema POS',
+      role: 'admin'
+    };
+  }
+}
+
+// ===== FUNCIONES DE UI AUXILIARES =====
+function showLoadingIndicator(message = 'Procesando...') {
+  // Eliminar indicador existente si existe
+  hideLoadingIndicator();
+  
+  const indicator = document.createElement('div');
+  indicator.id = 'loading-indicator';
+  indicator.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+  `;
+  
+  indicator.innerHTML = `
+    <div style="text-align: center; padding: 2rem;">
+      <div style="margin-bottom: 1rem;">⏳</div>
+      <div>${message}</div>
+      <div style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
+        Presiona ESC para cancelar
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(indicator);
+  
+  // Permitir cancelar con ESC
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      hideLoadingIndicator();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+}
+
+function hideLoadingIndicator() {
+  const indicator = document.getElementById('loading-indicator');
+  if (indicator) {
+    indicator.remove();
+  }
+}
+
+function showSuccessMessage(message) {
+  alert(`✅ ${message}`);
+}
+
+function showErrorMessage(message) {
+  alert(`❌ ${message}`);
+}
+
+// ===== FUNCIÓN AUXILIAR PARA MOSTRAR ATAJOS DE TECLADO =====
+function showKeyboardShortcuts() {
+  const shortcuts = `🔧 ATAJOS DE TECLADO DISPONIBLES:
+
+F3  🧾 - Cierre de Caja (Imprimir reporte del día)
+F8  💳 - Venta Rápida (Completar venta actual)
+ESC 🚫 - Cancelar operación actual
+
+📋 FUNCIONES ADICIONALES:
+• Ctrl+L - Limpiar carrito
+• Ctrl+P - Auto-completar pago`;
+  
+  alert(shortcuts);
+}
+
+// ===== AGREGAR INDICADOR VISUAL EN LA INTERFAZ =====
+function addKeyboardIndicators() {
+  // Verificar si ya existe
+  if (document.getElementById('keyboard-hints')) return;
+  
+  const hintsElement = document.createElement('div');
+  hintsElement.id = 'keyboard-hints';
+  hintsElement.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 11px;
+    z-index: 1001;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  `;
+  
+  hintsElement.innerHTML = `
+    <div style="text-align: center;">
+      <div style="font-weight: bold; margin-bottom: 4px;">⌨️ ATAJOS</div>
+      <div>F3: Cierre | F8: Venta</div>
+      <div style="font-size: 9px; margin-top: 4px; opacity: 0.8;">Click para más info</div>
+    </div>
+  `;
+  
+  // Agregar evento click para mostrar todos los atajos
+  hintsElement.addEventListener('click', showKeyboardShortcuts);
+  
+  // Agregar hover effect
+  hintsElement.addEventListener('mouseenter', () => {
+    hintsElement.style.transform = 'scale(1.05)';
+    hintsElement.style.background = 'rgba(255, 112, 67, 0.9)';
+  });
+  
+  hintsElement.addEventListener('mouseleave', () => {
+    hintsElement.style.transform = 'scale(1)';
+    hintsElement.style.background = 'rgba(0, 0, 0, 0.85)';
+  });
+  
+  document.body.appendChild(hintsElement);
+}
+
+// ===== EVENT LISTENERS ACTUALIZADOS =====
 function setupPOSEventListeners() {
   const paidInput = document.getElementById('paidAmount');
   if (paidInput) {
@@ -1134,17 +1471,58 @@ function setupPOSEventListeners() {
     }
   });
 
+  // ===== EVENTOS DE TECLADO ACTUALIZADOS =====
   document.addEventListener('keydown', (e) => {
+    // F3 - CIERRE DE CAJA
+    if (e.key === 'F3') {
+      e.preventDefault();
+      console.log('🔑 F3 presionado - Iniciando cierre de caja');
+      
+      // Efecto visual inmediato
+      const topBar = document.querySelector('.top-bar');
+      if (topBar) {
+        topBar.style.background = 'linear-gradient(135deg, #17a2b8, #138496)';
+        topBar.style.color = 'white';
+      }
+      
+      printDailyCashClose();
+    }
+    
+    // F8 - VENTA RÁPIDA (mantener funcionalidad existente)
     if (e.key === 'F8') {
       e.preventDefault();
       
       const topBar = document.querySelector('.top-bar');
       if (topBar) {
         topBar.style.background = 'linear-gradient(135deg,#28a745,#20c997)';
-        setTimeout(() => topBar.style.background = 'white', 1500);
+        topBar.style.color = 'white';
+        setTimeout(() => {
+          topBar.style.background = 'white';
+          topBar.style.color = '#1a1d29';
+        }, 1500);
       }
       
       ventaRapidaF8();
+    }
+
+    // ESC - LIMPIAR CARRITO
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      if (confirm('¿Limpiar carrito actual?')) {
+        clearCart();
+      }
+    }
+
+    // CTRL+L - LIMPIAR CARRITO
+    if (e.ctrlKey && e.key === 'l') {
+      e.preventDefault();
+      clearCart();
+    }
+
+    // CTRL+P - AUTO COMPLETAR PAGO
+    if (e.ctrlKey && e.key === 'p') {
+      e.preventDefault();
+      autoCompletePay();
     }
   });
 }
@@ -1249,6 +1627,7 @@ function clearSale() {
   if (chargedAmount) chargedAmount.textContent = '0';
   if (changeAmount) changeAmount.textContent = '0';
 }
+
 async function checkPrinterStatus() {
   try {
     const response = await fetch(`${API_BASE}/printer/status`, {

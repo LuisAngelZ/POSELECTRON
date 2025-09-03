@@ -1,4 +1,4 @@
-// server/utils/printer.js - Versión que estaba bien, solo sin acentos
+// server/utils/printer.js - Versión completa con cierre de caja F3
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -57,7 +57,7 @@ class POSPrinter {
         }
     }
 
-    // FUNCIÓN PARA QUITAR ACENTOS (SOLO ESTO ES NUEVO)
+    // FUNCIÓN PARA QUITAR ACENTOS
     removeAccents(text) {
         const accents = {
             'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U', 'Ü': 'U', 'Ñ': 'N',
@@ -76,13 +76,13 @@ class POSPrinter {
 
     // Funciones de formato profesional
     centerText(text, width = this.thermalWidth) {
-        const cleanText = this.removeAccents(text); // APLICAR removeAccents aquí
+        const cleanText = this.removeAccents(text);
         const spaces = Math.max(0, Math.floor((width - cleanText.length) / 2));
         return ' '.repeat(spaces) + cleanText;
     }
 
     alignRight(text, width = this.thermalWidth) {
-        const cleanText = this.removeAccents(text); // APLICAR removeAccents aquí
+        const cleanText = this.removeAccents(text);
         const spaces = Math.max(0, width - cleanText.length);
         return ' '.repeat(spaces) + cleanText;
     }
@@ -139,7 +139,7 @@ FECHA: ${moment().format('DD/MM/YYYY HH:mm:ss')}`;
         if (saleData.details && saleData.details.length > 0) {
             saleData.details.forEach(item => {
                 const qty = item.quantity;
-                const description = this.removeAccents(item.product_name.toUpperCase()); // QUITAR ACENTOS AQUÍ
+                const description = this.removeAccents(item.product_name.toUpperCase());
                 const unitPrice = parseFloat(item.unit_price);
                 const total = parseFloat(item.subtotal);
                 
@@ -176,6 +176,29 @@ FECHA: ${moment().format('DD/MM/YYYY HH:mm:ss')}`;
 
         return content;
     }
+
+    // ===== NUEVA FUNCIÓN PARA CREAR CONTENIDO DEL REPORTE DIARIO =====
+  createDailyReportContent(reportData) {
+    const date = reportData.date || new Date().toISOString().split('T')[0];
+    const userName = reportData.user_name || 'SISTEMA';
+    const totalSales = reportData.total_sales || 0;
+    const totalAmount = reportData.total_amount || 0;
+    
+    const separator = '='.repeat(this.thermalWidth);
+    const separator1 = ' '.repeat(this.thermalWidth);
+    
+    let content = `${this.centerText('CIERRE DE CAJA')}
+${this.centerText('REPORTE DIARIO')}
+${separator}
+FECHA Y HORA: ${moment().format('DD/MM/YYYY HH:mm:ss')}
+CAJERO: ${this.removeAccents(userName.toUpperCase())}
+${separator}
+RESUMEN DEL DIA Nro Ventas:  ${totalSales}
+${separator}
+Monto Total: ${parseInt(totalAmount)} Bs
+${separator1}`;
+    return content;
+}
 
     // PowerShell que funcionaba bien + encoding para acentos
     async printTicket(content, filename = 'ticket') {
@@ -292,6 +315,29 @@ try {
         });
     }
 
+    // ===== NUEVA FUNCIÓN PARA IMPRIMIR REPORTE DIARIO =====
+    async printDailyReport(reportData) {
+        if (!this.isConnected) {
+            throw new Error('Impresora no encontrada en Windows.');
+        }
+
+        try {
+            const content = this.createDailyReportContent(reportData);
+            const result = await this.printTicket(content, `daily_report_${reportData.date || 'today'}`);
+            
+            console.log('✅ Reporte diario impreso correctamente');
+            return {
+                success: true,
+                message: 'Reporte de cierre impreso correctamente',
+                date: reportData.date
+            };
+            
+        } catch (error) {
+            console.error('❌ Error imprimiendo reporte diario:', error);
+            throw new Error(`Error en impresión de reporte: ${error.message}`);
+        }
+    }
+
     // Métodos principales
     async checkPrinterStatus() {
         try {
@@ -363,13 +409,6 @@ try {
             console.error('❌ Error imprimiendo ticket de venta:', error);
             throw new Error(`Error en impresión: ${error.message}`);
         }
-    }
-
-    async printDailyReport(reportData) {
-        if (!this.isConnected) {
-            throw new Error('Impresora no conectada');
-        }
-        // Implementación del reporte diario...
     }
 
     async configurePrinter(config) {
