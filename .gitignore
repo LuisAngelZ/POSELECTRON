@@ -36,6 +36,7 @@ release/
 *.deb
 *.rpm
 *.zip
+*.rar
 
 # Electron cache
 .electron-cache/
@@ -50,16 +51,3 @@ desktop.ini
 
 # Logs de Electron
 *.log
-
-# Agregar al .gitignore para futuras exclusiones
-echo "dist.rar" >> .gitignore
-echo "*.rar" >> .gitignore
-echo "dist/" >> .gitignore
-
-# Eliminar del tracking actual
-git rm --cached dist.rar
-
-# Commit y push
-git add .gitignore
-git commit -m "Ignorar archivos de distribución y dist.rar"
-git push
