@@ -191,7 +191,7 @@ async function loadCategories() {
 // ===== ORDEN DE PRIORIDAD DE CATEGORÍAS =====
 const categoryOrder = {
   'PLATOS Y PORCIONES': 1,
-  'GASEOSAS': 2,
+  'GASEOSAS Y JUGOS': 2,
   'REFRESCOS NATURALES': 3,
   'EXTRAS': 4,
 };

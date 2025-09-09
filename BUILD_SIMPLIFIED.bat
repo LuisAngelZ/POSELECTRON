@@ -98,9 +98,20 @@ if errorlevel 1 (
 )
 echo ✅ Base de datos configurada con admin + 2 cajeros
 
+REM === CREAR PRODUCTOS INICIALES ===
+echo.
+echo [7/8] 🍔 Creando productos y categorías iniciales...
+call node create-products.js
+if errorlevel 1 (
+    echo ❌ Error creando productos
+    pause
+    exit /b 1
+)
+echo ✅ Productos y categorías configurados
+
 REM === BUILD ===
 echo.
-echo [7/7] 🏗️ Compilando aplicación...
+echo [8/8] 🏗️ Compilando aplicación...
 call npm run build
 if errorlevel 1 (
     echo ❌ Error en compilación
