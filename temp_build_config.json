@@ -1,0 +1,14 @@
+{
+  "asar": false,
+  "asarUnpack": [
+    "backend/**/*",
+    "database/**/*"
+  ],
+  "files": [
+    "src/**/*",
+    "backend/**/*",
+    "public/**/*",
+    "database/**/*",
+    "package.json"
+  ]
+}

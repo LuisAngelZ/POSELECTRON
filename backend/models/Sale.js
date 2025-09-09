@@ -1,41 +1,143 @@
-// server/models/Sale.js - Modelo completo
+// server/models/Sale.js - VERSIÓN CON SESIONES DE TICKETS
+
 const database = require('../config/database');
+const TicketSession = require('./TicketSession');
 
 class Sale {
+    // Crear venta con numeración de ticket por sesión de usuario
     static async create(saleData) {
         await database.ensureConnected();
         
-        return new Promise((resolve, reject) => {
-            const sql = `
-                INSERT INTO sales (
-                    customer_nit, customer_name, order_type, table_number, 
-                    observations, subtotal, total, paid_amount, change_amount, user_id
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
-            
-            database.getDB().run(
-                sql,
-                [
-                    saleData.customer_nit || null,
-                    saleData.customer_name || null,
-                    saleData.order_type,
-                    saleData.table_number || null,
-                    saleData.observations || null,
-                    saleData.subtotal,
-                    saleData.total,
-                    saleData.paid_amount,
-                    saleData.change_amount || 0,
-                    saleData.user_id
-                ],
-                function(err) {
-                    if (err) reject(err);
-                    else resolve({ id: this.lastID, ...saleData });
-                }
-            );
+        return new Promise(async (resolve, reject) => {
+            try {
+                database.getDB().serialize(async () => {
+                    database.getDB().run('BEGIN TRANSACTION');
+                    
+                    try {
+                        // 1. Obtener próximo número de ticket para este usuario
+                        const ticketNumber = await TicketSession.getNextTicketNumber(saleData.user_id);
+                        
+                        console.log(`🎫 Asignando ticket #${ticketNumber} para usuario ${saleData.user_id}`);
+                        
+                        // 2. Insertar la venta con el número de ticket
+                        const sql = `
+                            INSERT INTO sales (
+                                customer_nit, customer_name, order_type, payment_type, table_number, 
+                                observations, subtotal, total, paid_amount, change_amount, user_id, ticket_number
+                            )
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        `;
+                        
+                        database.getDB().run(
+                            sql,
+                            [
+                                saleData.customer_nit || null,
+                                saleData.customer_name || null,
+                                saleData.order_type,
+                                saleData.payment_type,
+                                saleData.table_number || null,
+                                saleData.observations || null,
+                                saleData.subtotal,
+                                saleData.total,
+                                saleData.paid_amount,
+                                saleData.change_amount || 0,
+                                saleData.user_id,
+                                ticketNumber
+                            ],
+                            async function(insertErr) {
+                                if (insertErr) {
+                                    database.getDB().run('ROLLBACK');
+                                    reject(insertErr);
+                                    return;
+                                }
+                                
+                                const saleId = this.lastID;
+                                
+                                try {
+                                    // 3. Actualizar contador en la sesión del usuario
+                                    const finalTicketNumber = await TicketSession.incrementTicketCounter(
+                                        saleData.user_id, 
+                                        saleData.total
+                                    );
+                                    
+                                    // 4. Confirmar transacción
+                                    database.getDB().run('COMMIT', (commitErr) => {
+                                        if (commitErr) {
+                                            reject(commitErr);
+                                            return;
+                                        }
+                                        
+                                        console.log(`✅ Venta ID ${saleId} creada con ticket #${finalTicketNumber}`);
+                                        
+                                        resolve({ 
+                                            id: saleId, 
+                                            ...saleData,
+                                            ticket_number: finalTicketNumber,
+                                            daily_ticket_number: finalTicketNumber // Para compatibilidad con frontend
+                                        });
+                                    });
+                                    
+                                } catch (sessionErr) {
+                                    database.getDB().run('ROLLBACK');
+                                    reject(sessionErr);
+                                }
+                            }
+                        );
+                        
+                    } catch (error) {
+                        database.getDB().run('ROLLBACK');
+                        reject(error);
+                    }
+                });
+                
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 
+    // Función para cerrar sesión de un usuario (cuando cambia de usuario)
+    static async closeUserSession(userId) {
+        try {
+            const result = await TicketSession.closeUserSession(userId);
+            console.log(`🔒 Sesión de tickets cerrada para usuario ${userId}`);
+            return result;
+        } catch (error) {
+            console.error('Error cerrando sesión de usuario:', error);
+            throw error;
+        }
+    }
+
+    // Obtener resumen de ventas por sesiones de tickets
+    static async getDailyTicketSummary(date = null) {
+        try {
+            const sessionSummary = await TicketSession.getDailySummary(date);
+            const targetDate = date || new Date().toISOString().split('T')[0];
+            
+            // Obtener ventas reales del día
+            const realSales = await this.findByDateRange(targetDate, targetDate);
+            const realTotal = realSales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
+            
+            return {
+                date: targetDate,
+                ticket_sessions: sessionSummary.sessions,
+                session_totals: sessionSummary.daily_totals,
+                real_sales: {
+                    count: realSales.length,
+                    amount: realTotal
+                },
+                consistency_check: {
+                    tickets_vs_sales: sessionSummary.daily_totals.total_sales === realSales.length,
+                    amounts_match: Math.abs(sessionSummary.daily_totals.total_amount - realTotal) < 0.01
+                }
+            };
+        } catch (error) {
+            console.error('Error obteniendo resumen de tickets diarios:', error);
+            throw error;
+        }
+    }
+
+    // MANTENER TODAS LAS FUNCIONES EXISTENTES
     static async findAll(limit = 100) {
         await database.ensureConnected();
         
@@ -92,154 +194,6 @@ class Sale {
         });
     }
 
-    static async findByUser(userId, limit = 50) {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT s.*, u.full_name as user_name
-                FROM sales s
-                LEFT JOIN users u ON s.user_id = u.id
-                WHERE s.user_id = ?
-                ORDER BY s.created_at DESC
-                LIMIT ?
-            `;
-            
-            database.getDB().all(sql, [userId, limit], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-    }
-
-    static async getTodaySales() {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT s.*, u.full_name as user_name
-                FROM sales s
-                LEFT JOIN users u ON s.user_id = u.id
-                WHERE DATE(s.created_at) = DATE('now')
-                ORDER BY s.created_at DESC
-            `;
-            
-            database.getDB().all(sql, [], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-    }
-
-    static async getTodayTotals() {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT 
-                    COUNT(*) as total_sales,
-                    COALESCE(SUM(total), 0) as total_amount,
-                    COALESCE(AVG(total), 0) as average_sale
-                FROM sales 
-                WHERE DATE(created_at) = DATE('now')
-            `;
-            
-            database.getDB().get(sql, [], (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
-    }
-
-    static async getMonthlyTotals() {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT 
-                    COUNT(*) as total_sales,
-                    COALESCE(SUM(total), 0) as total_amount,
-                    COALESCE(AVG(total), 0) as average_sale
-                FROM sales 
-                WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
-            `;
-            
-            database.getDB().get(sql, [], (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
-    }
-
-    static async getYearlyTotals() {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT 
-                    COUNT(*) as total_sales,
-                    COALESCE(SUM(total), 0) as total_amount,
-                    COALESCE(AVG(total), 0) as average_sale
-                FROM sales 
-                WHERE strftime('%Y', created_at) = strftime('%Y', 'now')
-            `;
-            
-            database.getDB().get(sql, [], (err, row) => {
-                if (err) reject(err);
-                else resolve(row);
-            });
-        });
-    }
-
-    static async getSalesByDateRange(startDate, endDate) {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT 
-                    DATE(created_at) as sale_date,
-                    COUNT(*) as daily_sales,
-                    SUM(total) as daily_amount
-                FROM sales 
-                WHERE DATE(created_at) BETWEEN ? AND ?
-                GROUP BY DATE(created_at)
-                ORDER BY sale_date
-            `;
-            
-            database.getDB().all(sql, [startDate, endDate], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-    }
-
-    static async getTopCustomers(limit = 10) {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT 
-                    customer_name,
-                    customer_nit,
-                    COUNT(*) as total_purchases,
-                    SUM(total) as total_spent,
-                    AVG(total) as average_purchase
-                FROM sales 
-                WHERE customer_name IS NOT NULL AND customer_name != ''
-                GROUP BY customer_name, customer_nit
-                ORDER BY total_spent DESC
-                LIMIT ?
-            `;
-            
-            database.getDB().all(sql, [limit], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-    }
-
-
-        // Obtener totales del día actual
     static async getTodayTotals() {
         await database.ensureConnected();
         
@@ -261,7 +215,6 @@ class Sale {
         });
     }
 
-    // Obtener totales del mes actual
     static async getMonthlyTotals() {
         await database.ensureConnected();
         
@@ -288,27 +241,6 @@ class Sale {
         });
     }
 
-    // Obtener ventas por rango de fechas
-    static async findByDateRange(startDate, endDate) {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            const sql = `
-                SELECT s.*, u.username as user_name
-                FROM sales s
-                LEFT JOIN users u ON s.user_id = u.id
-                WHERE DATE(s.created_at) BETWEEN ? AND ?
-                ORDER BY s.created_at DESC
-            `;
-            
-            database.getDB().all(sql, [startDate, endDate], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows || []);
-            });
-        });
-    }
-
-    // Obtener ventas de hoy con detalles
     static async getTodaySales() {
         await database.ensureConnected();
         
@@ -333,7 +265,6 @@ class Sale {
         });
     }
 
-    // Obtener ventas por usuario en un período
     static async getSalesByUser(startDate, endDate) {
         await database.ensureConnected();
         
@@ -361,23 +292,24 @@ class Sale {
         });
     }
 
-    // Obtener ventas agrupadas por día para gráficos
-    static async getDailySalesChart(days = 30) {
+    static async getDailyTotalsByPaymentType(date) {
         await database.ensureConnected();
         
         return new Promise((resolve, reject) => {
+            const targetDate = date || new Date().toISOString().split('T')[0];
             const sql = `
                 SELECT 
-                    DATE(created_at) as sale_date,
+                    payment_type,
                     COUNT(*) as total_sales,
-                    SUM(total) as total_amount
+                    COALESCE(SUM(total), 0) as total_amount,
+                    COALESCE(AVG(total), 0) as average_sale
                 FROM sales 
-                WHERE created_at >= date('now', '-${days} days')
-                GROUP BY DATE(created_at)
-                ORDER BY sale_date ASC
+                WHERE DATE(created_at) = ?
+                GROUP BY payment_type
+                ORDER BY payment_type
             `;
             
-            database.getDB().all(sql, [], (err, rows) => {
+            database.getDB().all(sql, [targetDate], (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows || []);
             });

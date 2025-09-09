@@ -5,127 +5,133 @@ const Product = require('../models/Product');
 
 class SaleController {
     // Crear nueva venta
-    static async create(req, res) {
-        try {
-            const {
-                customer_nit,
-                customer_name,
-                order_type, // 'takeaway' o 'dine_in'
-                table_number,
-                observations,
-                items, // Array de productos
-                paid_amount
-            } = req.body;
+static async create(req, res) {
+    try {
+        const {
+            customer_nit,
+            customer_name,
+            order_type,
+            payment_type,
+            table_number,
+            observations,
+            items,
+            paid_amount
+        } = req.body;
 
-            // Validar datos requeridos
-            if (!order_type || !items || !Array.isArray(items) || items.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Tipo de pedido e items son requeridos'
-                });
-            }
-
-            if (!paid_amount || paid_amount <= 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Monto pagado debe ser mayor a 0'
-                });
-            }
-
-            // Validar tipo de pedido
-            if (!['takeaway', 'dine_in'].includes(order_type)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Tipo de pedido debe ser "takeaway" o "dine_in"'
-                });
-            }
-
-            // Calcular totales y validar productos
-            let subtotal = 0;
-            const validatedItems = [];
-
-            for (const item of items) {
-                if (!item.product_id || !item.quantity || item.quantity <= 0) {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Cada item debe tener product_id y quantity válidos'
-                    });
-                }
-
-                // Verificar que el producto existe
-                const product = await Product.findById(item.product_id);
-                if (!product) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Producto con ID ${item.product_id} no encontrado`
-                    });
-                }
-
-                const itemSubtotal = product.price * item.quantity;
-                subtotal += itemSubtotal;
-
-                validatedItems.push({
-                    product_id: product.id,
-                    product_name: product.name,
-                    quantity: item.quantity,
-                    unit_price: product.price,
-                    subtotal: itemSubtotal
-                });
-            }
-
-            const total = subtotal; // Por ahora sin impuestos
-            const change_amount = paid_amount - total;
-
-            if (change_amount < 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Monto pagado insuficiente'
-                });
-            }
-
-            // Crear la venta
-            const newSale = await Sale.create({
-                customer_nit: customer_nit || null,
-                customer_name: customer_name || null,
-                order_type,
-                table_number: table_number || null,
-                observations: observations || null,
-                subtotal,
-                total,
-                paid_amount,
-                change_amount,
-                user_id: req.user.id
-            });
-
-            // Crear los detalles de la venta
-            await SaleDetail.createMultiple(newSale.id, validatedItems);
-
-            // Obtener la venta completa con detalles
-            const completeSale = await Sale.findById(newSale.id);
-            const saleDetails = await SaleDetail.findBySaleId(newSale.id);
-
-            // Preparar respuesta con datos para impresión
-            const saleResponse = {
-                ...completeSale,
-                details: saleDetails
-            };
-
-            res.status(201).json({
-                success: true,
-                message: 'Venta creada exitosamente',
-                sale: saleResponse,
-                print_ready: true // Indica que está listo para imprimir
-            });
-
-        } catch (error) {
-            console.error('Error creando venta:', error);
-            res.status(500).json({
+        // Validaciones existentes...
+        if (!order_type || !items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({
                 success: false,
-                message: 'Error interno del servidor'
+                message: 'Tipo de pedido e items son requeridos'
             });
         }
-    }
 
+        if (!paid_amount || paid_amount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Monto pagado debe ser mayor a 0'
+            });
+        }
+        
+        if (!payment_type || !['efectivo', 'qr'].includes(payment_type)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tipo de pago debe ser "efectivo" o "qr"'
+            });
+        }
+        
+        if (!['takeaway', 'dine_in'].includes(order_type)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tipo de pedido debe ser "takeaway" o "dine_in"'
+            });
+        }
+
+        // Calcular totales y validar productos
+        let subtotal = 0;
+        const validatedItems = [];
+
+        for (const item of items) {
+            if (!item.product_id || !item.quantity || item.quantity <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Cada item debe tener product_id y quantity válidos'
+                });
+            }
+
+            const product = await Product.findById(item.product_id);
+            if (!product) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Producto con ID ${item.product_id} no encontrado`
+                });
+            }
+
+            const itemSubtotal = product.price * item.quantity;
+            subtotal += itemSubtotal;
+
+            validatedItems.push({
+                product_id: product.id,
+                product_name: product.name,
+                quantity: item.quantity,
+                unit_price: product.price,
+                subtotal: itemSubtotal
+            });
+        }
+
+        const total = subtotal;
+        const change_amount = paid_amount - total;
+
+        if (change_amount < 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Monto pagado insuficiente'
+            });
+        }
+
+        // Crear la venta SIN número de ticket por ahora
+        const newSale = await Sale.create({
+            customer_nit: customer_nit || null,
+            customer_name: customer_name || null,
+            order_type,
+            payment_type,
+            table_number: table_number || null,
+            observations: observations || null,
+            subtotal,
+            total,
+            paid_amount,
+            change_amount,
+            user_id: req.user.id
+        });
+
+        // Crear los detalles de la venta
+        await SaleDetail.createMultiple(newSale.id, validatedItems);
+
+        // Obtener la venta completa con detalles
+        const completeSale = await Sale.findById(newSale.id);
+        const saleDetails = await SaleDetail.findBySaleId(newSale.id);
+
+        const saleResponse = {
+            ...completeSale,
+            daily_ticket_number: 1, // Temporal hasta que implementemos el sistema completo
+            details: saleDetails
+        };
+
+        res.status(201).json({
+            success: true,
+            message: `Venta creada exitosamente`,
+            sale: saleResponse,
+            print_ready: true
+        });
+
+    } catch (error) {
+        console.error('Error creando venta:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor'
+        });
+    }
+}
     // Obtener todas las ventas
     static async getAll(req, res) {
         try {

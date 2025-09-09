@@ -2,6 +2,7 @@
   "name": "pos-desktop-app",
   "version": "1.0.0",
   "description": "Sistema POS de Escritorio",
+  "author": "Tu Empresa",
   "main": "src/main.js",
   "homepage": "./",
   "scripts": {
@@ -9,57 +10,88 @@
     "dev": "electron .",
     "server": "cd backend && npm start",
     "build": "npm run server:build && electron-builder",
-    "server:build": "cd backend && npm install",
+    "server:build": "cd backend && npm install --production",
     "dist": "electron-builder --publish=never",
     "pack": "electron-builder --dir",
     "test-server": "cd backend && node server.js",
-    "create-users": "node create-users.js"
+    "create-users": "node create-users.js",
+    "start-dev": "electron . --dev",
+    "build-win": "electron-builder --win",
+    "build-all": "electron-builder --win --linux --mac"
   },
   "build": {
     "appId": "com.empresa.pos-desktop",
     "productName": "Sistema POS",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "resources"
     },
     "files": [
       "src/**/*",
-      "backend/**/*",
       "public/**/*",
-      "!backend/node_modules",
-      "!backend/database/pos.db"
+      "backend/**/*",
+      "database/**/*",
+      "node_modules/**/*",
+      "!**/node_modules/.cache/**/*",
+      "!**/*.map"
     ],
     "extraResources": [
       {
-        "from": "backend/database",
+        "from": "database",
         "to": "database",
         "filter": [
           "**/*",
-          "!pos.db"
+          "!*.db*"
         ]
+      },
+      {
+        "from": "backend/node_modules",
+        "to": "backend/node_modules"
       }
     ],
+    "asarUnpack": [
+      "**/*"
+    ],
     "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico",
+      "target": {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
+      "createStartMenuShortcut": true,
+      "shortcutName": "Sistema POS",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "compression": "store",
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1",
+    "electron": "^38.0.0",
+    "electron-builder": "^24.13.3",
     "wait-on": "^7.2.0"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "electron-is-dev": "^2.0.0",
     "electron-window-state": "^5.0.3",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
     "sqlite3": "^5.1.7"
   }
 }

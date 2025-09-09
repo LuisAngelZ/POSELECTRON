@@ -1,5 +1,5 @@
 /* ===============================================
-   ESTILOS SIDEBAR UNIVERSAL
+   ESTILOS SIDEBAR UNIVERSAL - SIN LOGO
    Incluir en todos los archivos HTML del sistema
    =============================================== */
 
@@ -43,79 +43,54 @@ body {
     transform: translateX(-100%);
 }
 
-/* SIDEBAR HEADER */
+/* SIDEBAR HEADER - SOLO USUARIO */
 .sidebar-header {
-    padding: 2rem 1.5rem 1.5rem;
+    padding: 1.5rem;
     border-bottom: 1px solid #e8eaed;
 }
 
-.sidebar-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.logo-icon {
-    width: 42px;
-    height: 42px;
+/* USER INFO - AHORA COMO CABECERA PRINCIPAL */
+.user-info {
     background: linear-gradient(135deg, #ff8a65, #ff7043);
     border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    color: white;
-}
-
-.brand-text h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1a1d29;
-    margin-bottom: 0.25rem;
-}
-
-.brand-text p {
-    font-size: 0.8rem;
-    color: #6b7280;
-}
-
-/* USER INFO */
-.user-info {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 1rem;
+    padding: 1.25rem;
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    box-shadow: 0 2px 8px rgba(255, 112, 67, 0.2);
 }
 
 .user-avatar {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #ff8a65, #ff7043);
-    border-radius: 10px;
+    width: 42px;
+    height: 42px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .user-details h4 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #1a1d29;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
     margin-bottom: 0.25rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .user-role {
     font-size: 0.7rem;
-    background: linear-gradient(135deg, #ff8a65, #ff7043);
+    background: rgba(255, 255, 255, 0.25);
     color: white;
-    padding: 0.2rem 0.6rem;
-    border-radius: 20px;
-    font-weight: 500;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* SIDEBAR NAVIGATION */

@@ -5,7 +5,6 @@ const path = require('path');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-
 // Cargar variables de entorno
 require('dotenv').config();
 
@@ -16,7 +15,8 @@ const isElectron = process.versions && process.versions.electron;
 const app = express();
 
 // Configuración básica
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3333;
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'database', 'pos.db');
 
 // Middleware de seguridad básico
 app.use(helmet({
@@ -179,7 +179,7 @@ app.use('*', (req, res) => {
 });
 
 // INICIAR SERVIDOR
-const server = app.listen(PORT, 'localhost', () => {
+/*const server = app.listen(PORT, 'localhost', () => {
     console.log('🔒'.repeat(50));
     console.log(`🚀 Servidor POS LOCAL iniciado en http://localhost:${PORT}`);
     console.log(`📱 Modo: ${isElectron ? 'APLICACIÓN DESKTOP' : 'DESARROLLO WEB'}`);
@@ -197,6 +197,9 @@ const server = app.listen(PORT, 'localhost', () => {
     }
     
     console.log('🔒'.repeat(50));
+});*/
+app.listen(PORT, '127.0.0.1', () => {
+  console.log(`🚀 Servidor POS LOCAL http://127.0.0.1:${PORT}`);
 });
 
 // Manejo de cierre limpio

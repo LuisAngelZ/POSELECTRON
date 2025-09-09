@@ -195,6 +195,7 @@ function createDailyReportContent(reportData) {
         total_sales: summary.total_sales || 0,
         total_amount: summary.total_amount || 0,
         average_sale: summary.average_sale || 0,
+        summary: summary,
         top_products: topProducts.map(product => ({
             name: product.product_name,
             quantity: product.total_quantity || 0,

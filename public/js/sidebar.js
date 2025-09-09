@@ -1,5 +1,5 @@
 /* ===========================
-   SIDEBAR UNIVERSAL V2.0 
+   SIDEBAR UNIVERSAL V2.0 - SIN LOGO
    Compatible con todos los HTMLs
    =========================== */
 
@@ -135,13 +135,6 @@ class UniversalSidebar {
     const sidebarHTML = `
       <nav class="sidebar-modern" id="sidebar">
         <div class="sidebar-header">
-          <div class="sidebar-logo">
-            <div class="logo-icon">🪟</div>
-            <div class="brand-text">
-              <h2>Sistema POS</h2>
-              <p>Punto de Venta</p>
-            </div>
-          </div>
           <div class="user-info">
             <div class="user-avatar" id="userAvatar">👤</div>
             <div class="user-details">
@@ -332,8 +325,6 @@ getMenuSections(isAdmin) {
     }
   ];
 }
-
-
 
   createNavItemHTML(item) {
     const badgeHTML = item.badge ? `<span class="nav-badge">${item.badge}</span>` : '';

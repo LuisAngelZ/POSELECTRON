@@ -78,6 +78,8 @@ class Database {
         await this.createProductsTable();
         await this.createSalesTable();
         await this.createSaleDetailsTable();
+
+        await this.runMigrations();
         await this.seedDefaultData();
         
         console.log('✅ Base de datos local configurada');
@@ -190,6 +192,7 @@ class Database {
                 customer_nit VARCHAR(20),
                 customer_name VARCHAR(100),
                 order_type VARCHAR(20) NOT NULL,
+                payment_type VARCHAR(20) NOT NULL DEFAULT 'efectivo',
                 table_number VARCHAR(10),
                 observations TEXT,
                 subtotal DECIMAL(10,2) NOT NULL,
@@ -250,6 +253,48 @@ class Database {
             }
         });
     }
+
+    // AGREGAR ESTA NUEVA FUNCIÓN:
+async runMigrations() {
+    console.log('🔄 Ejecutando migraciones...');
+    
+    try {
+        // Verificar si la columna payment_type existe
+        const tableInfo = await new Promise((resolve, reject) => {
+            this.db.all("PRAGMA table_info(sales)", (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        const hasPaymentType = tableInfo.some(column => column.name === 'payment_type');
+        
+        if (!hasPaymentType) {
+            console.log('📝 Agregando columna payment_type a tabla sales...');
+            
+            // Agregar la columna
+            await this.runAsync(`
+                ALTER TABLE sales 
+                ADD COLUMN payment_type VARCHAR(20) DEFAULT 'efectivo'
+            `);
+            
+            // Actualizar registros existentes
+            await this.runAsync(`
+                UPDATE sales 
+                SET payment_type = 'efectivo' 
+                WHERE payment_type IS NULL
+            `);
+            
+            console.log('✅ Columna payment_type agregada exitosamente');
+        } else {
+            console.log('✅ Columna payment_type ya existe');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error ejecutando migraciones:', error);
+        throw error;
+    }
+}
 }
 
 // Crear instancia singleton

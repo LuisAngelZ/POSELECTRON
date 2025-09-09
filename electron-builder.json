@@ -1,0 +1,37 @@
+{
+  "appId": "com.tuempresa.pos-desktop-app",
+  "productName": "Sistema POS",
+  "directories": {
+    "output": "dist",
+    "buildResources": "resources"
+  },
+  "files": [
+    "**/*",
+    "!dist/**/*",
+    "!build/**/*",
+    "!node_modules/**/*",
+    "!src/**/*",
+    "!.git/**/*"
+  ],
+  "win": {
+    "target": "nsis",
+    "icon": "resources/icon.ico",
+    "requestedExecutionLevel": "asInvoker"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Sistema POS"
+  },
+  "extraResources": [
+    {
+      "from": "database",
+      "to": "database",
+      "filter": [
+        "!*.db*"
+      ]
+    }
+  ]
+}

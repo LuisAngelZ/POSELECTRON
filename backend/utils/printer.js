@@ -113,79 +113,82 @@ GRACIAS POR SU PREFERENCIA...!!!`;
     }
 
     // TICKET DE VENTA CON FORMATO QUE FUNCIONABA BIEN
-    createSaleTicket(saleData) {
-        const ticketNumber = saleData.id.toString().padStart(6, '0');
-        const orderType = saleData.order_type === 'takeaway' ? 'PARA LLEVAR' : 'EN MESA';
-        const separator = '-'.repeat(this.thermalWidth);
-        
-        let content = `${this.centerText(`No ${ticketNumber}`)}
+createSaleTicket(saleData) {
+    // ===== CAMBIO PRINCIPAL: Usar número diario en lugar del ID =====
+    const dailyNumber = saleData.daily_ticket_number || 1;
+    const ticketNumber = dailyNumber.toString(); // SIN ceros a la izquierda
+    
+    const orderType = saleData.order_type === 'takeaway' ? 'PARA LLEVAR' : 'EN MESA';
+    const separator = '-'.repeat(this.thermalWidth);
+    
+    // ===== ANTES: ${this.centerText(`No ${ticketNumber.padStart(6, '0')}`)} =====
+    // ===== AHORA: ${this.centerText(`No ${ticketNumber}`)} =====
+    let content = `${this.centerText(`No ${ticketNumber}`)}
 ${this.centerText(orderType)}
 FECHA: ${moment().format('DD/MM/YYYY HH:mm:ss')}`;
 
-        // Información del cliente SIN ACENTOS
-        if (saleData.customer_name && saleData.customer_name !== 'SIN NOMBRE') {
-            const cleanName = this.removeAccents(saleData.customer_name.toUpperCase());
-            content += `\nSENOR(ES): ${cleanName}`;
-        } else {
-            content += `\nSENOR(ES): SIN NOMBRE`;
-        }
-
-        // Separador y cabecera SIN ACENTOS
-        content += `\n${separator}`;
-        content += `\nCANT  DESCRIPCION      P.U.  TOTAL`;
-        content += `\n${separator}`;
-
-        // Productos con formato que funcionaba bien
-        if (saleData.details && saleData.details.length > 0) {
-            saleData.details.forEach(item => {
-                const qty = item.quantity;
-                const description = this.removeAccents(item.product_name.toUpperCase());
-                const unitPrice = parseFloat(item.unit_price);
-                const total = parseFloat(item.subtotal);
-                
-                // Formato que funcionaba bien PERO sin acentos
-                const qtyStr = qty.toString().padStart(2);
-                const descStr = description.length > 15 ? 
-                    description.substring(0, 12) + '...' : 
-                    description.padEnd(15);
-                const priceStr = unitPrice.toFixed(2).padStart(6);
-                const totalStr = total.toFixed(2).padStart(6);
-                
-                content += `\n${qtyStr}    ${descStr} ${priceStr} ${totalStr}`;
-            });
-        }
-
-        content += `\n${separator}`;
-        
-        // Total
-        const total = parseFloat(saleData.total || 0);
-        content += `\n${this.alignRight(`TOTAL Bs:${total.toFixed(2)}`,35)}`;
-        
-        // Observaciones SIN ACENTOS
-        if (saleData.observations) {
-            const cleanObs = this.removeAccents(saleData.observations.toUpperCase());
-            content += `\nOBS.: ${cleanObs}`;
-            content += `\n`;
-        }
-
-        // Información del cajero SIN ACENTOS
-        const cajero = saleData.user_name || 'SISTEMA';
-        const cleanCajero = this.removeAccents(cajero.toUpperCase());
-        content += `\nCAJERO: ${cleanCajero}`;
-        content += `\nGRACIAS POR SU PREFERENCIA...!!!`;
-
-        return content;
+    // El resto del código permanece igual...
+    if (saleData.customer_name && saleData.customer_name !== 'SIN NOMBRE') {
+        const cleanName = this.removeAccents(saleData.customer_name.toUpperCase());
+        content += `\nSENOR(ES): ${cleanName}`;
+    } else {
+        content += `\nSENOR(ES): SIN NOMBRE`;
     }
 
-    // ===== NUEVA FUNCIÓN PARA CREAR CONTENIDO DEL REPORTE DIARIO =====
-  createDailyReportContent(reportData) {
+    content += `\n${separator}`;
+    content += `\nCANT  DESCRIPCION      P.U.  TOTAL`;
+    content += `\n${separator}`;
+
+    if (saleData.details && saleData.details.length > 0) {
+        saleData.details.forEach(item => {
+            const qty = item.quantity;
+            const description = this.removeAccents(item.product_name.toUpperCase());
+            const unitPrice = parseFloat(item.unit_price);
+            const total = parseFloat(item.subtotal);
+            
+            const qtyStr = qty.toString().padStart(2);
+            const descStr = description.length > 15 ? 
+                description.substring(0, 12) + '...' : 
+                description.padEnd(15);
+            const priceStr = unitPrice.toFixed(2).padStart(6);
+            const totalStr = total.toFixed(2).padStart(6);
+            
+            content += `\n${qtyStr}    ${descStr} ${priceStr} ${totalStr}`;
+        });
+    }
+
+    content += `\n${separator}`;
+    
+    const total = parseFloat(saleData.total || 0);
+    content += `\n${this.alignRight(`TOTAL Bs:${total.toFixed(2)}`,35)}`;
+    
+    if (saleData.observations) {
+        const cleanObs = this.removeAccents(saleData.observations.toUpperCase());
+        content += `\nOBS.: ${cleanObs}`;
+        content += `\n`;
+    }
+    
+    const cajero = saleData.user_name || 'SISTEMA';
+    const cleanCajero = this.removeAccents(cajero.toUpperCase());
+    content += `\nCAJERO: ${cleanCajero}`;
+    content += `\n`;
+
+    return content;
+}
+// Reemplaza la función createDailyReportContent en printer.js
+
+createDailyReportContent(reportData) {
     const date = reportData.date || new Date().toISOString().split('T')[0];
     const userName = reportData.user_name || 'SISTEMA';
     const totalSales = reportData.total_sales || 0;
     const totalAmount = reportData.total_amount || 0;
     
+    // Obtener datos de métodos de pago desde el summary
+    const paymentBreakdown = reportData.summary?.payment_breakdown || {};
+    const efectivoData = paymentBreakdown.efectivo || { sales: 0, amount: 0 };
+    const qrData = paymentBreakdown.qr || { sales: 0, amount: 0 };
+    
     const separator = '='.repeat(this.thermalWidth);
-    const separator1 = ' '.repeat(this.thermalWidth);
     
     let content = `${this.centerText('CIERRE DE CAJA')}
 ${this.centerText('REPORTE DIARIO')}
@@ -193,10 +196,16 @@ ${separator}
 FECHA Y HORA: ${moment().format('DD/MM/YYYY HH:mm:ss')}
 CAJERO: ${this.removeAccents(userName.toUpperCase())}
 ${separator}
-RESUMEN DEL DIA Nro Ventas:  ${totalSales}
+RESUMEN DEL DIA
+Nro Ventas: ${totalSales}
+Nro de ventas por QR: ${qrData.sales}
+Expresion en Bs: ${parseInt(qrData.amount)} Bs
+Nro de ventas por EFECTIVO: ${efectivoData.sales}
+Expresion en Bs: ${parseInt(efectivoData.amount)} Bs
 ${separator}
-Monto Total: ${parseInt(totalAmount)} Bs
-${separator1}`;
+MONTO TOTAL: ${parseInt(totalAmount)} Bs
+${separator}`;
+
     return content;
 }
 
@@ -246,7 +255,7 @@ $printDocument.add_PrintPage({
     param($sender, $e)
     
     # Fuente que funcionaba bien
-    $font = New-Object System.Drawing.Font("Courier New", 8, [System.Drawing.FontStyle]::Bold)
+    $font = New-Object System.Drawing.Font("Courier New", 12, [System.Drawing.FontStyle]::Bold)
     $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::Black)
     
     # Posicionamiento que funcionaba bien

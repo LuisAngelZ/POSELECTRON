@@ -75,6 +75,12 @@ class ReportController {
     // Reporte diario actualizado
     static async dailyReport(req, res) {
         try {
+              if (!req.user || !['admin','user', 'cajero'].includes(req.user.role)) {
+            return res.status(403).json({
+                success: false,
+                message: 'Solo administradores y cajeros pueden generar reportes'
+            });
+        }
             const { date } = req.query;
             const targetDate = date || new Date().toISOString().split('T')[0];
             
@@ -83,6 +89,38 @@ class ReportController {
             const sales = await Sale.findByDateRange(targetDate, targetDate);
             const totalAmount = sales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
             
+            const paymentBreakdown = await Sale.getDailyTotalsByPaymentType(targetDate);
+        
+        // Procesar breakdown de pagos
+        const paymentSummary = {
+            efectivo: { sales: 0, amount: 0, percentage: 0 },
+            qr: { sales: 0, amount: 0, percentage: 0 }
+        };
+               // DEBUGGING: agregar console.logs
+        console.log('🔍 Payment breakdown from DB:', paymentBreakdown);
+        console.log('🔍 Total sales:', sales.length);
+        console.log('🔍 Total amount:', totalAmount);
+        
+          paymentBreakdown.forEach(payment => {
+            console.log(`🔍 Processing payment: ${payment.payment_type} - Sales: ${payment.total_sales} - Amount: ${payment.total_amount}`);
+            
+            if (payment.payment_type === 'efectivo') {
+                paymentSummary.efectivo = {
+                    sales: parseInt(payment.total_sales),
+                    amount: parseFloat(payment.total_amount),
+                    percentage: totalAmount > 0 ? (payment.total_amount / totalAmount * 100).toFixed(1) : 0
+                };
+            } else if (payment.payment_type === 'qr') {
+                paymentSummary.qr = {
+                    sales: parseInt(payment.total_sales),
+                    amount: parseFloat(payment.total_amount),
+                    percentage: totalAmount > 0 ? (payment.total_amount / totalAmount * 100).toFixed(1) : 0
+                };
+            }
+        });
+        
+        console.log('🔍 Final payment summary:', paymentSummary);
+
             // Ventas por usuario
             const salesByUser = {};
             sales.forEach(sale => {
@@ -107,7 +145,8 @@ class ReportController {
                     summary: {
                         total_sales: sales.length,
                         total_amount: totalAmount,
-                        average_sale: sales.length > 0 ? totalAmount / sales.length : 0
+                        average_sale: sales.length > 0 ? totalAmount / sales.length : 0,
+                        payment_breakdown: paymentSummary
                     },
                     sales_by_user: Object.entries(salesByUser).map(([name, data]) => ({
                         user_name: name,
