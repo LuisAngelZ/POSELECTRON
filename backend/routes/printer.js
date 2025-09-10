@@ -145,8 +145,46 @@ router.post('/daily-report', authenticateToken, async (req, res) => {
             });
         }
 
-        console.log('📊 Iniciando impresión de reporte diario para:', report_data.date);
+        console.log(`🖨️ ===== SOLICITUD CIERRE DE CAJA =====`);
+        console.log(`👤 Usuario: ${req.user.username} (ID: ${req.user.id})`);
+        console.log(`📅 Fecha: ${report_data.date || 'hoy'}`);
+        
+        if (report_data.user) {
+            console.log(`👤 Usuario del reporte: ${report_data.user.username} (${report_data.user.full_name})`);
+        }
+        
+        if (report_data.summary) {
+            console.log(`📊 Resumen del usuario:`);
+            console.log(`   💰 Ventas: ${report_data.summary.total_sales || 0}`);
+            console.log(`   💰 Monto: Bs ${report_data.summary.total_amount || 0}`);
+            console.log(`   💰 Promedio: Bs ${report_data.summary.average_sale || 0}`);
+            
+            if (report_data.summary.payment_breakdown) {
+                const efectivo = report_data.summary.payment_breakdown.efectivo || {};
+                const qr = report_data.summary.payment_breakdown.qr || {};
+                
+                console.log(`   💳 EFECTIVO: ${efectivo.sales || 0} ventas, Bs ${efectivo.amount || 0} (${efectivo.percentage || 0}%)`);
+                console.log(`   💳 QR: ${qr.sales || 0} ventas, Bs ${qr.amount || 0} (${qr.percentage || 0}%)`);
+            }
+        }
+        
+        if (report_data.sales_by_user && report_data.sales_by_user.length > 0) {
+            console.log(`👥 Ventas por usuario en el reporte:`);
+            report_data.sales_by_user.forEach((user, i) => {
+                console.log(`   ${i+1}. ${user.user_name}: ${user.total_sales || user.count} ventas, Bs ${user.total_amount || user.amount}`);
+            });
+        }
+        
+        if (report_data.top_products && report_data.top_products.length > 0) {
+            console.log(`🏆 Top productos del usuario:`);
+            report_data.top_products.slice(0, 5).forEach((product, i) => {
+                console.log(`   ${i+1}. ${product.product_name}: ${product.total_quantity} vendidos`);
+            });
+        }
+        
+        console.log(`🖨️ ====================================`);
 
+        console.log('📊 Iniciando impresión de reporte diario para:', report_data.date);
         // Validar que tengamos datos mínimos
         const summary = report_data.summary || {};
         const user = report_data.user || {};

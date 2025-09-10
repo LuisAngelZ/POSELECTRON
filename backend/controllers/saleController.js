@@ -104,6 +104,25 @@ static async create(req, res) {
             user_id: req.user.id
         });
 
+               // ===== LOGS DETALLADOS DE VENTA CREADA =====
+        console.log(`🎫 ===== DETALLE DE VENTA CREADA =====`);
+        console.log(`👤 Usuario: ${req.user.username} (ID: ${req.user.id})`);
+        console.log(`🎫 Ticket asignado: #${newSale.ticket_number}`);
+        console.log(`💰 Total: Bs ${total}`);
+        console.log(`💳 Método: ${payment_type}`);
+        console.log(`📅 Fecha: ${new Date().toLocaleString('es-ES')}`);
+        console.log(`👥 Cliente: ${customer_name || 'SIN NOMBRE'}`);
+        console.log(`🍽️ Tipo: ${order_type === 'dine_in' ? 'En Mesa' : 'Para Llevar'}`);
+        console.log(`🛒 Productos: ${validatedItems.length} items`);
+        validatedItems.forEach((item, i) => {
+            console.log(`   ${i+1}. ${item.product_name} x${item.quantity} = Bs${item.subtotal}`);
+        });
+        console.log(`💰 Subtotal: Bs ${subtotal}`);
+        console.log(`💵 Pagado: Bs ${paid_amount}`);
+        console.log(`💸 Cambio: Bs ${change_amount}`);
+        console.log(`🎫 =====================================`);
+
+
         // Crear los detalles de la venta
         await SaleDetail.createMultiple(newSale.id, validatedItems);
 
@@ -113,7 +132,7 @@ static async create(req, res) {
 
         const saleResponse = {
             ...completeSale,
-            daily_ticket_number: 1, // Temporal hasta que implementemos el sistema completo
+            daily_ticket_number: newSale.ticket_number, // ✅ Usar el número real del ticket
             details: saleDetails
         };
 

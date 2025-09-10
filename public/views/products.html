@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Productos - Sistema POS</title>
   <link rel="stylesheet" href="/css/product.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
@@ -27,19 +31,13 @@
             </div>
 
             <div class="content-area">
-                <!-- Tab Navigation -->
+                <!-- Tab Navigation Simplificado (Solo Vista) -->
                 <div class="tab-header">
                     <button class="tab-btn active" onclick="switchTab('products')">
-                        📋 Productos
+                        <span>📋 Productos</span>
                     </button>
                     <button class="tab-btn" onclick="switchTab('categories')">
-                        🏷️ Categorías
-                    </button>
-                    <button class="tab-btn" onclick="switchTab('create-product')">
-                        ➕ Crear Producto
-                    </button>
-                    <button class="tab-btn" onclick="switchTab('create-category')">
-                        ➕ Nueva Categoría
+                        <span>🏷️ Categorías</span>
                     </button>
                 </div>
 
@@ -47,27 +45,27 @@
                 <div id="productsTab" class="tab-content active">
                     <div class="products-header">
                         <div>
-                            <h2 style="font-size: 1.5rem; font-weight: 700; color: #1a1d29; margin-bottom: 0.5rem;">
-                                Inventario de Productos
+                            <h2 style="font-size: 1.8rem; font-weight: 700; color: #1a1d29; margin-bottom: 0.5rem;">
+                                📦 Inventario de Productos
                             </h2>
-                            <p style="color: #6b7280;">Administra tu catálogo de productos</p>
+                            <p style="color: #6b7280; font-size: 1.1rem;">Administra tu catálogo de productos de manera eficiente</p>
                         </div>
                         
                         <div class="search-section">
-                            <input type="text" id="searchInput" class="search-input" placeholder="Buscar productos...">
+                            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Buscar productos...">
                         </div>
                     </div>
 
                     <div class="filter-section">
-                        <label for="categoryFilter">Filtrar por categoría:</label>
+                        <label for="categoryFilter" style="font-weight: 600; color: #374151;">Filtrar por categoría:</label>
                         <select id="categoryFilter" class="filter-select" onchange="filterByCategory()">
                             <option value="">Todas las categorías</option>
                         </select>
                         
-                        <label for="sortBy">Ordenar por:</label>
+                        <label for="sortBy" style="font-weight: 600; color: #374151;">Ordenar por:</label>
                         <select id="sortBy" class="filter-select" onchange="sortProducts()">
-                            <option value="name">Nombre</option>
-                            <option value="price">Precio</option>
+                            <option value="name">Nombre A-Z</option>
+                            <option value="price">Precio ↑</option>
                             <option value="category">Categoría</option>
                         </select>
                     </div>
@@ -79,241 +77,135 @@
                 <div id="categoriesTab" class="tab-content">
                     <div class="products-header">
                         <div>
-                            <h2 style="font-size: 1.5rem; font-weight: 700; color: #1a1d29; margin-bottom: 0.5rem;">
-                                Gestión de Categorías
+                            <h2 style="font-size: 1.8rem; font-weight: 700; color: #1a1d29; margin-bottom: 0.5rem;">
+                                🏷️ Gestión de Categorías
                             </h2>
-                            <p style="color: #6b7280;">Organiza y administra las categorías de productos</p>
+                            <p style="color: #6b7280; font-size: 1.1rem;">Organiza y administra las categorías de productos</p>
                         </div>
                         
                         <div class="search-section">
-                            <input type="text" id="searchCategoriesInput" class="search-input" placeholder="Buscar categorías...">
+                            <input type="text" id="searchCategoriesInput" class="search-input" placeholder="🔍 Buscar categorías...">
                         </div>
                     </div>
 
                     <div id="categoriesContainer"></div>
                 </div>
-                <!-- TAB: Crear Producto -->
-                <div id="create-productTab" class="tab-content">
-                    <div class="form-card">
-                        <div class="form-header">
-                            <h2 id="formTitle">Nuevo Producto</h2>
-                            <p id="formDescription">Completa la información para agregar un producto al inventario</p>
-                        </div>
-
-                        <form id="productForm">
-                            <input type="hidden" id="editingProductId">
-                            
-                            <div class="form-section">
-                                <h3 class="section-title">
-                                    <span>📝</span>
-                                    Información Básica
-                                </h3>
-                                
-                                <div class="form-grid">
-                                    <div class="form-group">
-                                        <label for="productName" class="form-label required">Nombre del Producto</label>
-                                        <input type="text" id="productName" name="name" class="form-input" 
-                                               placeholder="Ej: Pizza Margherita" required maxlength="100">
-                                        <div class="input-helper">Máximo 100 caracteres</div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="productPrice" class="form-label required">Precio</label>
-                                        <div class="price-input-wrapper">
-                                            <span class="price-symbol">Bs</span>
-                                            <input type="number" id="productPrice" name="price" class="form-input price-input" 
-                                                   placeholder="0.00" step="0.01" min="0" required>
-                                        </div>
-                                        <div class="input-helper">Precio en bolivianos (Bs.)</div>
-                                    </div>
-                                </div>
-
-                                <div class="form-group full-width">
-                                    <label for="productDescription" class="form-label">Descripción</label>
-                                    <textarea id="productDescription" name="description" class="form-input form-textarea" 
-                                              placeholder="Descripción detallada del producto..." maxlength="500"></textarea>
-                                    <div class="input-helper">Opcional - Máximo 500 caracteres</div>
-                                </div>
-
-                                <div class="form-grid">
-
-<div class="form-group full-width">
-  <label for="productImage" class="form-label">Imagen del Producto</label>
-  <input type="file" id="productImage" name="image" class="form-input" accept="image/png,image/jpeg,image/webp">
-  <div class="input-helper">Opcional - JPG/PNG/WebP máx. 2MB</div>
-
-  <!-- Preview opcional -->
-  <img id="productImagePreview" style="display:none;margin-top:10px;max-height:160px;border-radius:12px;object-fit:cover;">
-</div>
-                                </div>
-                            </div>
-
-                            <div class="form-section">
-                                <h3 class="section-title">
-                                    <span>🏷️</span>
-                                    Categoría
-                                </h3>
-                                
-                                <div class="form-group">
-                                    <label for="productCategory" class="form-label required">Seleccionar Categoría</label>
-                                    <select id="productCategory" name="category_id" class="form-select" required>
-                                        <option value="">Seleccionar categoría</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="button-group">
-                                <button type="button" class="btn btn-secondary" onclick="cancelForm()">
-                                    <span>✖</span>
-                                    Cancelar
-                                </button>
-                                <button type="submit" class="btn btn-primary" id="submitBtn">
-                                    <span>💾</span>
-                                    <span id="submitBtnText">Crear Producto</span>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- TAB: Crear Categoría -->
-                <div id="create-categoryTab" class="tab-content">
-                    <div class="form-card">
-                        <div class="form-header">
-                            <h2 id="categoryFormTitle">Nueva Categoría</h2>
-                            <p id="categoryFormDescription">Completa la información para crear una nueva categoría</p>
-                        </div>
-
-                        <form id="categoryForm">
-                            <input type="hidden" id="editingCategoryId">
-                            
-                            <div class="form-section">
-                                <h3 class="section-title">
-                                    <span>🏷️</span>
-                                    Información de la Categoría
-                                </h3>
-                                
-                                <div class="form-group">
-                                    <label for="categoryName" class="form-label required">Nombre de la Categoría</label>
-                                    <input type="text" id="categoryName" name="name" class="form-input" 
-                                           placeholder="Ej: Bebidas, Comidas, Postres..." required maxlength="100">
-                                    <div class="input-helper">Máximo 100 caracteres</div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="categoryDescription" class="form-label">Descripción</label>
-                                    <textarea id="categoryDescription" name="description" class="form-input form-textarea" 
-                                              placeholder="Descripción detallada de la categoría..." maxlength="255"></textarea>
-                                    <div class="input-helper">Opcional - Máximo 255 caracteres</div>
-                                </div>
-                            </div>
-
-                            <div class="button-group">
-                                <button type="button" class="btn btn-secondary" onclick="cancelCategoryForm()">
-                                    <span>✖</span>
-                                    Cancelar
-                                </button>
-                                <button type="submit" class="btn btn-primary" id="categorySubmitBtn">
-                                    <span>💾</span>
-                                    <span id="categorySubmitBtnText">Crear Categoría</span>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
-    <!-- Modal para editar producto -->
+
+    <!-- Botones Flotantes -->
+    <div id="floatingButtons" class="floating-buttons">
+        <button class="floating-btn" onclick="openCreateProductModal()">
+            ➕ Nuevo Producto
+        </button>
+        <button class="floating-btn category-btn" onclick="openCreateCategoryModal()">
+            🏷️ Nueva Categoría
+        </button>
+    </div>
+
+    <!-- Modal para Producto (Crear/Editar) -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Editar Producto</h2>
+                <h2 class="modal-title" id="modalProductTitle">✨ Nuevo Producto</h2>
                 <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
             </div>
             
-            <form id="modalProductForm">
-                <input type="hidden" id="modalProductId">
-                
-                <div class="form-group">
-                    <label for="modalProductName" class="form-label required">Nombre del Producto</label>
-                    <input type="text" id="modalProductName" name="name" class="form-input" 
-                           placeholder="Nombre del producto" required maxlength="100">
-                </div>
+            <div class="modal-body">
+                <form id="modalProductForm">
+                    <input type="hidden" id="modalProductId">
+                    
+                    <div class="form-group">
+                        <label for="modalProductName" class="form-label required">Nombre del Producto</label>
+                        <input type="text" id="modalProductName" name="name" class="form-input" 
+                               placeholder="Ej: Pizza Margherita" required maxlength="100">
+                        <div class="input-helper">Máximo 100 caracteres</div>
+                    </div>
 
-                <div class="form-group">
-                    <label for="modalProductPrice" class="form-label required">Precio (Bs.)</label>
-                    <input type="number" id="modalProductPrice" name="price" class="form-input" 
-                           placeholder="0.00" step="0.01" min="0" required>
-                </div>
+                    <div class="form-group">
+                        <label for="modalProductPrice" class="form-label required">Precio</label>
+                        <div class="price-input-wrapper">
+                            <span class="price-symbol">Bs</span>
+                            <input type="number" id="modalProductPrice" name="price" class="form-input price-input" 
+                                   placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+                        <div class="input-helper">Precio en bolivianos (Bs.)</div>
+                    </div>
 
-                <div class="form-group">
-                    <label for="modalProductCategory" class="form-label required">Categoría</label>
-                    <select id="modalProductCategory" name="category_id" class="form-select" required>
-                        <option value="">Seleccionar categoría</option>
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label for="modalProductCategory" class="form-label required">Categoría</label>
+                        <select id="modalProductCategory" name="category_id" class="form-select" required>
+                            <option value="">Seleccionar categoría</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label for="modalProductDescription" class="form-label">Descripción</label>
-                    <textarea id="modalProductDescription" name="description" class="form-input form-textarea" 
-                              placeholder="Descripción del producto..." maxlength="500"></textarea>
-                </div>
+                    <div class="form-group">
+                        <label for="modalProductDescription" class="form-label">Descripción</label>
+                        <textarea id="modalProductDescription" name="description" class="form-input form-textarea" 
+                                  placeholder="Descripción detallada del producto..." maxlength="500"></textarea>
+                        <div class="input-helper">Opcional - Máximo 500 caracteres</div>
+                    </div>
 
-                <div class="form-group">
-    <label for="modalProductImage" class="form-label">Cambiar Imagen</label>
-    <input type="file" id="modalProductImage" name="image" class="form-input" 
-           accept="image/*" onchange="previewModalImage(this)">
-    <div class="input-helper">Opcional - Selecciona una nueva imagen</div>
-    <div id="modalImagePreview" class="image-preview">
-        <img id="modalPreviewImg" src="" alt="Imagen actual" style="max-width: 200px; max-height: 150px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none;">
-    </div>
-</div>
+                    <div class="form-group">
+                        <label for="modalProductImage" class="form-label">Imagen del Producto</label>
+                        <input type="file" id="modalProductImage" name="image" class="form-input" 
+                               accept="image/*" onchange="previewModalImage(this)">
+                        <div class="input-helper">Opcional - JPG/PNG/WebP máx. 2MB</div>
+                        <div class="image-preview">
+                            <img id="modalPreviewImg" class="preview-img" style="display: none;">
+                        </div>
+                    </div>
 
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary" id="modalSubmitBtn">
-                        Actualizar Producto
-                    </button>
-                </div>
-            </form>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="modalProductSubmitBtn">
+                            💾 Crear Producto
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- Modal para editar categoría -->
+    <!-- Modal para Categoría (Crear/Editar) -->
     <div id="categoryModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Editar Categoría</h2>
+                <h2 class="modal-title" id="modalCategoryTitle">✨ Nueva Categoría</h2>
                 <button class="modal-close" onclick="closeModal('categoryModal')">&times;</button>
             </div>
             
-            <form id="modalCategoryForm">
-                <input type="hidden" id="modalCategoryId">
-                
-                <div class="form-group">
-                    <label for="modalCategoryName" class="form-label required">Nombre de la Categoría</label>
-                    <input type="text" id="modalCategoryName" name="name" class="form-input" 
-                           placeholder="Nombre de la categoría" required maxlength="100">
-                </div>
+            <div class="modal-body">
+                <form id="modalCategoryForm">
+                    <input type="hidden" id="modalCategoryId">
+                    
+                    <div class="form-group">
+                        <label for="modalCategoryName" class="form-label required">Nombre de la Categoría</label>
+                        <input type="text" id="modalCategoryName" name="name" class="form-input" 
+                               placeholder="Ej: Bebidas, Comidas, Postres..." required maxlength="100">
+                        <div class="input-helper">Máximo 100 caracteres</div>
+                    </div>
 
-                <div class="form-group">
-                    <label for="modalCategoryDescription" class="form-label">Descripción</label>
-                    <textarea id="modalCategoryDescription" name="description" class="form-input form-textarea" 
-                              placeholder="Descripción de la categoría..." maxlength="255"></textarea>
-                </div>
+                    <div class="form-group">
+                        <label for="modalCategoryDescription" class="form-label">Descripción</label>
+                        <textarea id="modalCategoryDescription" name="description" class="form-input form-textarea" 
+                                  placeholder="Descripción detallada de la categoría..." maxlength="255"></textarea>
+                        <div class="input-helper">Opcional - Máximo 255 caracteres</div>
+                    </div>
 
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('categoryModal')">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary" id="modalCategorySubmitBtn">
-                        Actualizar Categoría
-                    </button>
-                </div>
-            </form>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('categoryModal')">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="modalCategorySubmitBtn">
+                            💾 Crear Categoría
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     <script src="/js/products.js" defer></script>

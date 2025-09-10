@@ -84,12 +84,21 @@ class ReportController {
             const { date } = req.query;
             const targetDate = date || new Date().toISOString().split('T')[0];
             
-            console.log('=== REPORTE DIARIO ===', targetDate);
+             console.log(`📊 ===== GENERANDO REPORTE DIARIO =====`);
+        console.log(`👤 Usuario solicitante: ${req.user.username} (ID: ${req.user.id})`);
+        console.log(`📅 Fecha del reporte: ${targetDate}`);
+        console.log(`🔍 Filtrando ventas SOLO del usuario: ${req.user.username}`);
 
-            const sales = await Sale.findByDateRange(targetDate, targetDate);
+            const sales = await Sale.findByDateRangeAndUser(targetDate, targetDate, req.user.id);
             const totalAmount = sales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
             
-            const paymentBreakdown = await Sale.getDailyTotalsByPaymentType(targetDate);
+            const paymentBreakdown = await Sale.getDailyTotalsByPaymentTypeAndUser(targetDate, req.user.id);
+
+                    console.log(`📊 DATOS DEL REPORTE PARA USUARIO ${req.user.username}:`);
+        console.log(`   💰 Total ventas del usuario: ${sales.length}`);
+        console.log(`   💰 Monto total del usuario: Bs ${totalAmount}`);
+        console.log(`   💳 Breakdown de pagos del usuario:`, paymentBreakdown);
+        
         
         // Procesar breakdown de pagos
         const paymentSummary = {
@@ -100,6 +109,7 @@ class ReportController {
         console.log('🔍 Payment breakdown from DB:', paymentBreakdown);
         console.log('🔍 Total sales:', sales.length);
         console.log('🔍 Total amount:', totalAmount);
+
         
           paymentBreakdown.forEach(payment => {
             console.log(`🔍 Processing payment: ${payment.payment_type} - Sales: ${payment.total_sales} - Amount: ${payment.total_amount}`);
@@ -120,6 +130,7 @@ class ReportController {
         });
         
         console.log('🔍 Final payment summary:', paymentSummary);
+    console.log(`📊 ========================================`);
 
             // Ventas por usuario
             const salesByUser = {};

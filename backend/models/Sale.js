@@ -315,6 +315,51 @@ class Sale {
             });
         });
     }
+
+    // AGREGAR DESPUÉS DE getDailyTotalsByPaymentType:
+static async getDailyTotalsByPaymentTypeAndUser(date, userId) {
+    await database.ensureConnected();
+    
+    return new Promise((resolve, reject) => {
+        const targetDate = date || new Date().toISOString().split('T')[0];
+        const sql = `
+            SELECT 
+                payment_type,
+                COUNT(*) as total_sales,
+                COALESCE(SUM(total), 0) as total_amount,
+                COALESCE(AVG(total), 0) as average_sale
+            FROM sales 
+            WHERE DATE(created_at) = ? AND user_id = ?
+            GROUP BY payment_type
+            ORDER BY payment_type
+        `;
+        
+        database.getDB().all(sql, [targetDate, userId], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows || []);
+        });
+    });
+}
+
+// AGREGAR después de findByDateRange:
+static async findByDateRangeAndUser(startDate, endDate, userId) {
+    await database.ensureConnected();
+    
+    return new Promise((resolve, reject) => {
+        const sql = `
+            SELECT s.*, u.full_name as user_name
+            FROM sales s
+            LEFT JOIN users u ON s.user_id = u.id
+            WHERE DATE(s.created_at) BETWEEN ? AND ? AND s.user_id = ?
+            ORDER BY s.created_at DESC
+        `;
+        
+        database.getDB().all(sql, [startDate, endDate, userId], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+        });
+    });
+}
 }
 
 module.exports = Sale;

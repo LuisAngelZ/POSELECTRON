@@ -4,74 +4,90 @@ const database = require('../config/database');
 
 class TicketSession {
     // Obtener o crear sesión activa para un usuario en una fecha
-    static async getOrCreateActiveSession(userId, date = null) {
-        await database.ensureConnected();
+static async getOrCreateActiveSession(userId, date = null) {
+    await database.ensureConnected();
+    
+    return new Promise((resolve, reject) => {
+        const targetDate = date || new Date().toISOString().split('T')[0];
         
-        return new Promise((resolve, reject) => {
-            const targetDate = date || new Date().toISOString().split('T')[0];
-            
-            database.getDB().serialize(() => {
-                // Buscar sesión activa existente
+        database.getDB().serialize(() => {
+            // Buscar sesión activa existente del MISMO USUARIO
+            database.getDB().get(`
+                SELECT * FROM ticket_sessions 
+                WHERE user_id = ? AND session_date = ? AND is_active = 1
+                ORDER BY session_started_at DESC
+                LIMIT 1
+            `, [userId, targetDate], (err, existingSession) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                
+                if (existingSession) {
+                    console.log(`📋 Sesión activa encontrada - Usuario ${userId}, Ticket actual: ${existingSession.last_ticket_number}`);
+                    resolve(existingSession);
+                    return;
+                }
+                
+                // No hay sesión activa del usuario actual
+                // Verificar si este usuario ya tuvo sesiones HOY (para continuar numeración)
                 database.getDB().get(`
-                    SELECT * FROM ticket_sessions 
-                    WHERE user_id = ? AND session_date = ? AND is_active = 1
-                    ORDER BY session_started_at DESC
-                    LIMIT 1
-                `, [userId, targetDate], (err, existingSession) => {
-                    if (err) {
-                        reject(err);
+                    SELECT MAX(last_ticket_number) as max_ticket_user
+                    FROM ticket_sessions 
+                    WHERE session_date = ? AND user_id = ?
+                `, [targetDate, userId], (userErr, userResult) => {
+                    if (userErr) {
+                        reject(userErr);
                         return;
                     }
                     
-                    if (existingSession) {
-                        console.log(`📋 Sesión activa encontrada - Usuario ${userId}, Ticket actual: ${existingSession.last_ticket_number}`);
-                        resolve(existingSession);
-                        return;
+                    // Determinar número inicial para este usuario específico
+                    let startingNumber;
+                    
+                    if (userResult && userResult.max_ticket_user) {
+                        // El usuario YA tuvo sesiones hoy - continuar desde su último ticket
+                        startingNumber = userResult.max_ticket_user;
+                        console.log(`🔄 Usuario ${userId} reanuda sesión desde ticket: ${startingNumber}`);
+                    } else {
+                        // Usuario NUEVO hoy - empezar desde 0 (siguiente será #1)
+                        startingNumber = 0;
+                        console.log(`🆕 Usuario ${userId} inicia nueva numeración desde: ${startingNumber}`);
                     }
                     
-                    // No hay sesión activa, verificar si hay sesiones anteriores del mismo día
-                    database.getDB().get(`
-                        SELECT MAX(last_ticket_number) as max_ticket 
-                        FROM ticket_sessions 
-                        WHERE session_date = ?
-                    `, [targetDate], (maxErr, maxResult) => {
-                        if (maxErr) {
-                            reject(maxErr);
+                    // Crear nueva sesión para este usuario
+                    database.getDB().run(`
+                        INSERT INTO ticket_sessions (
+                            session_date, user_id, last_ticket_number, is_active
+                        ) VALUES (?, ?, ?, 1)
+                    `, [targetDate, userId, startingNumber], function(insertErr) {
+                        if (insertErr) {
+                            reject(insertErr);
                             return;
                         }
                         
-                        // Determinar número inicial
-                        const startingNumber = maxResult && maxResult.max_ticket ? maxResult.max_ticket : 0;
+                        const newSession = {
+                            id: this.lastID,
+                            session_date: targetDate,
+                            user_id: userId,
+                            last_ticket_number: startingNumber,
+                            is_active: 1,
+                            total_sales_in_session: 0,
+                            total_amount_in_session: 0
+                        };
                         
-                        // Crear nueva sesión
-                        database.getDB().run(`
-                            INSERT INTO ticket_sessions (
-                                session_date, user_id, last_ticket_number, is_active
-                            ) VALUES (?, ?, ?, 1)
-                        `, [targetDate, userId, startingNumber], function(insertErr) {
-                            if (insertErr) {
-                                reject(insertErr);
-                                return;
-                            }
-                            
-                            const newSession = {
-                                id: this.lastID,
-                                session_date: targetDate,
-                                user_id: userId,
-                                last_ticket_number: startingNumber,
-                                is_active: 1,
-                                total_sales_in_session: 0,
-                                total_amount_in_session: 0
-                            };
-                            
-                            console.log(`🆕 Nueva sesión creada - Usuario ${userId}, Iniciando desde ticket: ${startingNumber}`);
-                            resolve(newSession);
-                        });
+                        if (userResult && userResult.max_ticket_user) {
+                            console.log(`🔄 Sesión reanudada - Usuario ${userId}, continuando desde ticket: ${startingNumber}`);
+                        } else {
+                            console.log(`🆕 Nueva sesión creada - Usuario ${userId}, iniciando desde ticket: ${startingNumber}`);
+                        }
+                        
+                        resolve(newSession);
                     });
                 });
             });
         });
-    }
+    });
+}
     
     // Obtener próximo número de ticket para un usuario
     static async getNextTicketNumber(userId, date = null) {
@@ -129,7 +145,17 @@ class TicketSession {
                         }
                         
                         const ticketNumber = row.last_ticket_number;
-                        console.log(`✅ Ticket #${ticketNumber} asignado a usuario ${userId}`);
+                         // ===== LOGS DETALLADOS DE TICKET ASIGNADO =====
+                    console.log(`🎫 ===== TICKET ASIGNADO =====`);
+                    console.log(`👤 Usuario ID: ${userId}`);
+                    console.log(`🎫 Número de ticket: #${ticketNumber}`);
+                    console.log(`💰 Monto de venta: Bs ${saleAmount}`);
+                    console.log(`📅 Fecha: ${targetDate}`);
+                    console.log(`📊 Estadísticas de sesión:`);
+                    console.log(`   🎫 Tickets generados: ${row.last_ticket_number}`);
+                    console.log(`   💰 Ventas en sesión: ${row.total_sales_in_session}`);
+                    console.log(`   💰 Monto acumulado: Bs ${row.total_amount_in_session}`);
+                    console.log(`🎫 ===========================`);
                         resolve(ticketNumber);
                     });
                 });

@@ -115,8 +115,8 @@ GRACIAS POR SU PREFERENCIA...!!!`;
     // TICKET DE VENTA CON FORMATO QUE FUNCIONABA BIEN
 createSaleTicket(saleData) {
     // ===== CAMBIO PRINCIPAL: Usar número diario en lugar del ID =====
-    const dailyNumber = saleData.daily_ticket_number || 1;
-    const ticketNumber = dailyNumber.toString(); // SIN ceros a la izquierda
+const dailyNumber = saleData.ticket_number || saleData.daily_ticket_number || 1;
+const ticketNumber = dailyNumber.toString();
     
     const orderType = saleData.order_type === 'takeaway' ? 'PARA LLEVAR' : 'EN MESA';
     const separator = '-'.repeat(this.thermalWidth);
@@ -232,7 +232,7 @@ $printDocument = New-Object System.Drawing.Printing.PrintDocument
 $printDocument.PrinterSettings.PrinterName = "${this.printerName}"
 
 # Márgenes que funcionaban bien
-$printDocument.DefaultPageSettings.Margins = New-Object System.Drawing.Printing.Margins(3, 3, 3, 3)
+$printDocument.DefaultPageSettings.Margins = New-Object System.Drawing.Printing.Margins(1, 1, 3, 3)
 
 # Configurar papel térmico
 $paperSizes = $printDocument.PrinterSettings.PaperSizes
@@ -255,12 +255,12 @@ $printDocument.add_PrintPage({
     param($sender, $e)
     
     # Fuente que funcionaba bien
-    $font = New-Object System.Drawing.Font("Courier New", 12, [System.Drawing.FontStyle]::Bold)
+    $font = New-Object System.Drawing.Font("Courier New", 9, [System.Drawing.FontStyle]::Bold)
     $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::Black)
     
     # Posicionamiento que funcionaba bien
-    $x = 8   # Margen izquierdo
-    $y = 5   # Margen superior
+    $x = 2   # Margen izquierdo
+    $y = 4   # Margen superior
     $lineHeight = $font.GetHeight($e.Graphics) * 0.95
     
     $lines = $content -split "\\r?\\n"

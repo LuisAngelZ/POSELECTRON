@@ -131,6 +131,7 @@ class UniversalSidebar {
     this.ensureMobileButton();
   }
 
+  /* ============ CREAR SIDEBAR HTML MEJORADO ============ */
   createSidebarHTML() {
     const sidebarHTML = `
       <nav class="sidebar-modern" id="sidebar">
@@ -161,10 +162,27 @@ class UniversalSidebar {
     document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
     this.sidebar = document.getElementById('sidebar');
 
-    // Ajustar margin del contenido principal si existe
+    // Ajustar main content con mejor detección
+    this.adjustMainContent();
+  }
+
+  adjustMainContent() {
+    if (!this.mainContent) {
+      this.mainContent = document.querySelector('.main-content') || 
+                        document.querySelector('main') ||
+                        document.querySelector('#mainContent');
+    }
+    
     if (this.mainContent) {
-      this.mainContent.style.marginLeft = '280px';
-      this.mainContent.style.transition = 'margin-left 0.3s ease';
+      // Aplicar estilos solo en desktop
+      if (window.innerWidth > 768) {
+        this.mainContent.style.marginLeft = '280px';
+        this.mainContent.style.width = 'calc(100vw - 280px)';
+      } else {
+        this.mainContent.style.marginLeft = '0';
+        this.mainContent.style.width = '100vw';
+      }
+      this.mainContent.style.transition = 'margin-left 0.3s ease, width 0.3s ease';
     }
   }
 
@@ -283,48 +301,42 @@ class UniversalSidebar {
     this.setActivePageFromURL();
   }
 
-getMenuSections(isAdmin) {
-  if (isAdmin) {
-    // Admin: Dashboard + resto de secciones
+  getMenuSections(isAdmin) {
+    if (isAdmin) {
+      // Admin: Dashboard + resto de secciones
+      return [
+        {
+          title: 'Principal',
+          items: [
+            { key: 'dashboard', icon: '📊', text: 'Dashboard', href: this.routes.dashboard },
+            { key: 'pos', icon: '🛒', text: 'Punto de Venta', href: this.routes.pos }
+          ]
+        },
+        {
+          title: 'Inventario',
+          items: [
+            { key: 'products', icon: '📦', text: 'Productos', href: this.routes.products }
+          ]
+        },
+        {
+          title: 'Reportes',
+          items: [
+            { key: 'reports', icon: '📈', text: 'Reportes', href: this.routes.reports }
+          ]
+        }
+      ];
+    }
+
+    // NO admin: solo POS
     return [
       {
         title: 'Principal',
         items: [
-          { key: 'dashboard', icon: '📊', text: 'Dashboard', href: this.routes.dashboard },
           { key: 'pos', icon: '🛒', text: 'Punto de Venta', href: this.routes.pos }
-        ]
-      },
-      {
-        title: 'Inventario',
-        items: [
-          { key: 'products', icon: '📦', text: 'Productos', href: this.routes.products }
-        ]
-      },
-      {
-        title: 'Reportes',
-        items: [
-          { key: 'reports', icon: '📈', text: 'Reportes', href: this.routes.reports }
-        ]
-      },
-      {
-        title: 'Administración',
-        items: [
-          { key: 'create-user', icon: '➕', text: 'Crear Usuario', href: this.routes['create-user'] }
         ]
       }
     ];
   }
-
-  // NO admin: solo POS
-  return [
-    {
-      title: 'Principal',
-      items: [
-        { key: 'pos', icon: '🛒', text: 'Punto de Venta', href: this.routes.pos }
-      ]
-    }
-  ];
-}
 
   createNavItemHTML(item) {
     const badgeHTML = item.badge ? `<span class="nav-badge">${item.badge}</span>` : '';
@@ -381,10 +393,11 @@ getMenuSections(isAdmin) {
     if (!this.sidebar) return;
 
     if (window.innerWidth <= 768) {
-      // Móvil: toggle class mobile-open
+      // Móvil: toggle class mobile-open con overlay
       this.sidebar.classList.toggle('mobile-open');
+      this.toggleOverlay();
     } else {
-      // Desktop: toggle collapsed
+      // Desktop: toggle collapsed con mejor manejo
       this.sidebar.classList.toggle('collapsed');
       
       if (this.mainContent) {
@@ -395,6 +408,9 @@ getMenuSections(isAdmin) {
       if (this.toggleIcon) {
         this.toggleIcon.textContent = this.sidebar.classList.contains('collapsed') ? '→' : '☰';
       }
+      
+      // Forzar reflow para mejor transición
+      this.forceReflow();
     }
   }
 
@@ -403,10 +419,16 @@ getMenuSections(isAdmin) {
 
     if (window.innerWidth <= 768) {
       this.sidebar.classList.remove('mobile-open');
+      this.hideOverlay();
     } else {
       this.sidebar.classList.add('collapsed');
-      if (this.mainContent) this.mainContent.classList.add('expanded');
-      if (this.toggleIcon) this.toggleIcon.textContent = '→';
+      if (this.mainContent) {
+        this.mainContent.classList.add('expanded');
+      }
+      if (this.toggleIcon) {
+        this.toggleIcon.textContent = '→';
+      }
+      this.forceReflow();
     }
   }
 
@@ -415,11 +437,100 @@ getMenuSections(isAdmin) {
 
     if (window.innerWidth <= 768) {
       this.sidebar.classList.add('mobile-open');
+      this.showOverlay();
     } else {
       this.sidebar.classList.remove('collapsed');
-      if (this.mainContent) this.mainContent.classList.remove('expanded');
-      if (this.toggleIcon) this.toggleIcon.textContent = '☰';
+      if (this.mainContent) {
+        this.mainContent.classList.remove('expanded');
+      }
+      if (this.toggleIcon) {
+        this.toggleIcon.textContent = '☰';
+      }
+      this.forceReflow();
     }
+  }
+
+  /* ============ FUNCIONES AUXILIARES DENTRO DE LA CLASE ============ */
+  forceReflow() {
+    // Forzar recálculo del layout para transiciones suaves
+    if (this.mainContent) {
+      this.mainContent.offsetHeight; // Trigger reflow
+    }
+  }
+
+  toggleOverlay() {
+    let overlay = document.getElementById('sidebar-overlay');
+    
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'sidebar-overlay';
+      overlay.className = 'sidebar-overlay';
+      document.body.appendChild(overlay);
+      
+      // Click en overlay cierra sidebar
+      overlay.addEventListener('click', () => this.closeSidebar());
+    }
+    
+    overlay.classList.toggle('active');
+  }
+
+  showOverlay() {
+    let overlay = document.getElementById('sidebar-overlay');
+    
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'sidebar-overlay';
+      overlay.className = 'sidebar-overlay';
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', () => this.closeSidebar());
+    }
+    
+    overlay.classList.add('active');
+  }
+
+  hideOverlay() {
+    const overlay = document.getElementById('sidebar-overlay');
+    if (overlay) {
+      overlay.classList.remove('active');
+    }
+  }
+
+  /* ============ RESIZE MEJORADO ============ */
+  handleResize() {
+    if (!this.sidebar) return;
+
+    if (window.innerWidth <= 768) {
+      // Móvil: remover clases de desktop y overlay si está abierto
+      this.sidebar.classList.remove('collapsed');
+      if (this.mainContent) {
+        this.mainContent.classList.remove('expanded');
+        this.mainContent.style.marginLeft = '0';
+        this.mainContent.style.width = '100vw';
+      }
+      if (this.toggleIcon) this.toggleIcon.textContent = '☰';
+      
+      // Si sidebar estaba abierto, mantenerlo pero con overlay
+      if (this.sidebar.classList.contains('mobile-open')) {
+        this.showOverlay();
+      }
+    } else {
+      // Desktop: remover clases móviles y overlay
+      this.sidebar.classList.remove('mobile-open');
+      this.hideOverlay();
+      
+      // Restaurar estado correcto para desktop
+      if (this.sidebar.classList.contains('collapsed')) {
+        if (this.mainContent) {
+          this.mainContent.classList.add('expanded');
+        }
+      } else {
+        if (this.mainContent) {
+          this.mainContent.classList.remove('expanded');
+        }
+      }
+    }
+    
+    this.forceReflow();
   }
 
   /* ============ EVENT LISTENERS ============ */
@@ -480,20 +591,6 @@ getMenuSections(isAdmin) {
     window.addEventListener('popstate', () => {
       setTimeout(() => this.setActivePageFromURL(), 100);
     });
-  }
-
-  handleResize() {
-    if (!this.sidebar) return;
-
-    if (window.innerWidth <= 768) {
-      // Móvil: remover clases de desktop
-      this.sidebar.classList.remove('collapsed');
-      if (this.mainContent) this.mainContent.classList.remove('expanded');
-      if (this.toggleIcon) this.toggleIcon.textContent = '☰';
-    } else {
-      // Desktop: remover clases móviles
-      this.sidebar.classList.remove('mobile-open');
-    }
   }
 
   /* ============ BOTÓN MÓVIL ============ */
