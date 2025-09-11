@@ -484,3 +484,15 @@
                 background-size: 120px 120px, 180px 180px, 100px 100px, 160px 160px, 140px 140px;
             }
         }
+        .form-input {
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    cursor: text !important;
+}
+
+.form-input:focus {
+    pointer-events: auto !important;
+    user-select: text !important;
+}

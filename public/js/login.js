@@ -4,36 +4,76 @@
 
         // ===== INICIALIZACIÓN =====
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🌊 Inicializando POS Login - Geometric Wave Pattern');
+    console.log('🌊 Inicializando POS Login - Geometric Wave Pattern');
+    
+    // Limpiar tokens corruptos
+    cleanupCorruptedTokens();
+    
+    // Configurar formulario
+    setupForm();
+    
+    // Configurar efectos visuales
+    setupVisualEffects();
+    
+    // MEJORAR AUTO-FOCUS - FORZAR LIMPIEZA Y FOCO
+    setTimeout(() => {
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        
+        if (usernameInput && passwordInput) {
+            // Limpiar completamente los campos
+            usernameInput.value = '';
+            passwordInput.value = '';
             
-            // Limpiar tokens corruptos
-            cleanupCorruptedTokens();
+            // Quitar cualquier atributo problemático
+            usernameInput.removeAttribute('readonly');
+            usernameInput.removeAttribute('disabled');
+            passwordInput.removeAttribute('readonly');
+            passwordInput.removeAttribute('disabled');
             
-            // Configurar formulario
-            setupForm();
+            // Forzar que sean editables
+            usernameInput.readOnly = false;
+            passwordInput.readOnly = false;
             
-            // Configurar efectos visuales
-            setupVisualEffects();
+            // Foco múltiple para asegurar que funcione
+            usernameInput.focus();
+            usernameInput.click();
+            usernameInput.select();
             
-            // Auto-focus en usuario después de animación
-            setTimeout(() => {
-                const usernameInput = document.getElementById('username');
-                if (usernameInput) {
-                    usernameInput.focus();
-                }
-            }, 800);
-        });
+            console.log('✅ Campos de login preparados y enfocados');
+        }
+    }, 1000); // Aumentar tiempo de espera
+});
 
         // ===== LIMPIEZA DE TOKENS CORRUPTOS =====
         function cleanupCorruptedTokens() {
-            const token = localStorage.getItem('pos_token');
-            
-            if (token && (token.length < 10 || !token.includes('.'))) {
-                console.log('🧹 Limpiando token malformado');
-                localStorage.removeItem('pos_token');
-                localStorage.removeItem('pos_user');
-            }
+    try {
+        // Limpiar tokens
+        const token = localStorage.getItem('pos_token');
+        
+        if (token && (token.length < 10 || !token.includes('.'))) {
+            console.log('🧹 Limpiando token malformado');
+            localStorage.removeItem('pos_token');
+            localStorage.removeItem('pos_user');
         }
+        
+        // AGREGAR: Limpiar localStorage problemático
+        localStorage.removeItem('pos_session');
+        localStorage.removeItem('lastUser');
+        sessionStorage.clear();
+        
+        // AGREGAR: Forzar limpieza de formulario
+        setTimeout(() => {
+            forceCleanInputs();
+        }, 500);
+        
+    } catch (error) {
+        console.warn('Error en cleanup:', error);
+        // Si hay error, limpiar todo localStorage
+        localStorage.clear();
+        sessionStorage.clear();
+    }
+}
 
         // ===== CONFIGURACIÓN DEL FORMULARIO =====
         function setupForm() {

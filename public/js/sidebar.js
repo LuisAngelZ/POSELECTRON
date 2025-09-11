@@ -627,14 +627,15 @@ class UniversalSidebar {
 
   /* ============ LOGOUT ============ */
   logout() {
-    if (!confirm('¿Está seguro que desea cerrar sesión?')) {
-      return;
-    }
-
-    console.log('👋 Cerrando sesión...');
-    this.clearAuth();
-    window.location.href = '/login';
-  }
+    if (!confirm('¿Está seguro que desea cerrar sesión?')) return;
+    
+    // Limpiar todo el storage
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Usar replace en lugar de href para evitar cache
+    window.location.replace('/login');
+}
 
   /* ============ API PÚBLICA ============ */
   refresh() {
