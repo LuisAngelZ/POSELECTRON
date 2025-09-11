@@ -82,14 +82,16 @@ class ReportController {
             });
         }
             const { date } = req.query;
-            const targetDate = date || new Date().toISOString().split('T')[0];
-            
+            const targetDate = date || new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD formato
+            console.log(`📊 [${new Date().toLocaleString('es-BO')}] Generando reporte para: ${targetDate}`);
+        
              console.log(`📊 ===== GENERANDO REPORTE DIARIO =====`);
-        console.log(`👤 Usuario solicitante: ${req.user.username} (ID: ${req.user.id})`);
-        console.log(`📅 Fecha del reporte: ${targetDate}`);
-        console.log(`🔍 Filtrando ventas SOLO del usuario: ${req.user.username}`);
+             console.log(`👤 Usuario solicitante: ${req.user.username} (ID: ${req.user.id})`);
+             console.log(`📅 Fecha del reporte: ${targetDate}`);
+             console.log(`🔍 Filtrando ventas SOLO del usuario: ${req.user.username}`);
 
             const sales = await Sale.findByDateRangeAndUser(targetDate, targetDate, req.user.id);
+        
             const totalAmount = sales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
             
             const paymentBreakdown = await Sale.getDailyTotalsByPaymentTypeAndUser(targetDate, req.user.id);
@@ -171,6 +173,8 @@ class ReportController {
             });
 
         } catch (error) {
+             const localTime = new Date().toLocaleString('es-BO');
+        console.error(`❌ [${localTime}] Error generando reporte:`, error);
             console.error('Error generando reporte diario:', error);
             res.status(500).json({
                 success: false,

@@ -100,7 +100,10 @@ async function createInitialData() {
             { name: 'TOSTADA VASO', price: 3, category: 'REFRESCOS NATURALES', description: 'Refresco Tostada en vaso' },
             { name: 'LIMONADA 1L', price: 13, category: 'REFRESCOS NATURALES', description: 'Limonada 1 litro' },
             { name: 'LIMONADA 2L', price: 16, category: 'REFRESCOS NATURALES', description: 'Limonada 2 litros' },
-            { name: 'LIMONADA 2L BOTELLA', price: 16, category: 'REFRESCOS NATURALES', description: 'Limonada 2 litros en botella' }
+            { name: 'LIMONADA 2L BOTELLA', price: 16, category: 'REFRESCOS NATURALES', description: 'Limonada 2 litros en botella' },
+
+            // EXTRAS
+            { name: 'BOLSA DE HUESOS', price: 3, category: 'EXTRAS', description: 'bolsa de huesos' }
         ];
 
         // Crear productos
@@ -126,19 +129,19 @@ async function createInitialData() {
                 });
 
                 if (existingProduct) {
-                    // Actualizar producto existente
-                    await new Promise((resolve, reject) => {
-                        database.getDB().run(
-                            'UPDATE products SET price = ?, category_id = ?, description = ?, active = 1, updated_at = CURRENT_TIMESTAMP WHERE name = ?',
-                            [product.price, categoryId, product.description, product.name],
-                            function(err) {
-                                if (err) reject(err);
-                                else resolve();
-                            }
-                        );
-                    });
-                    console.log(`🔄 Producto '${product.name}' actualizado`);
-                } else {
+    // Actualizar producto existente
+    await new Promise((resolve, reject) => {
+        database.getDB().run(
+            'UPDATE products SET price = ?, category_id = ?, description = ?, active = 1, updated_at = datetime(\'now\', \'localtime\') WHERE name = ?',
+            [product.price, categoryId, product.description, product.name],
+            function(err) {
+                if (err) reject(err);
+                else resolve();
+            }
+        );
+    });
+    console.log(`🔄 Producto '${product.name}' actualizado`);
+} else {
                     // Crear nuevo producto
                     await new Promise((resolve, reject) => {
                         database.getDB().run(

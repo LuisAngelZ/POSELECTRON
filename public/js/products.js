@@ -155,7 +155,6 @@ async function loadData() {
     } catch (error) {
         console.error('Error cargando datos:', error);
         showNotification('Error cargando datos del servidor', 'error');
-        loadSampleData();
     }
 }
 
@@ -199,42 +198,6 @@ async function loadProducts() {
         console.error('Error:', error);
         throw error;
     }
-}
-
-function loadSampleData() {
-    categories = [
-        { id: 1, name: 'Bebidas', description: 'Bebidas frías y calientes' },
-        { id: 2, name: 'Comidas', description: 'Platos principales y aperitivos' },
-        { id: 3, name: 'Postres', description: 'Dulces y postres variados' },
-        { id: 4, name: 'Snacks', description: 'Aperitivos y bocadillos' }
-    ];
-
-    products = [
-        {
-            id: 1,
-            name: 'Pizza Margherita',
-            price: 85.50,
-            category_id: 2,
-            category_name: 'Comidas',
-            description: 'Pizza clásica con tomate, mozzarella y albahaca fresca',
-            image_url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'
-        },
-        {
-            id: 2,
-            name: 'Coca Cola 500ml',
-            price: 12.00,
-            category_id: 1,
-            category_name: 'Bebidas',
-            description: 'Bebida gaseosa clásica en botella de 500ml',
-            image_url: 'https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=400&h=300&fit=crop'
-        }
-    ];
-    
-    filteredProducts = [...products];
-    filteredCategories = [...categories];
-    populateCategorySelects();
-    renderProducts();
-    renderCategories();
 }
 
 function populateCategorySelects() {

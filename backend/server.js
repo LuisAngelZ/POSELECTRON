@@ -5,6 +5,8 @@ const path = require('path');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+require('./utils/logger');
+
 // Cargar variables de entorno
 require('dotenv').config();
 
@@ -32,7 +34,21 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Middleware básico
-app.use(morgan('combined'));
+morgan.token('date', function() {
+    return new Date().toLocaleString('es-BO', {
+        timeZone: 'America/La_Paz',
+        year: 'numeric',
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+});
+// Formato personalizado con hora local
+const logFormat = ':remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"';
+app.use(morgan(logFormat));
+
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

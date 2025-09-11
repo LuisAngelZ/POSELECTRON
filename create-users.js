@@ -19,14 +19,20 @@ async function createSystemUsers() {
             {
                 username: 'cajero1',
                 password: 'cajero1',
-                full_name: 'Cajero Principal',
-                role: 'user'
+                full_name: 'Cajero 1',
+                role: 'cajero'
             },
             {
                 username: 'cajero2',
                 password: 'cajero2',
-                full_name: 'Cajero Secundario',
-                role: 'user'
+                full_name: 'Cajero 2',
+                role: 'cajero'
+            }, 
+            {
+                username: 'cajero3',
+                password: 'cajero3',
+                full_name: 'Cajero 3',
+                role: 'cajero'
             }
         ];
 
@@ -44,24 +50,24 @@ async function createSystemUsers() {
                     );
                 });
 
-                if (existingUser) {
-                    console.log(`Usuario '${userData.username}' ya existe, actualizando...`);
-                    
-                    // Actualizar usuario existente
-                    const hashedPassword = bcrypt.hashSync(userData.password, 10);
-                    await new Promise((resolve, reject) => {
-                        database.getDB().run(
-                            'UPDATE users SET password = ?, full_name = ?, role = ?, active = 1, updated_at = CURRENT_TIMESTAMP WHERE username = ?',
-                            [hashedPassword, userData.full_name, userData.role, userData.username],
-                            function(err) {
-                                if (err) reject(err);
-                                else resolve();
-                            }
-                        );
-                    });
-                    
-                    console.log(`Usuario '${userData.username}' actualizado exitosamente`);
-                } else {
+               if (existingUser) {
+    console.log(`Usuario '${userData.username}' ya existe, actualizando...`);
+    
+    // Actualizar usuario existente
+    const hashedPassword = bcrypt.hashSync(userData.password, 10);
+    await new Promise((resolve, reject) => {
+        database.getDB().run(
+            'UPDATE users SET password = ?, full_name = ?, role = ?, active = 1, updated_at = datetime(\'now\', \'localtime\') WHERE username = ?',
+            [hashedPassword, userData.full_name, userData.role, userData.username],
+            function(err) {
+                if (err) reject(err);
+                else resolve();
+            }
+        );
+    });
+    
+    console.log(`Usuario '${userData.username}' actualizado exitosamente`);
+} else {
                     // Crear nuevo usuario
                     const hashedPassword = bcrypt.hashSync(userData.password, 10);
                     await new Promise((resolve, reject) => {
@@ -82,29 +88,29 @@ async function createSystemUsers() {
             }
         }
 
-        // Crear tabla ticket_sessions automáticamente
-        console.log('\nCreando tabla ticket_sessions...');
-        await new Promise((resolve, reject) => {
-            database.getDB().run(`
-                CREATE TABLE IF NOT EXISTS ticket_sessions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    session_date DATE NOT NULL,
-                    user_id INTEGER NOT NULL,
-                    last_ticket_number INTEGER DEFAULT 0,
-                    session_started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    session_ended_at DATETIME NULL,
-                    total_sales_in_session INTEGER DEFAULT 0,
-                    total_amount_in_session DECIMAL(10,2) DEFAULT 0.00,
-                    is_active BOOLEAN DEFAULT 1,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                )
-            `, (err) => {
-                if (err) reject(err);
-                else resolve();
-            });
-        });
+       // Crear tabla ticket_sessions automáticamente
+console.log('\nCreando tabla ticket_sessions...');
+await new Promise((resolve, reject) => {
+    database.getDB().run(`
+        CREATE TABLE IF NOT EXISTS ticket_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_date DATE NOT NULL,
+            user_id INTEGER NOT NULL,
+            last_ticket_number INTEGER DEFAULT 0,
+            session_started_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            session_ended_at DATETIME NULL,
+            total_sales_in_session INTEGER DEFAULT 0,
+            total_amount_in_session DECIMAL(10,2) DEFAULT 0.00,
+            is_active BOOLEAN DEFAULT 1,
+            created_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            updated_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    `, (err) => {
+        if (err) reject(err);
+        else resolve();
+    });
+});
 
         // Crear índices
         await new Promise((resolve, reject) => {
@@ -141,7 +147,7 @@ async function createSystemUsers() {
 
         // Crear sesiones iniciales para todos los usuarios
         console.log('Creando sesiones iniciales de tickets...');
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA'); // Usa fecha local
         
         for (const userData of users) {
             const user = await new Promise((resolve, reject) => {
@@ -175,6 +181,7 @@ async function createSystemUsers() {
         console.log('Admin: admin / 123456');
         console.log('Cajero 1: cajero1 / cajero1');
         console.log('Cajero 2: cajero2 / cajero2');
+        console.log('Cajero 3: cajero3 / cajero3');
         
     } catch (error) {
         console.error('Error en la configuración:', error);

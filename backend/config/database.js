@@ -69,62 +69,24 @@ class Database {
         });
     }
 
-       async initTables() {
-        console.log('📋 Creando tablas locales...');
-        
-        await this.runAsync('PRAGMA foreign_keys = ON');
-        await this.createUsersTable();
-        await this.createCategoriesTable();
-        await this.createProductsTable();
-        await this.createSalesTable();
-        await this.createSaleDetailsTable();
+async initTables() {
+    console.log('📋 Creando tablas con hora local...');
+    
+    await this.runAsync('PRAGMA foreign_keys = ON');
+    await this.createUsersTable();
+    await this.createCategoriesTable();
+    await this.createProductsTable();
+    await this.createSalesTable();
+    await this.createSaleDetailsTable();
 
-        await this.runMigrations();
-        await this.seedDefaultData();
-        
-        console.log('✅ Base de datos local configurada');
-    }
-  async seedDefaultData() {
-        try {
-            // Crear usuario admin por defecto
-            const adminExists = await new Promise((resolve) => {
-                this.db.get('SELECT id FROM users WHERE username = ?', ['admin'], (err, row) => {
-                    resolve(!!row);
-                });
-            });
-
-            if (!adminExists) {
-                const bcrypt = require('bcryptjs');
-                const hashedPassword = bcrypt.hashSync('123456', 10);
-                
-                await this.runAsync(
-                    'INSERT INTO users (username, password, full_name, role) VALUES (?, ?, ?, ?)',
-                    ['admin', hashedPassword, 'Administrador', 'admin']
-                );
-
-                console.log('👤 Usuario admin creado: admin/123456');
-            }
-
-            // Crear categoría por defecto
-            const categoryExists = await new Promise((resolve) => {
-                this.db.get('SELECT id FROM categories LIMIT 1', (err, row) => {
-                    resolve(!!row);
-                });
-            });
-
-            if (!categoryExists) {
-                await this.runAsync(
-                    'INSERT INTO categories (name, description) VALUES (?, ?)',
-                    ['Comidas', 'Platos principales y comidas']
-                );
-
-                console.log('🏷️ Categoría por defecto creada');
-            }
-
-        } catch (error) {
-            console.error('⚠️ Error creando datos por defecto:', error);
-        }
-    }
+    await this.runMigrations();
+    
+    // AGREGAR ESTAS DOS LÍNEAS:
+    await this.fixExistingTimestampsToLocal();
+    await this.testTimezoneConfiguration();
+    
+    console.log('✅ Base de datos configurada con hora local');
+}
     runAsync(sql, params = []) {
         return new Promise((resolve, reject) => {
             this.db.run(sql, params, function(err) {
@@ -134,79 +96,81 @@ class Database {
         });
     }
 
-    async createUsersTable() {
-        const sql = `
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username VARCHAR(50) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                full_name VARCHAR(100) NOT NULL,
-                role VARCHAR(20) DEFAULT 'user',
-                active BOOLEAN DEFAULT 1,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
-        await this.runAsync(sql);
-        console.log('✅ Tabla users creada');
-    }
+    
+async createUsersTable() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username VARCHAR(50) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            full_name VARCHAR(100) NOT NULL,
+            role VARCHAR(20) DEFAULT 'user',
+            active BOOLEAN DEFAULT 1,
+            created_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            updated_at DATETIME DEFAULT (datetime('now', 'localtime'))
+        )
+    `;
+    await this.runAsync(sql);
+    console.log('✅ Tabla users creada con hora local');
+}
 
-    async createCategoriesTable() {
-        const sql = `
-            CREATE TABLE IF NOT EXISTS categories (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name VARCHAR(100) NOT NULL,
-                description TEXT,
-                active BOOLEAN DEFAULT 1,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `;
-        await this.runAsync(sql);
-        console.log('✅ Tabla categories creada');
-    }
+async createCategoriesTable() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(100) NOT NULL,
+            description TEXT,
+            active BOOLEAN DEFAULT 1,
+            created_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            updated_at DATETIME DEFAULT (datetime('now', 'localtime'))
+        )
+    `;
+    await this.runAsync(sql);
+    console.log('✅ Tabla categories creada con hora local');
+}
 
-    async createProductsTable() {
-        const sql = `
-            CREATE TABLE IF NOT EXISTS products (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name VARCHAR(100) NOT NULL,
-                description TEXT,
-                price DECIMAL(10,2) NOT NULL,
-                category_id INTEGER,
-                image_url VARCHAR(255),
-                active BOOLEAN DEFAULT 1,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (category_id) REFERENCES categories(id)
-            )
-        `;
-        await this.runAsync(sql);
-        console.log('✅ Tabla products creada (sin stock)');
-    }
+async createProductsTable() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name VARCHAR(100) NOT NULL,
+            description TEXT,
+            price DECIMAL(10,2) NOT NULL,
+            category_id INTEGER,
+            image_url VARCHAR(255),
+            active BOOLEAN DEFAULT 1,
+            created_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            updated_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            FOREIGN KEY (category_id) REFERENCES categories(id)
+        )
+    `;
+    await this.runAsync(sql);
+    console.log('✅ Tabla products creada con hora local');
+}
 
-    async createSalesTable() {
-        const sql = `
-            CREATE TABLE IF NOT EXISTS sales (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                customer_nit VARCHAR(20),
-                customer_name VARCHAR(100),
-                order_type VARCHAR(20) NOT NULL,
-                payment_type VARCHAR(20) NOT NULL DEFAULT 'efectivo',
-                table_number VARCHAR(10),
-                observations TEXT,
-                subtotal DECIMAL(10,2) NOT NULL,
-                total DECIMAL(10,2) NOT NULL,
-                paid_amount DECIMAL(10,2) NOT NULL,
-                change_amount DECIMAL(10,2) DEFAULT 0,
-                user_id INTEGER NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        `;
-        await this.runAsync(sql);
-        console.log('✅ Tabla sales creada');
-    }
+async createSalesTable() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS sales (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_nit VARCHAR(20),
+            customer_name VARCHAR(100),
+            order_type VARCHAR(20) NOT NULL,
+            payment_type VARCHAR(20) NOT NULL DEFAULT 'efectivo',
+            table_number VARCHAR(10),
+            observations TEXT,
+            subtotal DECIMAL(10,2) NOT NULL,
+            total DECIMAL(10,2) NOT NULL,
+            paid_amount DECIMAL(10,2) NOT NULL,
+            change_amount DECIMAL(10,2) DEFAULT 0,
+            user_id INTEGER NOT NULL,
+            ticket_number INTEGER,
+            created_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    `;
+    await this.runAsync(sql);
+    console.log('✅ Tabla sales creada con hora local - IMPORTANTE PARA VENTAS');
+}
 
     async createSaleDetailsTable() {
         const sql = `
@@ -293,6 +257,99 @@ async runMigrations() {
     } catch (error) {
         console.error('❌ Error ejecutando migraciones:', error);
         throw error;
+    }
+}
+async fixExistingTimestampsToLocal() {
+    console.log('🕐 Corrigiendo timestamps existentes a hora local...');
+    
+    try {
+        // Verificar si hay ventas para corregir
+        const salesCount = await new Promise((resolve, reject) => {
+            this.db.get('SELECT COUNT(*) as count FROM sales', (err, row) => {
+                if (err) reject(err);
+                else resolve(row ? row.count : 0);
+            });
+        });
+        
+        console.log(`📊 Encontradas ${salesCount} ventas`);
+        
+        if (salesCount > 0) {
+            // Corregir ventas: restar 4 horas para convertir UTC a hora boliviana
+            await this.runAsync(`
+                UPDATE sales 
+                SET created_at = datetime(created_at, '-4 hours')
+                WHERE created_at > '2025-01-01'
+            `);
+            console.log('✅ Timestamps de ventas corregidos a hora local');
+        }
+        
+        // Corregir usuarios si existen
+        const usersCount = await new Promise((resolve, reject) => {
+            this.db.get('SELECT COUNT(*) as count FROM users', (err, row) => {
+                if (err) reject(err);
+                else resolve(row ? row.count : 0);
+            });
+        });
+        
+        if (usersCount > 0) {
+            await this.runAsync(`
+                UPDATE users 
+                SET created_at = datetime(created_at, '-4 hours'),
+                    updated_at = datetime(updated_at, '-4 hours')
+                WHERE created_at > '2025-01-01'
+            `);
+            console.log('✅ Timestamps de usuarios corregidos');
+        }
+        
+        console.log('🎉 Corrección de timestamps completada');
+        
+    } catch (error) {
+        console.error('❌ Error corrigiendo timestamps:', error);
+        // No lanzar error para no bloquear el inicio
+    }
+}
+
+// 3. AGREGAR FUNCIÓN DE VERIFICACIÓN:
+
+async testTimezoneConfiguration() {
+    console.log('\n🧪 ===== VERIFICACIÓN DE ZONA HORARIA =====');
+    
+    try {
+        // Verificar hora del sistema
+        const systemTime = new Date().toLocaleString('es-BO');
+        console.log(`🖥️  Hora del sistema: ${systemTime}`);
+        
+        // Verificar hora en SQLite UTC
+        const utcResult = await new Promise((resolve, reject) => {
+            this.db.get("SELECT datetime('now') as utc_time", (err, row) => {
+                if (err) reject(err);
+                else resolve(row ? row.utc_time : 'Error');
+            });
+        });
+        console.log(`🌍 SQLite UTC: ${utcResult}`);
+        
+        // Verificar hora en SQLite Local
+        const localResult = await new Promise((resolve, reject) => {
+            this.db.get("SELECT datetime('now', 'localtime') as local_time", (err, row) => {
+                if (err) reject(err);
+                else resolve(row ? row.local_time : 'Error');
+            });
+        });
+        console.log(`🏠 SQLite Local: ${localResult}`);
+        
+        // Verificar timestamp de última venta
+        const recentSale = await new Promise((resolve, reject) => {
+            this.db.get("SELECT created_at FROM sales ORDER BY id DESC LIMIT 1", (err, row) => {
+                if (err) reject(err);
+                else resolve(row ? row.created_at : 'No hay ventas');
+            });
+        });
+        console.log(`🎫 Última venta: ${recentSale}`);
+        
+        console.log('✅ ===== VERIFICACIÓN COMPLETADA =====\n');
+        
+    } catch (error) {
+        console.error('❌ Error en verificación:', error);
     }
 }
 }

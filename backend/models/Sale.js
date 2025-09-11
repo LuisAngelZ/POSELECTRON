@@ -6,95 +6,92 @@ const TicketSession = require('./TicketSession');
 class Sale {
     // Crear venta con numeración de ticket por sesión de usuario
     static async create(saleData) {
-        await database.ensureConnected();
-        
-        return new Promise(async (resolve, reject) => {
-            try {
-                database.getDB().serialize(async () => {
-                    database.getDB().run('BEGIN TRANSACTION');
-                    
-                    try {
-                        // 1. Obtener próximo número de ticket para este usuario
-                        const ticketNumber = await TicketSession.getNextTicketNumber(saleData.user_id);
-                        
-                        console.log(`🎫 Asignando ticket #${ticketNumber} para usuario ${saleData.user_id}`);
-                        
-                        // 2. Insertar la venta con el número de ticket
-                        const sql = `
-                            INSERT INTO sales (
-                                customer_nit, customer_name, order_type, payment_type, table_number, 
-                                observations, subtotal, total, paid_amount, change_amount, user_id, ticket_number
-                            )
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        `;
-                        
-                        database.getDB().run(
-                            sql,
-                            [
-                                saleData.customer_nit || null,
-                                saleData.customer_name || null,
-                                saleData.order_type,
-                                saleData.payment_type,
-                                saleData.table_number || null,
-                                saleData.observations || null,
-                                saleData.subtotal,
-                                saleData.total,
-                                saleData.paid_amount,
-                                saleData.change_amount || 0,
-                                saleData.user_id,
-                                ticketNumber
-                            ],
-                            async function(insertErr) {
-                                if (insertErr) {
-                                    database.getDB().run('ROLLBACK');
-                                    reject(insertErr);
-                                    return;
-                                }
-                                
-                                const saleId = this.lastID;
-                                
-                                try {
-                                    // 3. Actualizar contador en la sesión del usuario
-                                    const finalTicketNumber = await TicketSession.incrementTicketCounter(
-                                        saleData.user_id, 
-                                        saleData.total
-                                    );
-                                    
-                                    // 4. Confirmar transacción
-                                    database.getDB().run('COMMIT', (commitErr) => {
-                                        if (commitErr) {
-                                            reject(commitErr);
-                                            return;
-                                        }
-                                        
-                                        console.log(`✅ Venta ID ${saleId} creada con ticket #${finalTicketNumber}`);
-                                        
-                                        resolve({ 
-                                            id: saleId, 
-                                            ...saleData,
-                                            ticket_number: finalTicketNumber,
-                                            daily_ticket_number: finalTicketNumber // Para compatibilidad con frontend
-                                        });
-                                    });
-                                    
-                                } catch (sessionErr) {
-                                    database.getDB().run('ROLLBACK');
-                                    reject(sessionErr);
-                                }
-                            }
-                        );
-                        
-                    } catch (error) {
-                        database.getDB().run('ROLLBACK');
-                        reject(error);
-                    }
-                });
+    await database.ensureConnected();
+    
+    return new Promise(async (resolve, reject) => {
+        try {
+            database.getDB().serialize(async () => {
+                database.getDB().run('BEGIN TRANSACTION');
                 
-            } catch (error) {
-                reject(error);
-            }
-        });
-    }
+                try {
+                    const ticketNumber = await TicketSession.getNextTicketNumber(saleData.user_id);
+                    
+                    // CAMBIO IMPORTANTE: Agregar created_at con hora local
+                    const sql = `
+                        INSERT INTO sales (
+                            customer_nit, customer_name, order_type, payment_type, table_number, 
+                            observations, subtotal, total, paid_amount, change_amount, user_id, 
+                            ticket_number, created_at
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+                    `;
+                    
+                    database.getDB().run(
+                        sql,
+                        [
+                            saleData.customer_nit || null,
+                            saleData.customer_name || null,
+                            saleData.order_type,
+                            saleData.payment_type,
+                            saleData.table_number || null,
+                            saleData.observations || null,
+                            saleData.subtotal,
+                            saleData.total,
+                            saleData.paid_amount,
+                            saleData.change_amount || 0,
+                            saleData.user_id,
+                            ticketNumber
+                        ],
+                        async function(insertErr) {
+                            if (insertErr) {
+                                database.getDB().run('ROLLBACK');
+                                reject(insertErr);
+                                return;
+                            }
+                            
+                            const saleId = this.lastID;
+                            const localTime = new Date().toLocaleString('es-BO');
+                            
+                            console.log(`✅ [${localTime}] Venta #${saleId} creada con ticket #${ticketNumber}`);
+                            
+                            try {
+                                const finalTicketNumber = await TicketSession.incrementTicketCounter(
+                                    saleData.user_id, 
+                                    saleData.total
+                                );
+                                
+                                database.getDB().run('COMMIT', (commitErr) => {
+                                    if (commitErr) {
+                                        reject(commitErr);
+                                        return;
+                                    }
+                                    
+                                    resolve({ 
+                                        id: saleId, 
+                                        ...saleData,
+                                        ticket_number: finalTicketNumber,
+                                        created_at: localTime
+                                    });
+                                });
+                                
+                            } catch (sessionErr) {
+                                database.getDB().run('ROLLBACK');
+                                reject(sessionErr);
+                            }
+                        }
+                    );
+                    
+                } catch (error) {
+                    database.getDB().run('ROLLBACK');
+                    reject(error);
+                }
+            });
+            
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
 
     // Función para cerrar sesión de un usuario (cuando cambia de usuario)
     static async closeUserSession(userId) {
