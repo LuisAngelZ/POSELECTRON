@@ -92,15 +92,19 @@ async function createInitialData() {
             { name: 'COCA COLA 600ML', price: 8, category: 'GASEOSAS Y JUGOS', description: 'Coca Cola 600ml' },
             { name: 'FANTA 600ML', price: 8, category: 'GASEOSAS Y JUGOS', description: 'Fanta 600ml' },
             { name: 'SPRITE 600ML', price: 8, category: 'GASEOSAS Y JUGOS', description: 'Sprite 600ml' },
+            { name: 'JUGO 1/2L', price: 9, category: 'GASEOSAS Y JUGOS', description: 'Jugo 1/2L del valle' },
+            { name: 'JUGO 1L', price: 16, category: 'GASEOSAS Y JUGOS', description: 'Jugo 1L del valle' },
+            { name: 'SPRITE 600ML', price: 8, category: 'GASEOSAS Y JUGOS', description: 'Sprite 600ml' },
             
             // REFRESCOS NATURALES
             { name: 'TOSTADA 1L', price: 13, category: 'REFRESCOS NATURALES', description: 'Refresco Tostada 1 litro' },
             { name: 'TOSTADA 2L', price: 16, category: 'REFRESCOS NATURALES', description: 'Refresco Tostada 2 litros' },
             { name: 'TOSTADA 2L BOTELLA', price: 18, category: 'REFRESCOS NATURALES', description: 'Refresco Tostada 2 litros en botella' },
             { name: 'TOSTADA VASO', price: 3, category: 'REFRESCOS NATURALES', description: 'Refresco Tostada en vaso' },
+            { name: 'LIMONADA VASO', price: 3, category: 'REFRESCOS NATURALES', description: 'Refresco Limonada en vaso' },
             { name: 'LIMONADA 1L', price: 13, category: 'REFRESCOS NATURALES', description: 'Limonada 1 litro' },
             { name: 'LIMONADA 2L', price: 16, category: 'REFRESCOS NATURALES', description: 'Limonada 2 litros' },
-            { name: 'LIMONADA 2L BOTELLA', price: 16, category: 'REFRESCOS NATURALES', description: 'Limonada 2 litros en botella' },
+            { name: 'LIMONADA 2L BOTELLA', price: 18, category: 'REFRESCOS NATURALES', description: 'Limonada 2 litros en botella' },
 
             // EXTRAS
             { name: 'BOLSA DE HUESOS', price: 3, category: 'EXTRAS', description: 'bolsa de huesos' }

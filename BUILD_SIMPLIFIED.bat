@@ -1,5 +1,5 @@
 @echo off
-title Sistema POS - Build Simplificado
+title Sistema POS - Build Simplificado LIMPIO
 color 0A
 chcp 65001 >nul
 
@@ -11,12 +11,46 @@ echo  ██╔═══╝ ██║   ██║╚════██║
 echo  ██║     ╚██████╔╝███████║
 echo  ╚═╝      ╚═════╝ ╚══════╝
 echo.
-echo  🔧 BUILD SIMPLIFICADO v2.1
-echo  ==========================
+echo  🔧 BUILD LIMPIO v2.3
+echo  ====================
 echo.
 
+REM === LIMPIEZA FORZADA ===
+echo [1/8] 🧹 Limpieza completa forzada...
+
+REM Eliminar base de datos con múltiples métodos
+if exist database\pos.db (
+    echo Eliminando database\pos.db...
+    attrib -r database\pos.db 2>nul
+    del /f /q database\pos.db 2>nul
+    if exist database\pos.db (
+        echo ⚠️ Forzando eliminación...
+        taskkill /f /im node.exe 2>nul
+        timeout /t 2 /nobreak >nul
+        del /f /q database\pos.db 2>nul
+    )
+)
+
+REM Eliminar todos los archivos .db
+if exist database\*.db del /f /q database\*.db 2>nul
+
+REM Limpiar directorios
+if exist dist rmdir /s /q dist 2>nul
+if exist node_modules rmdir /s /q node_modules 2>nul
+if exist backend\node_modules rmdir /s /q backend\node_modules 2>nul
+
+REM Verificar limpieza
+if exist database\pos.db (
+    echo ❌ ERROR: No se pudo eliminar la base de datos
+    echo Por favor cierra todas las aplicaciones y ejecuta como administrador
+    pause
+    exit /b 1
+)
+echo ✅ Base de datos eliminada completamente
+
 REM === VERIFICACIONES ===
-echo [1/7] 🔍 Verificando Node.js...
+echo.
+echo [2/8] 🔍 Verificando Node.js...
 where node >nul 2>&1
 if errorlevel 1 (
     echo ❌ Node.js NO está instalado
@@ -25,18 +59,9 @@ if errorlevel 1 (
 )
 echo ✅ Node.js encontrado
 
-REM === LIMPIAR ===
-echo.
-echo [2/7] 🧹 Limpiando entorno...
-if exist dist rmdir /s /q dist 2>nul
-if exist database\pos.db del database\pos.db 2>nul
-if exist node_modules rmdir /s /q node_modules 2>nul
-if exist backend\node_modules rmdir /s /q backend\node_modules 2>nul
-echo ✅ Entorno limpio
-
 REM === INSTALAR DEPENDENCIAS PRINCIPALES ===
 echo.
-echo [3/7] 📦 Instalando dependencias principales...
+echo [3/8] 📦 Instalando dependencias principales...
 call npm install --silent
 if errorlevel 1 (
     echo ❌ Error instalando dependencias principales
@@ -47,7 +72,7 @@ echo ✅ Dependencias principales instaladas
 
 REM === INSTALAR DEPENDENCIAS BACKEND ===
 echo.
-echo [4/7] 🔧 Instalando dependencias backend...
+echo [4/8] 🔧 Instalando dependencias backend...
 cd backend
 call npm install jsonwebtoken@9.0.2 moment@2.29.4 --save
 if errorlevel 1 (
@@ -67,40 +92,31 @@ if errorlevel 1 (
 cd ..
 echo ✅ Dependencias backend instaladas
 
-REM === VERIFICAR DEPENDENCIAS CRITICAS ===
+REM === LIMPIEZA COMPLETA DE BASE DE DATOS ===
 echo.
-echo [5/7] 🔍 Verificando dependencias críticas...
-if not exist "backend\node_modules\jsonwebtoken" (
-    echo ❌ jsonwebtoken no encontrado
-    echo Instalando manualmente...
-    cd backend
-    call npm install jsonwebtoken --save
-    cd ..
+echo [5/8] 🗄️ Limpieza completa de base de datos...
+call node clean-database.js
+if errorlevel 1 (
+    echo ❌ Error en limpieza de base de datos
+    pause
+    exit /b 1
 )
-
-if not exist "backend\node_modules\moment" (
-    echo ❌ moment no encontrado
-    echo Instalando manualmente...
-    cd backend
-    call npm install moment --save
-    cd ..
-)
-echo ✅ Dependencias críticas verificadas
+echo ✅ Base de datos limpia verificada
 
 REM === CREAR USUARIOS Y TABLAS ===
 echo.
-echo [6/7] 👥 Creando usuarios y tablas automáticamente...
+echo [6/8] 👥 Creando usuarios y estructura de base de datos...
 call node create-users.js
 if errorlevel 1 (
     echo ❌ Error creando usuarios
     pause
     exit /b 1
 )
-echo ✅ Base de datos configurada con admin + 2 cajeros
+echo ✅ Usuarios creados: admin + cajeros
 
-REM === CREAR PRODUCTOS INICIALES ===
+REM === CREAR PRODUCTOS Y CATEGORÍAS ===
 echo.
-echo [7/8] 🍔 Creando productos y categorías iniciales...
+echo [7/8] 🍔 Creando productos y categorías específicas...
 call node create-products.js
 if errorlevel 1 (
     echo ❌ Error creando productos
@@ -108,6 +124,17 @@ if errorlevel 1 (
     exit /b 1
 )
 echo ✅ Productos y categorías configurados
+
+REM === VERIFICACIÓN FINAL CON ARCHIVO SEPARADO ===
+echo.
+echo [7.5/8] 🔍 Verificación final de categorías...
+call node verify-categories.js
+if errorlevel 1 (
+    echo ❌ Error: Se encontraron categorías incorrectas
+    pause
+    exit /b 1
+)
+echo ✅ Categorías verificadas correctamente
 
 REM === BUILD ===
 echo.
@@ -145,8 +172,8 @@ for %%f in ("dist\*Setup*.exe") do (
 )
 
 echo.
-echo 🎉 ¡BUILD COMPLETADO!
-echo ==================
+echo 🎉 ¡BUILD COMPLETADO SIN CATEGORÍAS EXTRAÑAS!
+echo ===============================================
 echo.
 echo 📱 ARCHIVOS GENERADOS:
 for %%f in ("dist\win-unpacked\*.exe") do (
@@ -156,14 +183,16 @@ for %%f in ("dist\*Setup*.exe") do (
     echo    ✅ Instalador: %%~nxf
 )
 echo.
+echo 🏷️ CATEGORÍAS CONFIRMADAS:
+echo    ✅ PLATOS Y PORCIONES
+echo    ✅ GASEOSAS Y JUGOS  
+echo    ✅ REFRESCOS NATURALES
+echo    ✅ EXTRAS
+echo.
 echo 🔐 CREDENCIALES:
 echo    👤 admin / 123456
 echo    👤 cajero1 / cajero1  
 echo    👤 cajero2 / cajero2
-echo.
-echo 🚀 USAR:
-echo    • INICIAR_POS.bat - Para pruebas
-echo    • INSTALAR_POS.bat - Para instalar en otras PCs
 echo.
 
 echo ¿Desea probar el ejecutable ahora? (S/N)
@@ -176,5 +205,5 @@ if /i "%PROBAR%"=="S" (
 )
 
 :done
-echo ✅ Build completado exitosamente
+echo ✅ Build completado con base de datos limpia y verificada
 pause
