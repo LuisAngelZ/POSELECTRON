@@ -459,7 +459,7 @@ class SaleDetail {
         await database.ensureConnected();
         
         return new Promise((resolve, reject) => {
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toLocaleDateString('en-CA');
             const sql = `
                 SELECT 
                     sd.product_name,

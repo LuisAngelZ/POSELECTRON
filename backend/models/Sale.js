@@ -109,7 +109,7 @@ class Sale {
     static async getDailyTicketSummary(date = null) {
         try {
             const sessionSummary = await TicketSession.getDailySummary(date);
-            const targetDate = date || new Date().toISOString().split('T')[0];
+            const targetDate = date || new Date().toLocaleDateString('en-CA');
             
             // Obtener ventas reales del día
             const realSales = await this.findByDateRange(targetDate, targetDate);
@@ -195,7 +195,7 @@ class Sale {
         await database.ensureConnected();
         
         return new Promise((resolve, reject) => {
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toLocaleDateString('en-CA');
             const sql = `
                 SELECT 
                     COUNT(*) as total_sales,
@@ -242,7 +242,7 @@ class Sale {
         await database.ensureConnected();
         
         return new Promise((resolve, reject) => {
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toLocaleDateString('en-CA');
             const sql = `
                 SELECT 
                     s.*,
@@ -293,7 +293,7 @@ class Sale {
         await database.ensureConnected();
         
         return new Promise((resolve, reject) => {
-            const targetDate = date || new Date().toISOString().split('T')[0];
+            const targetDate = date || new Date().toLocaleDateString('en-CA');
             const sql = `
                 SELECT 
                     payment_type,
@@ -318,7 +318,7 @@ static async getDailyTotalsByPaymentTypeAndUser(date, userId) {
     await database.ensureConnected();
     
     return new Promise((resolve, reject) => {
-        const targetDate = date || new Date().toISOString().split('T')[0];
+        const targetDate = date || new Date().toLocaleDateString('en-CA');
         const sql = `
             SELECT 
                 payment_type,

@@ -423,7 +423,7 @@ async function printDailyCashClose() {
         }
 
         // Obtener resumen de tickets del día
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
         
         console.log('📊 Generando reporte de cierre con información de tickets...');
         

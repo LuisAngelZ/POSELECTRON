@@ -75,7 +75,7 @@ class ReportController {
     // Reporte diario actualizado
     static async dailyReport(req, res) {
         try {
-              if (!req.user || !['admin','user', 'cajero'].includes(req.user.role)) {
+              if (!req.user) {
             return res.status(403).json({
                 success: false,
                 message: 'Solo administradores y cajeros pueden generar reportes'
