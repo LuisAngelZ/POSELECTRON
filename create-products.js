@@ -130,7 +130,7 @@ async function createInitialData() {
             { name: 'LIMONADA VASO', price: 3, category: 'REFRESCOS NATURALES', description: 'Refresco Limonada en vaso' },
 
             // EXTRAS
-            { name: 'BOLSA DE HUESOS', price: 3, category: 'EXTRAS', description: 'bolsa de huesos' }
+            { name: 'BOLSA DE HUESO', price: 3, category: 'EXTRAS', description: 'bolsa de huesos' }
         ];
 
         // Crear productos con detección automática de imágenes
