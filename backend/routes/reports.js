@@ -12,6 +12,12 @@ router.use(authenticateToken);
 // ============================
 // RUTAS PÚBLICAS (usuarios autenticados)
 // ============================
+// Debug de fechas y tiempos
+// GET /api/reports/debug-datetime
+router.get('/debug-datetime', ReportController.debugDateTime);
+// Función para corregir fechas (solo admin)
+// POST /api/reports/fix-dates
+router.post('/fix-dates', requireAdmin, ReportController.fixExistingDates);
 
 // Dashboard principal con métricas en tiempo real
 // GET /api/reports/dashboard
@@ -155,6 +161,51 @@ router.get('/help', (req, res) => {
             'Reportes administrativos incluyen más detalles y estadísticas',
             'Las fechas deben estar en formato YYYY-MM-DD',
             'Los horarios se muestran en hora local del servidor'
+        ], 
+        debug_routes: {
+            datetime_debug: {
+                method: 'GET',
+                path: '/api/reports/debug-datetime',
+                description: 'Debug completo del sistema de fechas y tiempos',
+                auth: 'Usuario autenticado',
+                returns: {
+                    system_info: 'Información del sistema',
+                    bolivia_time: 'Hora calculada de Bolivia',
+                    sales_today: 'Ventas encontradas para hoy',
+                    recommendations: 'Recomendaciones para solucionar problemas'
+                }
+            },
+            fix_dates: {
+                method: 'POST',
+                path: '/api/reports/fix-dates',
+                description: 'Herramienta para corregir fechas inconsistentes (CUIDADO)',
+                auth: 'Solo administradores',
+                warning: 'Requiere backup antes de usar'
+            }
+        },
+        
+        datetime_improvements: {
+            problem_solved: 'Inconsistencias de timezone SQLite',
+            solution: 'Funciones manuales de hora Bolivia (UTC-4)',
+            new_functions: [
+                'Sale.getBoliviaDateTime()',
+                'Sale.getBoliviaDate()',
+                'Sale.findByDateRangeConsistent()',
+                'Sale.getTodayTotalsConsistent()'
+            ],
+            benefits: [
+                'Reportes consistentes sin importar la hora',
+                'Fechas siempre en hora local de Bolivia',
+                'Eliminación de problemas de timezone',
+                'Resultados predecibles'
+            ]
+        },
+        
+        migration_notes: [
+            'Las funciones antiguas siguen funcionando pero muestran advertencias',
+            'Nuevas ventas usan automáticamente el sistema consistente',
+            'Reportes generados usan las funciones consistentes',
+            'El sistema detecta y reporta inconsistencias'
         ]
     });
 });

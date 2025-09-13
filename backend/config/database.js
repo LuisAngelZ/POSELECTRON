@@ -147,30 +147,41 @@ async createProductsTable() {
     await this.runAsync(sql);
     console.log('✅ Tabla products creada con hora local');
 }
+static getBoliviaDateTime() {
+        // Crear fecha en UTC
+        const now = new Date();
+        
+        // Convertir a hora de Bolivia (UTC-4) de forma manual y consistente
+        const boliviaTime = new Date(now.getTime() - (4 * 60 * 60 * 1000));
+        
+        // Formatear en formato SQLite
+        return boliviaTime.toISOString().slice(0, 19).replace('T', ' ');
+    }
 
-async createSalesTable() {
-    const sql = `
-        CREATE TABLE IF NOT EXISTS sales (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            customer_nit VARCHAR(20),
-            customer_name VARCHAR(100),
-            order_type VARCHAR(20) NOT NULL,
-            payment_type VARCHAR(20) NOT NULL DEFAULT 'efectivo',
-            table_number VARCHAR(10),
-            observations TEXT,
-            subtotal DECIMAL(10,2) NOT NULL,
-            total DECIMAL(10,2) NOT NULL,
-            paid_amount DECIMAL(10,2) NOT NULL,
-            change_amount DECIMAL(10,2) DEFAULT 0,
-            user_id INTEGER NOT NULL,
-            ticket_number INTEGER,
-            created_at DATETIME DEFAULT (datetime('now', 'localtime')),
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    `;
-    await this.runAsync(sql);
-    console.log('✅ Tabla sales creada con hora local - IMPORTANTE PARA VENTAS');
-}
+    async createSalesTable() {
+        const sql = `
+            CREATE TABLE IF NOT EXISTS sales (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_nit VARCHAR(20),
+                customer_name VARCHAR(100),
+                order_type VARCHAR(20) NOT NULL,
+                payment_type VARCHAR(20) NOT NULL DEFAULT 'efectivo',
+                table_number VARCHAR(10),
+                observations TEXT,
+                subtotal DECIMAL(10,2) NOT NULL,
+                total DECIMAL(10,2) NOT NULL,
+                paid_amount DECIMAL(10,2) NOT NULL,
+                change_amount DECIMAL(10,2) DEFAULT 0,
+                user_id INTEGER NOT NULL,
+                ticket_number INTEGER,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `;
+        await this.runAsync(sql);
+        console.log('✅ Tabla sales creada SIN datetime automático problemático');
+    }
+
 
     async createSaleDetailsTable() {
         const sql = `
