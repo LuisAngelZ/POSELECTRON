@@ -119,12 +119,11 @@ const dailyNumber = saleData.ticket_number || saleData.daily_ticket_number || 1;
 const ticketNumber = dailyNumber.toString();
     
     const orderType = saleData.order_type === 'takeaway' ? 'PARA LLEVAR' : 'EN MESA';
+    const cashType = saleData.payment_type === 'takeaway' ? 'Efectivo' : 'QR';
     const separator = '-'.repeat(this.thermalWidth);
     
-    // ===== ANTES: ${this.centerText(`No ${ticketNumber.padStart(6, '0')}`)} =====
-    // ===== AHORA: ${this.centerText(`No ${ticketNumber}`)} =====
     let content = `${this.centerText(`No ${ticketNumber}`)}
-${this.centerText(orderType)}
+${this.centerText(orderType + ' - ' + cashType)}
 FECHA: ${moment().format('DD/MM/YYYY HH:mm:ss')}`;
 
     // El resto del código permanece igual...
