@@ -45,7 +45,28 @@
     }, 1000); // Aumentar tiempo de espera
 });
 
-        // ===== LIMPIEZA DE TOKENS CORRUPTOS =====
+        // ===== FUNCIÓN DE LIMPIEZA FORZADA =====
+function forceCleanInputs() {
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.value = '';
+        input.removeAttribute('readonly');
+        input.removeAttribute('disabled');
+        input.style.backgroundColor = '';
+    });
+    
+    // Limpiar autocomplete
+    if (window.performance && window.performance.memory) {
+        window.performance.memory.usedJSHeapSize = 0;
+    }
+    
+    // Forzar reflow del DOM
+    document.body.offsetHeight;
+    
+    console.log('🧹 Inputs limpiados forzadamente');
+}
+
+// ===== LIMPIEZA DE TOKENS CORRUPTOS =====
         function cleanupCorruptedTokens() {
     try {
         // Limpiar tokens

@@ -2,6 +2,7 @@
 const Sale = require('../models/Sale');
 const SaleDetail = require('../models/SaleDetail');
 const Product = require('../models/Product');
+const DateUtils = require('../utils/dateUtils');
 
 class SaleController {
     // Crear nueva venta
@@ -18,7 +19,7 @@ static async create(req, res) {
             paid_amount
         } = req.body;
 
-        // Validaciones existentes...
+        // Validaciones básicas
         if (!order_type || !items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({
                 success: false,
@@ -39,15 +40,8 @@ static async create(req, res) {
                 message: 'Tipo de pago debe ser "efectivo" o "qr"'
             });
         }
-        
-        if (!['takeaway', 'dine_in'].includes(order_type)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Tipo de pedido debe ser "takeaway" o "dine_in"'
-            });
-        }
 
-        // Calcular totales y validar productos
+        // Calcular totales
         let subtotal = 0;
         const validatedItems = [];
 
@@ -89,65 +83,94 @@ static async create(req, res) {
             });
         }
 
-        // Crear la venta SIN número de ticket por ahora
-        const newSale = await Sale.create({
-            customer_nit: customer_nit || null,
-            customer_name: customer_name || null,
-            order_type,
-            payment_type,
-            table_number: table_number || null,
-            observations: observations || null,
-            subtotal,
-            total,
-            paid_amount,
-            change_amount,
-            user_id: req.user.id
-        });
+        // CREAR VENTA CON MANEJO DE ERRORES MEJORADO
+        let newSale;
+        try {
+            newSale = await Sale.create({
+                customer_nit: customer_nit || null,
+                customer_name: customer_name || null,
+                order_type,
+                payment_type,
+                table_number: table_number || null,
+                observations: observations || null,
+                subtotal,
+                total,
+                paid_amount,
+                change_amount,
+                user_id: req.user.id
+            });
+            
+            console.log(`✅ Venta #${newSale.id} creada exitosamente`);
+            
+        } catch (saleError) {
+            console.error('❌ ERROR CRÍTICO al crear venta:', saleError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error al guardar la venta en base de datos',
+                error: saleError.message
+            });
+        }
 
-               // ===== LOGS DETALLADOS DE VENTA CREADA =====
-        console.log(`🎫 ===== DETALLE DE VENTA CREADA =====`);
-        console.log(`👤 Usuario: ${req.user.username} (ID: ${req.user.id})`);
-        console.log(`🎫 Ticket asignado: #${newSale.ticket_number}`);
-        console.log(`💰 Total: Bs ${total}`);
-        console.log(`💳 Método: ${payment_type}`);
-        console.log(`📅 Fecha: ${new Date().toLocaleString('es-ES')}`);
-        console.log(`👥 Cliente: ${customer_name || 'SIN NOMBRE'}`);
-        console.log(`🍽️ Tipo: ${order_type === 'dine_in' ? 'En Mesa' : 'Para Llevar'}`);
-        console.log(`🛒 Productos: ${validatedItems.length} items`);
-        validatedItems.forEach((item, i) => {
-            console.log(`   ${i+1}. ${item.product_name} x${item.quantity} = Bs${item.subtotal}`);
-        });
-        console.log(`💰 Subtotal: Bs ${subtotal}`);
-        console.log(`💵 Pagado: Bs ${paid_amount}`);
-        console.log(`💸 Cambio: Bs ${change_amount}`);
-        console.log(`🎫 =====================================`);
+        // CREAR DETALLES CON MANEJO DE ERRORES
+        try {
+            await SaleDetail.createMultiple(newSale.id, validatedItems);
+            console.log(`✅ ${validatedItems.length} detalles guardados para venta #${newSale.id}`);
+            
+        } catch (detailError) {
+            console.error('❌ ERROR al guardar detalles de venta:', detailError);
+            // Intentar eliminar la venta si los detalles fallaron
+            try {
+                await database.runAsync('DELETE FROM sales WHERE id = ?', [newSale.id]);
+            } catch (deleteError) {
+                console.error('❌ No se pudo eliminar venta huérfana:', deleteError);
+            }
+            
+            return res.status(500).json({
+                success: false,
+                message: 'Error al guardar los productos de la venta',
+                error: detailError.message
+            });
+        }
 
-
-        // Crear los detalles de la venta
-        await SaleDetail.createMultiple(newSale.id, validatedItems);
-
-        // Obtener la venta completa con detalles
+        // Obtener venta completa
         const completeSale = await Sale.findById(newSale.id);
         const saleDetails = await SaleDetail.findBySaleId(newSale.id);
 
-        const saleResponse = {
-            ...completeSale,
-            daily_ticket_number: newSale.ticket_number, // ✅ Usar el número real del ticket
-            details: saleDetails
-        };
+        console.log(`🎫 Venta completa #${newSale.id}:`);
+        console.log(`   Usuario: ${req.user.username}`);
+        console.log(`   Ticket: #${newSale.ticket_number}`);
+        console.log(`   Total: Bs ${total}`);
+        console.log(`   Productos: ${saleDetails.length} items`);
+
+        // Imprimir ticket
+        try {
+            const printer = require('../utils/printer');
+            await printer.printSaleTicket({
+                ...completeSale,
+                details: saleDetails,
+                user_name: req.user.username
+            });
+            console.log('✅ Ticket impreso correctamente');
+        } catch (printError) {
+            console.error('⚠️ Error al imprimir ticket:', printError);
+            // No devolvemos error al cliente, la venta se realizó correctamente
+        }
 
         res.status(201).json({
             success: true,
             message: `Venta creada exitosamente`,
-            sale: saleResponse,
-            print_ready: true
+            sale: {
+                ...completeSale,
+                details: saleDetails
+            }
         });
 
     } catch (error) {
-        console.error('Error creando venta:', error);
+        console.error('❌ ERROR GENERAL en creación de venta:', error);
         res.status(500).json({
             success: false,
-            message: 'Error interno del servidor'
+            message: 'Error interno del servidor',
+            error: error.message
         });
     }
 }
@@ -203,27 +226,64 @@ static async create(req, res) {
         }
     }
 
-    // Obtener ventas de hoy
+    // Obtener ventas de hoy con mejor manejo de errores y detalles
     static async getTodaySales(req, res) {
         try {
-            const sales = await Sale.getTodaySales();
-            const totals = await Sale.getTodayTotals();
+            console.log('🔍 Consultando ventas del día...');
+            
+            // Obtener fecha actual en zona horaria de Bolivia
+            const boliviaDate = Sale.getBoliviaDate();
+            console.log(`📅 Fecha Bolivia: ${boliviaDate}`);
+            
+            // Obtener ventas con detalles
+            const [sales, totals] = await Promise.all([
+                Sale.getTodaySales(),
+                Sale.getTodayTotals()
+            ]);
+            
+            console.log(`✅ Encontradas ${sales.length} ventas`);
+            console.log(`💰 Total ventas: ${totals.total_amount}`);
+            
+            // Enriquecer respuesta con detalles de productos
+            const salesWithDetails = await Promise.all(sales.map(async (sale) => {
+                const details = await SaleDetail.findBySaleId(sale.id);
+                return {
+                    ...sale,
+                    details,
+                    items_count: details.length,
+                    products_summary: details.map(d => 
+                        `${d.product_name} x${d.quantity}`
+                    ).join(', ')
+                };
+            }));
             
             res.json({
                 success: true,
-                today_sales: sales,
+                date: boliviaDate,
+                today_sales: salesWithDetails,
                 totals: {
                     count: totals.total_sales || 0,
                     amount: totals.total_amount || 0,
                     average: totals.average_sale || 0
+                },
+                summary: {
+                    total_items: salesWithDetails.reduce((sum, sale) => 
+                        sum + (sale.items_count || 0), 0
+                    ),
+                    payment_methods: salesWithDetails.reduce((acc, sale) => {
+                        acc[sale.payment_type] = (acc[sale.payment_type] || 0) + 1;
+                        return acc;
+                    }, {})
                 }
             });
 
         } catch (error) {
-            console.error('Error obteniendo ventas de hoy:', error);
+            console.error('❌ Error obteniendo ventas de hoy:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error interno del servidor'
+                message: 'Error interno del servidor',
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
             });
         }
     }

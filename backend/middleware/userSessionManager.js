@@ -1,6 +1,7 @@
 // server/middleware/userSessionManager.js - Nuevo middleware independiente
 
 const TicketSession = require('../models/TicketSession');
+const DateUtils = require('../utils/dateUtils');
 
 class UserSessionManager {
     static currentUserId = null;
@@ -14,7 +15,7 @@ class UserSessionManager {
         }
 
         const userId = req.user.id;
-        const currentDate = new Date().toLocaleDateString('en-CA');
+        const currentDate = DateUtils.getLocalDate();
         
         // Verificar si cambió el día
         if (this.lastActivityDate && this.lastActivityDate !== currentDate) {

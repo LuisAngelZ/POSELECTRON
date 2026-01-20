@@ -36,6 +36,20 @@ const authenticateToken = async (req, res, next) => {
             role: user.role
         };
 
+        // Si el token está próximo a expirar (menos de 1 hora), generar uno nuevo
+        const tokenExp = decoded.exp * 1000; // Convertir a milisegundos
+        const now = Date.now();
+        const oneHour = 60 * 60 * 1000;
+
+        if (tokenExp - now < oneHour) {
+            const newToken = jwt.sign(
+                { id: user.id, username: user.username, role: user.role },
+                config.JWT_SECRET,
+                { expiresIn: config.JWT_EXPIRES }
+            );
+            res.set('X-New-Token', newToken);
+        }
+
         next();
         
     } catch (error) {

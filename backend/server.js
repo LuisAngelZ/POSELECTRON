@@ -16,8 +16,8 @@ const isElectron = process.versions && process.versions.electron;
 // Crear aplicación Express
 const app = express();
 
-// Configuración básica
-const PORT = process.env.PORT || 3333;
+// Configuración básica - USAR PUERTO DE .env O FALLBACK A 3333
+const PORT = parseInt(process.env.PORT, 10) || 3333;
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'database', 'pos.db');
 
 // Middleware de seguridad básico
@@ -113,53 +113,33 @@ app.get('/api/test', (req, res) => {
     });
 });
 
-// INTENTAR CARGAR RUTAS DE LA API (con manejo de errores)
-let apiRoutesLoaded = {
-    auth: false,
-    categories: false,
-    products: false,
-    sales: false,
-    reports: false,
-    printer: false
+// Cargar rutas API
+const authRoutes = require('./routes/auth');
+const categoriesRoutes = require('./routes/categories');
+const productsRoutes = require('./routes/products');
+const salesRoutes = require('./routes/sales');
+const reportsRoutes = require('./routes/reports');
+const printerRoutes = require('./routes/printer');
+
+// Rastrear rutas cargadas
+const apiRoutesLoaded = {
+    auth: true,
+    categories: true,
+    products: true,
+    sales: true,
+    reports: true,
+    printer: true
 };
 
-// Función para cargar rutas de forma segura
-function loadRoutesSafely() {
-    try {
-        // Verificar que los archivos existen antes de cargarlos
-        const fs = require('fs');
-        
-        const routeFiles = [
-            { path: './routes/auth.js', route: '/api/auth', name: 'auth' },
-            { path: './routes/categories.js', route: '/api/categories', name: 'categories' },
-            { path: './routes/products.js', route: '/api/products', name: 'products' },
-            { path: './routes/sales.js', route: '/api/sales', name: 'sales' },
-            { path: './routes/reports.js', route: '/api/reports', name: 'reports' },
-            { path: './routes/printer.js', route: '/api/printer', name: 'printer' }
-        ];
+// Registrar rutas API
+app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/sales', salesRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/printer', printerRoutes);
 
-        routeFiles.forEach(({ path: routePath, route, name }) => {
-            try {
-                const fullPath = require.resolve(routePath);
-                console.log(`✅ Cargando ruta: ${route} desde ${routePath}`);
-                
-                const routeModule = require(routePath);
-                app.use(route, routeModule);
-                apiRoutesLoaded[name] = true;
-                
-            } catch (error) {
-                console.warn(`⚠️ No se pudo cargar ${route}:`, error.message);
-                apiRoutesLoaded[name] = false;
-            }
-        });
-
-    } catch (error) {
-        console.warn('⚠️ Error general cargando rutas API:', error.message);
-    }
-}
-
-// Cargar rutas
-loadRoutesSafely();
+// Las rutas ya están cargadas arriba
 
 // Ruta de estado de la API
 app.get('/api/status', (req, res) => {
@@ -214,8 +194,8 @@ app.use('*', (req, res) => {
     
     console.log('🔒'.repeat(50));
 });*/
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`🚀 Servidor POS LOCAL http://127.0.0.1:${PORT}`);
+const server = app.listen(PORT, '127.0.0.1', () => {
+    console.log(`🚀 Servidor POS LOCAL http://127.0.0.1:${PORT}`);
 });
 
 // Manejo de cierre limpio

@@ -27,6 +27,18 @@ router.get('/dashboard', ReportController.dashboard);
 // GET /api/reports/daily?date=2024-01-15
 router.get('/daily', ReportController.dailyReport);
 
+// Reporte filtrado
+// GET /api/reports/filtered?start_date=2024-01-01&end_date=2024-01-31&payment_type=cash
+router.get('/filtered', ReportController.filteredReport);
+
+// Ventas por día para el gráfico
+// GET /api/reports/sales-by-day?days=7
+router.get('/sales-by-day', ReportController.getSalesByDay);
+
+// Top productos
+// GET /api/reports/top-products?period=today|week|month
+router.get('/top-products', ReportController.getTopProducts);
+
 // Reporte semanal
 // GET /api/reports/weekly?startDate=2024-01-08
 router.get('/weekly', ReportController.weeklyReport);
@@ -34,6 +46,173 @@ router.get('/weekly', ReportController.weeklyReport);
 // Reporte de productos más vendidos
 // GET /api/reports/products
 router.get('/products', ReportController.productReport);
+
+// ============================
+// RUTAS PARA REPORTES DE VENTAS POR PRODUCTO
+// ============================
+
+// Ventas por producto del día
+// GET /api/reports/products/day?date=2024-01-15
+router.get('/products/day', async (req, res) => {
+    try {
+        const SaleDetail = require('../models/SaleDetail');
+        const { date } = req.query;
+        
+        const products = await SaleDetail.getProductSalesByDay(date);
+        
+        res.json({
+            success: true,
+            date: date || require('../utils/dateUtils').getLocalDate(),
+            total_products: products.length,
+            products: products,
+            summary: {
+                total_quantity: products.reduce((sum, p) => sum + p.total_quantity, 0),
+                total_revenue: products.reduce((sum, p) => sum + p.total_revenue, 0)
+            }
+        });
+    } catch (error) {
+        console.error('Error en reporte de productos del día:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error obteniendo reporte de productos del día',
+            error: error.message
+        });
+    }
+});
+
+// Ventas por producto del mes
+// GET /api/reports/products/month?yearMonth=2024-01
+router.get('/products/month', async (req, res) => {
+    try {
+        const SaleDetail = require('../models/SaleDetail');
+        const { yearMonth } = req.query;
+        
+        const products = await SaleDetail.getProductSalesByMonth(yearMonth);
+        
+        res.json({
+            success: true,
+            month: yearMonth || require('../utils/dateUtils').getCurrentMonth(),
+            total_products: products.length,
+            products: products,
+            summary: {
+                total_quantity: products.reduce((sum, p) => sum + p.total_quantity, 0),
+                total_revenue: products.reduce((sum, p) => sum + p.total_revenue, 0),
+                total_days_with_sales: Math.max(...products.map(p => p.days_sold || 0))
+            }
+        });
+    } catch (error) {
+        console.error('Error en reporte de productos del mes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error obteniendo reporte de productos del mes',
+            error: error.message
+        });
+    }
+});
+
+// Ventas por producto del año
+// GET /api/reports/products/year?year=2024
+router.get('/products/year', async (req, res) => {
+    try {
+        const SaleDetail = require('../models/SaleDetail');
+        const { year } = req.query;
+        
+        const products = await SaleDetail.getProductSalesByYear(year);
+        
+        res.json({
+            success: true,
+            year: year || require('../utils/dateUtils').getCurrentYear(),
+            total_products: products.length,
+            products: products,
+            summary: {
+                total_quantity: products.reduce((sum, p) => sum + p.total_quantity, 0),
+                total_revenue: products.reduce((sum, p) => sum + p.total_revenue, 0),
+                total_days_with_sales: Math.max(...products.map(p => p.days_sold || 0))
+            }
+        });
+    } catch (error) {
+        console.error('Error en reporte de productos del año:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error obteniendo reporte de productos del año',
+            error: error.message
+        });
+    }
+});
+
+// Ventas de un producto específico por día
+// GET /api/reports/products/:productId/day?date=2024-01-15
+router.get('/products/:productId/day', async (req, res) => {
+    try {
+        const SaleDetail = require('../models/SaleDetail');
+        const { productId } = req.params;
+        const { date } = req.query;
+        
+        const productSales = await SaleDetail.getSpecificProductSalesByDay(productId, date);
+        
+        if (!productSales) {
+            return res.json({
+                success: true,
+                date: date || require('../utils/dateUtils').getLocalDate(),
+                product_id: productId,
+                message: 'No hay ventas de este producto en la fecha especificada',
+                sales: null
+            });
+        }
+        
+        res.json({
+            success: true,
+            date: date || require('../utils/dateUtils').getLocalDate(),
+            product_id: productId,
+            sales: productSales
+        });
+    } catch (error) {
+        console.error('Error en reporte de producto específico:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error obteniendo reporte del producto',
+            error: error.message
+        });
+    }
+});
+
+// Reporte personalizado de productos por rango de fechas
+// GET /api/reports/products/custom?startDate=2024-01-01&endDate=2024-01-31
+router.get('/products/custom', async (req, res) => {
+    try {
+        const SaleDetail = require('../models/SaleDetail');
+        const { startDate, endDate } = req.query;
+        
+        if (!startDate || !endDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Se requieren startDate y endDate en formato YYYY-MM-DD'
+            });
+        }
+        
+        const products = await SaleDetail.getProductSalesReport(startDate, endDate);
+        
+        res.json({
+            success: true,
+            start_date: startDate,
+            end_date: endDate,
+            total_products: products.length,
+            products: products,
+            summary: {
+                total_quantity: products.reduce((sum, p) => sum + p.total_quantity, 0),
+                total_revenue: products.reduce((sum, p) => sum + p.total_revenue, 0),
+                avg_daily_revenue: products.reduce((sum, p) => sum + (p.avg_daily_revenue || 0), 0)
+            }
+        });
+    } catch (error) {
+        console.error('Error en reporte personalizado de productos:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error obteniendo reporte personalizado de productos',
+            error: error.message
+        });
+    }
+});
 
 // ============================
 // RUTAS ADMINISTRATIVAS (solo administradores)
@@ -100,6 +279,66 @@ router.get('/help', (req, res) => {
                     path: '/api/reports/products',
                     description: 'Reporte de productos más vendidos y estadísticas',
                     auth: 'Usuario autenticado'
+                },
+                {
+                    method: 'GET',
+                    path: '/api/reports/products/day?date=2024-01-15',
+                    description: 'Ventas por producto del día específico o hoy',
+                    auth: 'Usuario autenticado',
+                    parameters: {
+                        date: 'YYYY-MM-DD (opcional, por defecto hoy)'
+                    },
+                    response_example: {
+                        date: '2024-01-15',
+                        total_products: 12,
+                        products: [
+                            {
+                                product_id: 5,
+                                product_name: 'Pizza Margherita',
+                                total_quantity: 15,
+                                total_revenue: 375.00,
+                                times_sold: 8
+                            }
+                        ]
+                    }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/reports/products/month?yearMonth=2024-01',
+                    description: 'Ventas por producto del mes específico o mes actual',
+                    auth: 'Usuario autenticado',
+                    parameters: {
+                        yearMonth: 'YYYY-MM (opcional, por defecto mes actual)'
+                    }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/reports/products/year?year=2024',
+                    description: 'Ventas por producto del año específico o año actual',
+                    auth: 'Usuario autenticado',
+                    parameters: {
+                        year: 'YYYY (opcional, por defecto año actual)'
+                    }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/reports/products/:productId/day?date=2024-01-15',
+                    description: 'Ventas de un producto específico en un día',
+                    auth: 'Usuario autenticado',
+                    parameters: {
+                        productId: 'ID del producto (requerido)',
+                        date: 'YYYY-MM-DD (opcional, por defecto hoy)'
+                    }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/reports/products/custom?startDate=2024-01-01&endDate=2024-01-31',
+                    description: 'Reporte de productos por rango de fechas personalizado',
+                    auth: 'Usuario autenticado',
+                    parameters: {
+                        startDate: 'YYYY-MM-DD (requerido)',
+                        endDate: 'YYYY-MM-DD (requerido)'
+                    }
                 }
             ],
             admin: [

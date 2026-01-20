@@ -2,6 +2,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+const DateUtils = require('../utils/dateUtils');
 
 class Database {
     constructor() {
@@ -37,35 +38,28 @@ class Database {
 
     async connect() {
         return new Promise((resolve, reject) => {
-            this.db = new sqlite3.Database(this.dbPath, (err) => {
-                if (err) {
-                    console.error('❌ Error conectando a SQLite:', err);
-                    reject(err);
-                } else {
-                    console.log('✅ Conectado a SQLite local');
-                    this.initTables().then(() => {
-                        this.isInitialized = true;
-                        resolve(this.db);
-                    }).catch(reject);
-                }
-            });
-        });
-    }
-
-    async connect() {
-        return new Promise((resolve, reject) => {
-            this.db = new sqlite3.Database(this.dbPath, (err) => {
-                if (err) {
-                    console.error('Error conectando a la base de datos:', err);
-                    reject(err);
-                } else {
-                    console.log('Conectado a SQLite database');
-                    this.initTables().then(() => {
-                        this.isInitialized = true;
-                        resolve(this.db);
-                    }).catch(reject);
-                }
-            });
+            try {
+                this.db = new sqlite3.Database(this.dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, async (err) => {
+                    if (err) {
+                        console.error('Error conectando a la base de datos:', err);
+                        reject(err);
+                    } else {
+                        console.log('Conectado a SQLite database en:', this.dbPath);
+                        try {
+                            await this.initTables();
+                            this.isInitialized = true;
+                            console.log('Inicialización de tablas completada');
+                            resolve(this.db);
+                        } catch (initError) {
+                            console.error('Error en la inicialización de tablas:', initError);
+                            reject(initError);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error crítico al crear conexión:', error);
+                reject(error);
+            }
         });
     }
 
@@ -77,12 +71,12 @@ async initTables() {
     await this.createCategoriesTable();
     await this.createProductsTable();
     await this.createSalesTable();
+    await this.createTicketSessionsTable();
     await this.createSaleDetailsTable();
-
     await this.runMigrations();
     
-    // AGREGAR ESTAS DOS LÍNEAS:
-    await this.fixExistingTimestampsToLocal();
+    // AGREGAR ESTAS LÍNEAS:
+    await this.verifyDatabaseIntegrity();
     await this.testTimezoneConfiguration();
     
     console.log('✅ Base de datos configurada con hora local');
@@ -199,6 +193,27 @@ static getBoliviaDateTime() {
         `;
         await this.runAsync(sql);
         console.log('✅ Tabla sale_details creada');
+    }
+
+    // NUEVA: Tabla de sesiones de tickets por usuario y día
+    async createTicketSessionsTable() {
+        const sql = `
+            CREATE TABLE IF NOT EXISTS ticket_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_date TEXT NOT NULL,
+                user_id INTEGER NOT NULL,
+                last_ticket_number INTEGER DEFAULT 0,
+                is_active INTEGER DEFAULT 1,
+                total_sales_in_session INTEGER DEFAULT 0,
+                total_amount_in_session DECIMAL(10,2) DEFAULT 0,
+                session_started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                session_ended_at DATETIME,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `;
+        await this.runAsync(sql);
+        console.log('✅ Tabla ticket_sessions creada');
     }
 
     getDB() {
@@ -358,6 +373,59 @@ async testTimezoneConfiguration() {
         console.log(`🎫 Última venta: ${recentSale}`);
         
         console.log('✅ ===== VERIFICACIÓN COMPLETADA =====\n');
+        
+    } catch (error) {
+        console.error('❌ Error en verificación:', error);
+    }
+}
+
+// Agregar al final de la clase Database, antes del cierre:
+
+async verifyDatabaseIntegrity() {
+    console.log('\n🔍 ===== VERIFICACIÓN DE INTEGRIDAD =====');
+    
+    try {
+        // Verificar ventas huérfanas (sin detalles)
+        const orphanSales = await new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT s.id, s.created_at, s.total
+                FROM sales s
+                LEFT JOIN sale_details sd ON s.id = sd.sale_id
+                WHERE sd.id IS NULL
+                LIMIT 10
+            `, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+        
+        if (orphanSales.length > 0) {
+            console.log(`⚠️ Encontradas ${orphanSales.length} ventas sin detalles:`);
+            orphanSales.forEach(sale => {
+                console.log(`   - Venta #${sale.id}, ${sale.created_at}, Bs${sale.total}`);
+            });
+        } else {
+            console.log('✅ No hay ventas huérfanas');
+        }
+        
+        // Verificar ventas de hoy
+        const todayDate = DateUtils.getLocalDate();
+        const todaySales = await new Promise((resolve, reject) => {
+            this.db.all(`
+                SELECT COUNT(*) as count, SUM(total) as total
+                FROM sales
+                WHERE DATE(created_at) = ?
+            `, [todayDate], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows[0]);
+            });
+        });
+        
+        console.log(`📊 Ventas de hoy (${todayDate}):`);
+        console.log(`   Cantidad: ${todaySales.count}`);
+        console.log(`   Total: Bs ${todaySales.total || 0}`);
+        
+        console.log('🔍 ======================================\n');
         
     } catch (error) {
         console.error('❌ Error en verificación:', error);

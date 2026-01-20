@@ -1,6 +1,8 @@
 // server/controllers/productController.js - CRUD Completo
 const Product = require('../models/Product');
 const Category = require('../models/Category');
+const fs = require('fs');
+const path = require('path');
 
 class ProductController {
 
@@ -18,7 +20,18 @@ class ProductController {
                 });
             }
 
-            const products = await Product.findByCategory(categoryId);
+            let products = await Product.findByCategory(categoryId);
+            // Sanitizar rutas de imagen inexistentes para evitar 404 en POS
+            products = products.map(p => {
+                if (p.image_url) {
+                    const filename = path.basename(p.image_url);
+                    const physical = path.join(__dirname, '..', 'uploads', 'products', filename);
+                    if (!fs.existsSync(physical)) {
+                        p.image_url = null;
+                    }
+                }
+                return p;
+            });
             
             res.json({
                 success: true,
@@ -39,7 +52,7 @@ class ProductController {
     static async getById(req, res) {
         try {
             const { id } = req.params;
-            const product = await Product.findById(id);
+            let product = await Product.findById(id);
             
             if (!product) {
                 return res.status(404).json({
@@ -48,10 +61,16 @@ class ProductController {
                 });
             }
 
-            res.json({
-                success: true,
-                product
-            });
+            // Sanitizar imagen inexistente
+            if (product && product.image_url) {
+                const filename = path.basename(product.image_url);
+                const physical = path.join(__dirname, '..', 'uploads', 'products', filename);
+                if (!fs.existsSync(physical)) {
+                    product.image_url = null;
+                }
+            }
+
+            res.json({ success: true, product });
 
         } catch (error) {
             console.error('Error obteniendo producto:', error);
@@ -64,12 +83,20 @@ class ProductController {
 
    static async getAll(req, res) {
         try {
-            const products = await Product.findAll();
-            
-            res.json({
-                success: true,
-                products
+            let products = await Product.findAll();
+            // Sanitizar rutas de imagen inexistentes para evitar 404 en POS
+            products = products.map(p => {
+                if (p.image_url) {
+                    const filename = path.basename(p.image_url);
+                    const physical = path.join(__dirname, '..', 'uploads', 'products', filename);
+                    if (!fs.existsSync(physical)) {
+                        p.image_url = null;
+                    }
+                }
+                return p;
             });
+
+            res.json({ success: true, products });
 
         } catch (error) {
             console.error('Error obteniendo productos:', error);

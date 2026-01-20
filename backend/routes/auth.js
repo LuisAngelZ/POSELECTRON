@@ -6,7 +6,8 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 // Rutas públicas (no requieren autenticación)
 router.post('/login', AuthController.login);
-router.post('/verify-token', AuthController.verifyToken);
+router.get('/verify', AuthController.verifyToken); // Endpoint principal para verificación
+router.post('/verify-token', AuthController.verifyToken); // Mantener por compatibilidad
 
 // Rutas protegidas (requieren autenticación)
 router.get('/profile', authenticateToken, AuthController.getProfile);

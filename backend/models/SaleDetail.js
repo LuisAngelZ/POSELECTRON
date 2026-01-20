@@ -43,12 +43,25 @@ class SaleDetail {
             `;
             
             const db = database.getDB();
+            
+            // Validar datos antes de iniciar la transacción
+            try {
+                details.forEach(detail => {
+                    if (!detail.product_id || !detail.product_name || !detail.quantity || !detail.unit_price) {
+                        throw new Error(`Datos inválidos para el detalle: ${JSON.stringify(detail)}`);
+                    }
+                });
+            } catch (validationError) {
+                return reject(validationError);
+            }
+
             db.serialize(() => {
                 db.run('BEGIN TRANSACTION');
                 
                 const stmt = db.prepare(sql);
                 let completed = 0;
                 let hasError = false;
+                let errorDetails = [];
                 
                 details.forEach((detail) => {
                     stmt.run(
@@ -61,17 +74,39 @@ class SaleDetail {
                             detail.subtotal
                         ],
                         function(err) {
-                            if (err && !hasError) {
+                            if (err) {
                                 hasError = true;
-                                db.run('ROLLBACK');
-                                reject(err);
-                                return;
+                                errorDetails.push({
+                                    product: detail.product_name,
+                                    error: err.message
+                                });
                             }
                             
                             completed++;
-                            if (completed === details.length && !hasError) {
-                                db.run('COMMIT');
-                                resolve({ created: details.length });
+                            if (completed === details.length) {
+                                if (hasError) {
+                                    console.error('❌ Errores al guardar detalles:', errorDetails);
+                                    db.run('ROLLBACK', () => {
+                                        reject(new Error('Error al guardar algunos detalles de la venta'));
+                                    });
+                                } else {
+                                    db.run('COMMIT', (commitErr) => {
+                                        if (commitErr) {
+                                            console.error('❌ Error en COMMIT:', commitErr);
+                                            reject(commitErr);
+                                        } else {
+                                            console.log(`✅ Guardados ${details.length} detalles para venta #${saleId}`);
+                                            resolve({ 
+                                                created: details.length,
+                                                details: details.map(d => ({
+                                                    product_name: d.product_name,
+                                                    quantity: d.quantity,
+                                                    subtotal: d.subtotal
+                                                }))
+                                            });
+                                        }
+                                    });
+                                }
                             }
                         }
                     );
@@ -607,6 +642,191 @@ class SaleDetail {
             database.getDB().all(sql, [startDate, endDate], (err, rows) => {
                 if (err) reject(err);
                 else resolve(rows || []);
+            });
+        });
+    }
+
+    // ===== REPORTES DE VENTAS POR PRODUCTO - DÍA, MES, AÑO =====
+
+    // Obtener ventas por producto del día específico o hoy
+    static async getProductSalesByDay(date = null) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const DateUtils = require('../utils/dateUtils');
+            const targetDate = date || DateUtils.getLocalDate();
+            
+            const sql = `
+                SELECT 
+                    sd.product_id,
+                    sd.product_name,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue,
+                    COUNT(DISTINCT sd.sale_id) as times_sold,
+                    AVG(sd.unit_price) as avg_price,
+                    MIN(s.created_at) as first_sale,
+                    MAX(s.created_at) as last_sale
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                WHERE DATE(s.created_at) = ?
+                GROUP BY sd.product_id, sd.product_name
+                ORDER BY total_quantity DESC
+            `;
+            
+            database.getDB().all(sql, [targetDate], (err, rows) => {
+                if (err) {
+                    console.error('Error obteniendo ventas por producto del día:', err);
+                    reject(err);
+                } else {
+                    console.log(`📊 Ventas por producto - Día ${targetDate}: ${rows.length} productos`);
+                    resolve(rows || []);
+                }
+            });
+        });
+    }
+
+    // Obtener ventas por producto del mes específico o mes actual
+    static async getProductSalesByMonth(yearMonth = null) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const DateUtils = require('../utils/dateUtils');
+            const targetMonth = yearMonth || DateUtils.getCurrentMonth(); // YYYY-MM
+            
+            const sql = `
+                SELECT 
+                    sd.product_id,
+                    sd.product_name,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue,
+                    COUNT(DISTINCT sd.sale_id) as times_sold,
+                    COUNT(DISTINCT DATE(s.created_at)) as days_sold,
+                    AVG(sd.unit_price) as avg_price,
+                    MIN(s.created_at) as first_sale,
+                    MAX(s.created_at) as last_sale
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                WHERE strftime('%Y-%m', s.created_at) = ?
+                GROUP BY sd.product_id, sd.product_name
+                ORDER BY total_quantity DESC
+            `;
+            
+            database.getDB().all(sql, [targetMonth], (err, rows) => {
+                if (err) {
+                    console.error('Error obteniendo ventas por producto del mes:', err);
+                    reject(err);
+                } else {
+                    console.log(`📊 Ventas por producto - Mes ${targetMonth}: ${rows.length} productos`);
+                    resolve(rows || []);
+                }
+            });
+        });
+    }
+
+    // Obtener ventas por producto del año específico o año actual
+    static async getProductSalesByYear(year = null) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const DateUtils = require('../utils/dateUtils');
+            const targetYear = year || DateUtils.getCurrentYear();
+            
+            const sql = `
+                SELECT 
+                    sd.product_id,
+                    sd.product_name,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue,
+                    COUNT(DISTINCT sd.sale_id) as times_sold,
+                    COUNT(DISTINCT DATE(s.created_at)) as days_sold,
+                    AVG(sd.unit_price) as avg_price,
+                    MIN(s.created_at) as first_sale,
+                    MAX(s.created_at) as last_sale
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                WHERE strftime('%Y', s.created_at) = ?
+                GROUP BY sd.product_id, sd.product_name
+                ORDER BY total_quantity DESC
+            `;
+            
+            database.getDB().all(sql, [targetYear], (err, rows) => {
+                if (err) {
+                    console.error('Error obteniendo ventas por producto del año:', err);
+                    reject(err);
+                } else {
+                    console.log(`📊 Ventas por producto - Año ${targetYear}: ${rows.length} productos`);
+                    resolve(rows || []);
+                }
+            });
+        });
+    }
+
+    // Obtener ventas de un producto específico por día
+    static async getSpecificProductSalesByDay(productId, date = null) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const DateUtils = require('../utils/dateUtils');
+            const targetDate = date || DateUtils.getLocalDate();
+            
+            const sql = `
+                SELECT 
+                    sd.product_id,
+                    sd.product_name,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue,
+                    COUNT(DISTINCT sd.sale_id) as times_sold,
+                    AVG(sd.unit_price) as avg_price,
+                    GROUP_CONCAT(s.ticket_number) as ticket_numbers
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                WHERE sd.product_id = ? AND DATE(s.created_at) = ?
+                GROUP BY sd.product_id, sd.product_name
+            `;
+            
+            database.getDB().get(sql, [productId, targetDate], (err, row) => {
+                if (err) {
+                    console.error('Error obteniendo ventas del producto:', err);
+                    reject(err);
+                } else {
+                    resolve(row || null);
+                }
+            });
+        });
+    }
+
+    // Obtener resumen de ventas por producto con rangos personalizados
+    static async getProductSalesReport(startDate, endDate) {
+        await database.ensureConnected();
+        
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT 
+                    sd.product_id,
+                    sd.product_name,
+                    SUM(sd.quantity) as total_quantity,
+                    SUM(sd.subtotal) as total_revenue,
+                    COUNT(DISTINCT sd.sale_id) as times_sold,
+                    COUNT(DISTINCT DATE(s.created_at)) as days_sold,
+                    AVG(sd.unit_price) as avg_price,
+                    MIN(s.created_at) as first_sale,
+                    MAX(s.created_at) as last_sale,
+                    ROUND(SUM(sd.subtotal) * 1.0 / COUNT(DISTINCT DATE(s.created_at)), 2) as avg_daily_revenue
+                FROM sale_details sd
+                INNER JOIN sales s ON sd.sale_id = s.id
+                WHERE DATE(s.created_at) BETWEEN ? AND ?
+                GROUP BY sd.product_id, sd.product_name
+                ORDER BY total_revenue DESC
+            `;
+            
+            database.getDB().all(sql, [startDate, endDate], (err, rows) => {
+                if (err) {
+                    console.error('Error obteniendo reporte de ventas por producto:', err);
+                    reject(err);
+                } else {
+                    console.log(`📊 Reporte de ventas ${startDate} a ${endDate}: ${rows.length} productos`);
+                    resolve(rows || []);
+                }
             });
         });
     }

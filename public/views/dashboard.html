@@ -30,6 +30,10 @@
                     <span>›</span>
                     <span id="currentPage">Dashboard</span>
                 </div>
+                <div class="date-info">
+                    <span id="currentDate"></span>
+                    <span id="lastUpdate" class="last-update"></span>
+                </div>
             </div>
 
             <div class="content-area">
@@ -57,31 +61,63 @@
                     </div>
 
                     <div class="widget-card">
-                        <div class="stat-value" id="todayAmount">$1,247.50 <span style="font-size: 1rem; color: #6b7280;">BOB</span></div>
+                        <div class="widget-header">
+                            <h3 class="widget-title">PRODUCTOS TOP HOY</h3>
+                        </div>
+                        <ul id="topProducts" style="list-style: none; padding: 0; margin: 0;">
+                            <li style="padding: 0.5rem; color: #6b7280;">Cargando productos...</li>
+                        </ul>
+                    </div>
+
+                    <div class="widget-card">
+                        <div class="stat-value" id="totalAmount">Bs 0.00</div>
                         <div class="stat-label">VENTAS DE HOY</div>
                         <div class="stat-change positive">
-                            <span>↗</span>
-                            +12.3% desde ayer
+                            <span id="totalSales">0</span>
+                            órdenes
+                        </div>
+                    </div>
+                    
+                    <div class="widget-card">
+                        <div class="stat-value" id="effectivoAmount">Bs 0.00</div>
+                        <div class="stat-label">EFECTIVO</div>
+                        <div class="stat-change">
+                            💵 Pagos en efectivo
+                        </div>
+                    </div>
+                    
+                    <div class="widget-card">
+                        <div class="stat-value" id="qrAmount">Bs 0.00</div>
+                        <div class="stat-label">QR/DIGITAL</div>
+                        <div class="stat-change">
+                            📱 Pagos digitales
                         </div>
                     </div>
                 </div>
 
                 <div class="stats-row">
                     <div class="widget-card">
-                        <div class="stat-value" id="monthAmount">$1,247</div>
+                        <div class="stat-value" id="monthlyAmount">Bs 0.00</div>
                         <div class="stat-label">VENTAS DEL MES</div>
                         <div class="stat-change positive">
-                            <span>↗</span>
-                            +23% vs mes anterior
+                            <span id="monthlySales">0</span>
+                            órdenes totales
                         </div>
                     </div>
 
                     <div class="widget-card">
-                        <div class="stat-value" id="productsCount">4</div>
-                        <div class="stat-label">PRODUCTOS ACTIVOS</div>
-                        <div class="stat-change positive">
-                            <span>↗</span>
-                            En inventario
+                        <div class="stat-value" id="averageSale">Bs 0.00</div>
+                        <div class="stat-label">PROMEDIO POR VENTA</div>
+                        <div class="stat-change">
+                            Hoy
+                        </div>
+                    </div>
+                    
+                    <div class="widget-card">
+                        <div class="stat-value" id="dailyAverage">Bs 0.00</div>
+                        <div class="stat-label">PROMEDIO DIARIO</div>
+                        <div class="stat-change">
+                            Este mes
                         </div>
                     </div>
                 </div>
@@ -92,35 +128,18 @@
                         <button class="action-btn">Ver todas</button>
                     </div>
                     
-                    <table class="transactions-table">
-                        <thead>
-                            <tr>
-                                <th>CLIENTE</th>
-                                <th>FECHA</th>
-                                <th>TOTAL</th>
-                                <th>TIPO</th>
-                                <th>MESA</th>
-                                <th>ID VENTA</th>
-                                <th>DETALLES</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transactionsTable">
-                            <tr>
-                                <td colspan="7" style="text-align:center;padding:2rem;color:#6b7280">
-                                    <div class="loading">
-                                        <div class="spinner"></div>
-                                        Cargando ventas recientes...
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div id="recentTransactions" style="max-height: 400px; overflow-y: auto;">
+                        <div class="loading" style="text-align: center; padding: 2rem;">
+                            <div class="spinner"></div>
+                            Cargando ventas recientes...
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <script src="/js/dashboard.js" defer></script>
+    <script src="/js/dashboard.js" type="module"></script>
     <!-- Sidebar Universal -->
     <script src="/js/sidebar.js" defer></script>
 </body>

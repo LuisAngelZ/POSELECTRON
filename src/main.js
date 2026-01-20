@@ -10,7 +10,8 @@ class POSApp {
         this.mainWindow = null;
         this.serverProcess = null;
         this.serverReady = false;
-        this.serverPort = 3333;
+        // Puerto del servidor - debe coincidir con .env
+        this.serverPort = parseInt(process.env.PORT, 10) || 3333;
     }
 
     async createWindow() {
@@ -42,14 +43,7 @@ class POSApp {
         mainWindowState.manage(this.mainWindow);
         this.createMenu();
 
-        // Mostrar pantalla de carga primero
-        this.mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(this.getLoadingHTML())}`);
-        this.mainWindow.show();
-
-        // Iniciar servidor y luego cargar la app
-        await this.startServer();
-        await this.loadApp();
-
+        // Configurar listeners ANTES de mostrar
         this.mainWindow.once('ready-to-show', () => {
             if (isDev) {
                 this.mainWindow.webContents.openDevTools();
@@ -64,6 +58,14 @@ class POSApp {
             shell.openExternal(url);
             return { action: 'deny' };
         });
+
+        // Mostrar pantalla de carga primero
+        this.mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(this.getLoadingHTML())}`);
+        this.mainWindow.show();
+
+        // Iniciar servidor y luego cargar la app
+        await this.startServer();
+        await this.loadApp();
     }
 
     getIconPath() {
@@ -387,17 +389,6 @@ class POSApp {
         dialog.showErrorBox('Error del Sistema POS', message);
     }
 
-    async init() {
-        await app.whenReady();
-        await this.createWindow();
-
-        app.on('activate', async () => {
-            if (BrowserWindow.getAllWindows().length === 0) {
-                await this.createWindow();
-            }
-        });
-    }
-
     cleanup() {
         if (this.serverProcess) {
             console.log('🛑 Cerrando servidor...');
@@ -414,9 +405,18 @@ class POSApp {
 // Inicializar aplicación
 const posApp = new POSApp();
 
-// Manejar eventos de la aplicación
-app.on('ready', () => {
-    posApp.init();
+// Manejar eventos de la aplicación - usar whenReady en lugar de ready
+app.whenReady().then(async () => {
+    await posApp.createWindow();
+}).catch(err => {
+    console.error('Error iniciando aplicación:', err);
+    app.quit();
+});
+
+app.on('activate', async () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        await posApp.createWindow();
+    }
 });
 
 app.on('window-all-closed', () => {

@@ -1,32 +1,141 @@
-// backend/controllers/reportController.js - VERSIÓN CORREGIDA FINAL
-
+const ReportService = require('../services/ReportService');
 const Sale = require('../models/Sale');
 const SaleDetail = require('../models/SaleDetail');
+const database = require('../config/database');
+const DateUtils = require('../utils/dateUtils');
 
 class ReportController {
+    static async filteredReport(req, res) {
+        try {
+            console.log('Query params recibidos:', req.query);
+            const { start_date, end_date, payment_type, product_id } = req.query;
+            
+            if (!start_date || !end_date) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Las fechas de inicio y fin son requeridas'
+                });
+            }
+
+            console.log('🔍 Generando reporte filtrado:', {
+                startDate: start_date, 
+                endDate: end_date, 
+                filters: { payment_type, product_id }
+            });
+
+            // Usar el servicio de reportes para obtener los datos filtrados
+            const result = await ReportService.getFilteredReport(
+                start_date, 
+                end_date,
+                { payment_type, product_id }
+            );
+
+            // Verificar si el resultado es válido
+            if (!result || !result.report) {
+                throw new Error('Error al procesar el reporte filtrado');
+            }
+            
+            return res.json(result);
+
+        } catch (error) {
+            console.error('❌ Error generando reporte filtrado:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor',
+                error: error.message
+            });
+        }
+    }
+
     // ===== DASHBOARD CON FECHAS CONSISTENTES =====
     static async dashboard(req, res) {
         try {
             console.log('📊 ===== GENERANDO DASHBOARD CONSISTENTE =====');
 
-            // Usar funciones consistentes
-            const todayTotals = await Sale.getTodayTotals(); // ✅ FUNCIÓN EXISTENTE
-            console.log('💰 Totales de hoy (consistente):', todayTotals);
+            // Ejecutar todas las consultas en paralelo para mejor rendimiento
+            const [todayTotals, monthlyTotals, topProductsToday, recentSales, hourlySales] = await Promise.all([
+                Sale.getTodayTotals(),
+                Sale.getMonthlyTotals(),
+                SaleDetail.getTodayTopProducts(10),
+                Sale.getTodaySales(),
+                SaleDetail.getHourlySales()
+            ]);
 
-            // Obtener datos del mes actual
-            const monthlyTotals = await Sale.getMonthlyTotals();
-            console.log('📅 Totales del mes:', monthlyTotals);
+            // Calcular totales por método de pago
+            const todayPayments = recentSales.reduce((acc, sale) => {
+                if (sale.payment_type === 'efectivo') {
+                    acc.cash_amount += parseFloat(sale.total);
+                } else if (sale.payment_type === 'qr') {
+                    acc.qr_amount += parseFloat(sale.total);
+                }
+                return acc;
+            }, { cash_amount: 0, qr_amount: 0 });
 
-            // Top productos de hoy
-            const topProductsToday = await SaleDetail.getTodayTopProducts(5);
-            console.log('🏆 Top productos hoy:', topProductsToday);
+            // Obtener datos de categorías y usuarios (simplificado)
+            let categoryData = [];
+            let topSellersData = [];
+            
+            try {
+                // Obtener distribución de categorías
+                categoryData = await new Promise((resolve, reject) => {
+                    const sql = `
+                        SELECT 
+                            c.name,
+                            COUNT(sd.id) as total_items,
+                            SUM(sd.subtotal) as total_amount
+                        FROM categories c
+                        LEFT JOIN products p ON c.id = p.category_id
+                        LEFT JOIN sale_details sd ON p.id = sd.product_id
+                        WHERE DATE(sd.created_at) = DATE('now')
+                        GROUP BY c.id, c.name
+                        ORDER BY total_amount DESC
+                    `;
+                    
+                    database.getDB().all(sql, (err, rows) => {
+                        if (err) resolve([]);
+                        else resolve((rows || []).map(row => ({
+                            name: row.name || 'Sin categoría',
+                            value: parseInt(row.total_items) || 0,
+                            amount: parseFloat(row.total_amount) || 0
+                        })));
+                    });
+                });
+            } catch (err) {
+                console.log('No se pudieron obtener categorías');
+            }
 
-            // Ventas recientes de hoy
-            const recentSales = await Sale.getTodaySales(); // ✅ FUNCIÓN EXISTENTE
-            console.log('🧾 Ventas recientes:', recentSales.length);
-
-            // Ventas por hora (para gráficos)
-            const hourlySales = await SaleDetail.getHourlySales();
+            try {
+                // Obtener vendedores top
+                topSellersData = await new Promise((resolve, reject) => {
+                    const sql = `
+                        SELECT 
+                            u.full_name,
+                            u.username,
+                            COUNT(s.id) as sales_count,
+                            SUM(s.total) as total_amount,
+                            AVG(s.total) as average_sale
+                        FROM users u
+                        LEFT JOIN sales s ON u.id = s.user_id 
+                            AND DATE(s.created_at) = DATE('now')
+                        WHERE u.active = 1
+                        GROUP BY u.id
+                        ORDER BY total_amount DESC
+                        LIMIT 5
+                    `;
+                    
+                    database.getDB().all(sql, (err, rows) => {
+                        if (err) resolve([]);
+                        else resolve((rows || []).map(row => ({
+                            name: row.full_name || row.username,
+                            sales: parseInt(row.sales_count) || 0,
+                            amount: parseFloat(row.total_amount) || 0,
+                            average: parseFloat(row.average_sale) || 0
+                        })));
+                    });
+                });
+            } catch (err) {
+                console.log('No se pudieron obtener vendedores top');
+            }
             
             res.json({
                 success: true,
@@ -34,33 +143,38 @@ class ReportController {
                     today: {
                         sales: parseInt(todayTotals.total_sales) || 0,
                         amount: parseFloat(todayTotals.total_amount) || 0,
-                        average: parseFloat(todayTotals.average_sale) || 0
+                        average: parseFloat(todayTotals.average_sale) || 0,
+                        efectivo: parseFloat(todayTotals.efectivo_amount) || 0,
+                        qr: parseFloat(todayTotals.qr_amount) || 0
                     },
                     this_month: {
                         sales: parseInt(monthlyTotals.total_sales) || 0,
                         amount: parseFloat(monthlyTotals.total_amount) || 0,
-                        average: parseFloat(monthlyTotals.average_sale) || 0
+                        average: parseFloat(monthlyTotals.average_sale) || 0,
+                        daily_average: parseFloat(monthlyTotals.daily_average) || 0
                     },
                     top_products_today: topProductsToday.map(p => ({
-                        product_name: p.product_name,
-                        total_quantity: parseInt(p.total_quantity),
-                        total_revenue: parseFloat(p.total_revenue || 0),
+                        name: p.product_name,
+                        quantity: parseInt(p.total_quantity),
+                        revenue: parseFloat(p.total_revenue || 0),
                         times_sold: parseInt(p.times_sold || 0)
                     })),
-                    recent_sales: recentSales.slice(0, 10).map(sale => ({
+                    recent_sales: recentSales.slice(0, 8).map(sale => ({
                         id: sale.id,
                         customer_name: sale.customer_name || 'Cliente',
                         user_name: sale.user_name || sale.user_full_name || 'Usuario',
                         total: parseFloat(sale.total),
                         created_at: sale.created_at,
-                        table_number: sale.table_number
+                        table_number: sale.table_number,
+                        payment_type: sale.payment_type
                     })),
-                    hourly_sales: hourlySales,
-                    debug_info: {
-                        bolivia_date: Sale.getBoliviaDate(),
-                        bolivia_datetime: Sale.getBoliviaDateTime(),
-                        method: 'consistent_datetime_functions'
-                    }
+                    hourly_sales: hourlySales.map(h => ({
+                        hour: h.hour,
+                        total: parseFloat(h.total),
+                        count: parseInt(h.count)
+                    })),
+                    category_distribution: categoryData,
+                    top_sellers: topSellersData
                 }
             });
 
@@ -95,6 +209,12 @@ class ReportController {
 
             // ===== USAR FUNCIONES CONSISTENTES =====
             const sales = await Sale.findByDateRange(targetDate, targetDate, req.user.id); // ✅ FUNCIÓN EXISTENTE
+            try {
+                const salesSummary = sales.slice(0, 50).map(s => ({ id: s.id, total: s.total, created_at: s.created_at }));
+                console.log(`🔎 sales returned for user ${req.user.id} on ${targetDate}: count=${sales.length}. Muestra:`, salesSummary);
+            } catch (e) {
+                console.log('🔎 Error al loguear sales en reportController:', e);
+            }
             const totalAmount = sales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
             
             // Obtener breakdown de pagos con función consistente
@@ -113,7 +233,7 @@ class ReportController {
 
             paymentBreakdown.forEach(payment => {
                 console.log(`💳 Procesando: ${payment.payment_type} - ${payment.total_sales} ventas - Bs ${payment.total_amount}`);
-                
+                        // log temporal eliminado
                 if (payment.payment_type === 'efectivo') {
                     paymentSummary.efectivo = {
                         sales: parseInt(payment.total_sales),
@@ -310,6 +430,84 @@ class ReportController {
 
         } catch (error) {
             console.error('Error en fix de fechas:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    // ===== NUEVOS MÉTODOS PARA EL DASHBOARD =====
+    static async getSalesByDay(req, res) {
+        try {
+            const { days = 7 } = req.query;
+            const endDate = Sale.getBoliviaDate();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - parseInt(days));
+            const formattedStartDate = startDate.toISOString().split('T')[0];
+
+            const sales = await Sale.findByDateRange(formattedStartDate, endDate);
+            
+            // Agrupar ventas por día
+            const salesByDay = {};
+            sales.forEach(sale => {
+                const date = sale.created_at.split(' ')[0];
+                if (!salesByDay[date]) {
+                    salesByDay[date] = { total: 0, count: 0 };
+                }
+                salesByDay[date].total += parseFloat(sale.total);
+                salesByDay[date].count += 1;
+            });
+
+            // Convertir a array ordenado
+            const result = Object.entries(salesByDay).map(([date, data]) => ({
+                date,
+                total: data.total,
+                count: data.count
+            })).sort((a, b) => a.date.localeCompare(b.date));
+
+            res.json({
+                success: true,
+                sales: result
+            });
+
+        } catch (error) {
+            console.error('Error obteniendo ventas por día:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+
+    static async getTopProducts(req, res) {
+        try {
+            const { period = 'today' } = req.query;
+            let startDate = Sale.getBoliviaDate();
+            
+            switch(period) {
+                case 'week':
+                    const weekStart = new Date();
+                    weekStart.setDate(weekStart.getDate() - 7);
+                    startDate = weekStart.toISOString().split('T')[0];
+                    break;
+                case 'month':
+                    const monthStart = new Date();
+                    monthStart.setDate(1);
+                    startDate = monthStart.toISOString().split('T')[0];
+                    break;
+                // Por defecto es 'today', ya tenemos la fecha correcta
+            }
+
+            const products = await SaleDetail.getTopProducts(10, period === 'today' ? 1 : undefined);
+
+            res.json({
+                success: true,
+                products
+            });
+
+        } catch (error) {
+            console.error('Error obteniendo top productos:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor'

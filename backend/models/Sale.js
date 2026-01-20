@@ -1,29 +1,44 @@
 // server/models/Sale.js - VERSIÓN CORREGIDA FINAL
-
-const database = require('../config/database');
 const TicketSession = require('./TicketSession');
+const DateUtils = require('../utils/dateUtils');
+let database;
+
+// Importar database de forma segura para evitar dependencia circular
+setTimeout(() => {
+    if (!database) {
+        database = require('../config/database');
+    }
+}, 50);
 
 class Sale {
-    // ===== FUNCIONES DE FECHA CONSISTENTE =====
+    // ===== FUNCIONES DE FECHA - USA HORA LOCAL DE LA PC =====
+    static getLocalDateTime() {
+        const dateTime = DateUtils.getLocalDateTime();
+        console.log(`🕐 Fecha/Hora local: ${dateTime}`);
+        return dateTime;
+    }
+
+    static getLocalDate() {
+        return DateUtils.getLocalDate();
+    }
+
+    // Mantener nombres antiguos por compatibilidad
     static getBoliviaDateTime() {
-        const now = new Date();
-        // Bolivia es UTC-4 (4 horas menos que UTC)
-        const boliviaTime = new Date(now.getTime() - (4 * 60 * 60 * 1000));
-        // Formato para SQLite: YYYY-MM-DD HH:MM:SS
-        return boliviaTime.toISOString().slice(0, 19).replace('T', ' ');
-    }  
-    
+        return this.getLocalDateTime();
+    }
+
     static getBoliviaDate() {
-        const now = new Date();
-        const boliviaTime = new Date(now.getTime() - (4 * 60 * 60 * 1000));
-        return boliviaTime.toISOString().slice(0, 10); // YYYY-MM-DD
+        return this.getLocalDate();
     }
 
     // ===== CREAR VENTA CON FECHA CONSISTENTE =====
     static async create(saleData) {
-        await database.ensureConnected();
-        
         return new Promise(async (resolve, reject) => {
+            // Esperar a que la base de datos esté lista
+            if (!database) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
             try {
                 database.getDB().serialize(async () => {
                     database.getDB().run('BEGIN TRANSACTION');
@@ -31,10 +46,10 @@ class Sale {
                     try {
                         const ticketNumber = await TicketSession.getNextTicketNumber(saleData.user_id);
                         
-                        // USAR HORA CONSISTENTE DE BOLIVIA
-                        const boliviaDateTime = this.getBoliviaDateTime();
+                        // USAR HORA LOCAL DE LA PC
+                        const currentDateTime = DateUtils.getLocalDateTime();
                         
-                        console.log(`🕐 Creando venta con fecha consistente: ${boliviaDateTime}`);
+                        console.log(`🕐 Creando venta con fecha local: ${currentDateTime}`);
                         
                         const sql = `
                             INSERT INTO sales (
@@ -60,7 +75,7 @@ class Sale {
                                 saleData.change_amount || 0,
                                 saleData.user_id,
                                 ticketNumber,
-                                boliviaDateTime // ← HORA CONSISTENTE
+                                currentDateTime // ← HORA LOCAL DE LA PC
                             ],
                             async function(insertErr) {
                                 if (insertErr) {
@@ -70,7 +85,7 @@ class Sale {
                                 }
                                 
                                 const saleId = this.lastID;
-                                console.log(`✅ Venta #${saleId} creada con ticket #${ticketNumber} a las ${boliviaDateTime}`);
+                                console.log(`✅ Venta #${saleId} creada con ticket #${ticketNumber} a las ${currentDateTime}`);
                                 
                                 try {
                                     const finalTicketNumber = await TicketSession.incrementTicketCounter(
@@ -88,7 +103,7 @@ class Sale {
                                             id: saleId, 
                                             ...saleData,
                                             ticket_number: finalTicketNumber,
-                                            created_at: boliviaDateTime
+                                            created_at: currentDateTime
                                         });
                                     });
                                     
@@ -111,53 +126,62 @@ class Sale {
         });
     }
 
-    // ===== BUSCAR POR RANGO DE FECHAS - VERSIÓN CONSISTENTE =====
     static async findByDateRange(startDate, endDate, userId = null) {
-        await database.ensureConnected();
-        
-        return new Promise((resolve, reject) => {
-            let sql;
-            let params;
-            
-            console.log(`🔍 ===== CONSULTA CONSISTENTE =====`);
-            console.log(`📅 Rango: ${startDate} a ${endDate}`);
-            console.log(`👤 Usuario: ${userId || 'TODOS'}`);
+        try {
+            let sql = `
+                SELECT s.*, u.full_name as user_name, u.username
+                FROM sales s
+                LEFT JOIN users u ON s.user_id = u.id
+                WHERE DATE(s.created_at) >= DATE(?) 
+                AND DATE(s.created_at) <= DATE(?)
+            `;
             
             if (userId) {
-                sql = `
-                    SELECT s.*, u.full_name as user_name, u.username
-                    FROM sales s
-                    LEFT JOIN users u ON s.user_id = u.id
-                    WHERE DATE(s.created_at) BETWEEN ? AND ? AND s.user_id = ?
-                    ORDER BY s.created_at DESC
-                `;
-                params = [startDate, endDate, userId];
-            } else {
-                sql = `
-                    SELECT s.*, u.full_name as user_name, u.username
-                    FROM sales s
-                    LEFT JOIN users u ON s.user_id = u.id
-                    WHERE DATE(s.created_at) BETWEEN ? AND ?
-                    ORDER BY s.created_at DESC
-                `;
-                params = [startDate, endDate];
+                sql += ' AND s.user_id = ?';
             }
             
-            database.getDB().all(sql, params, (err, rows) => {
-                if (err) {
-                    console.error('❌ Error en consulta:', err);
-                    reject(err);
+            sql += ' ORDER BY s.created_at DESC';
+
+            return new Promise((resolve, reject) => {
+                if (!database) {
+                    console.log('⏳ Esperando a que la base de datos esté lista...');
+                    setTimeout(() => {
+                        database.getDB().all(
+                            sql, 
+                            userId ? [startDate, endDate, userId] : [startDate, endDate],
+                            (err, rows) => {
+                                if (err) {
+                                    console.error('Error en consulta:', err);
+                                    reject(err);
+                                } else {
+                                    const safeRows = rows || [];
+                                    // logs temporales eliminados
+                                    resolve(safeRows);
+                                }
+                            }
+                        );
+                    }, 100);
                 } else {
-                    console.log(`✅ Encontradas ${rows.length} ventas`);
-                    if (rows.length > 0) {
-                        console.log(`📊 Primera venta: ${rows[rows.length - 1].created_at}`);
-                        console.log(`📊 Última venta: ${rows[0].created_at}`);
-                    }
-                    console.log(`🔍 ================================`);
-                    resolve(rows);
+                    database.getDB().all(
+                        sql, 
+                        userId ? [startDate, endDate, userId] : [startDate, endDate],
+                        (err, rows) => {
+                            if (err) {
+                                console.error('Error en consulta:', err);
+                                reject(err);
+                            } else {
+                                const safeRows = rows || [];
+                                // logs temporales eliminados
+                                resolve(safeRows);
+                            }
+                        }
+                    );
                 }
             });
-        });
+        } catch (error) {
+            console.error('Error en findByDateRange:', error);
+            return [];
+        }
     }
 
     // ===== BUSCAR POR FECHA Y USUARIO =====
@@ -166,59 +190,85 @@ class Sale {
         return this.findByDateRange(startDate, endDate, userId);
     }
 
-    // ===== TOTALES DEL DÍA CON FECHA CONSISTENTE =====
+    // ===== TOTALES DEL DÍA CON FECHA LOCAL =====
     static async getTodayTotals(date = null) {
-        await database.ensureConnected();
+        const targetDate = date || DateUtils.getLocalDate();
+            
+        console.log(`📊 Calculando totales para fecha local: ${targetDate}`);
+        
+        const sql = `
+            SELECT 
+                COUNT(*) as total_sales,
+                COALESCE(SUM(total), 0) as total_amount,
+                COALESCE(AVG(total), 0) as average_sale
+            FROM sales 
+            WHERE DATE(created_at) = ?
+        `;
         
         return new Promise((resolve, reject) => {
-            const targetDate = date || this.getBoliviaDate();
-            
-            console.log(`📊 Calculando totales para fecha consistente: ${targetDate}`);
-            
-            const sql = `
-                SELECT 
-                    COUNT(*) as total_sales,
-                    COALESCE(SUM(total), 0) as total_amount,
-                    COALESCE(AVG(total), 0) as average_sale
-                FROM sales 
-                WHERE DATE(created_at) = ?
-            `;
-            
-            database.getDB().get(sql, [targetDate], (err, row) => {
-                if (err) {
-                    console.error('❌ Error calculando totales:', err);
-                    reject(err);
-                } else {
-                    console.log(`💰 Totales del día ${targetDate}:`, row);
-                    resolve(row || { total_sales: 0, total_amount: 0, average_sale: 0 });
-                }
-            });
+            // Asegurarnos de que la base de datos esté cargada
+            if (!database) {
+                console.log('⏳ Esperando a que la base de datos esté lista...');
+                setTimeout(async () => {
+                    try {
+                        database.getDB().get(sql, [targetDate], (err, row) => {
+                            if (err) {
+                                console.error('❌ Error calculando totales:', err);
+                                reject(err);
+                            } else {
+                                console.log(`💰 Totales del día ${targetDate}:`, row);
+                                resolve(row || { total_sales: 0, total_amount: 0, average_sale: 0 });
+                            }
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                }, 100);
+            } else {
+                database.getDB().get(sql, [targetDate], (err, row) => {
+                    if (err) {
+                        console.error('❌ Error calculando totales:', err);
+                        reject(err);
+                    } else {
+                        console.log(`💰 Totales del día ${targetDate}:`, row);
+                        resolve(row || { total_sales: 0, total_amount: 0, average_sale: 0 });
+                    }
+                });
+            }
         });
     }
 
-    // ===== VENTAS DE HOY CON FECHA CONSISTENTE =====
+    // ===== VENTAS DE HOY CON FECHA LOCAL =====
     static async getTodaySales(date = null) {
-        await database.ensureConnected();
+        const targetDate = date || DateUtils.getLocalDate();
+        
+        const sql = `
+            SELECT 
+                s.*,
+                u.username as user_name,
+                u.full_name as user_full_name
+            FROM sales s
+            LEFT JOIN users u ON s.user_id = u.id
+            WHERE DATE(s.created_at) = ?
+            ORDER BY s.created_at DESC
+            LIMIT 50
+        `;
         
         return new Promise((resolve, reject) => {
-            const targetDate = date || this.getBoliviaDate();
-            
-            const sql = `
-                SELECT 
-                    s.*,
-                    u.username as user_name,
-                    u.full_name as user_full_name
-                FROM sales s
-                LEFT JOIN users u ON s.user_id = u.id
-                WHERE DATE(s.created_at) = ?
-                ORDER BY s.created_at DESC
-                LIMIT 50
-            `;
-            
-            database.getDB().all(sql, [targetDate], (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows || []);
-            });
+            if (!database) {
+                console.log('⏳ Esperando a que la base de datos esté lista...');
+                setTimeout(() => {
+                    database.getDB().all(sql, [targetDate], (err, rows) => {
+                        if (err) reject(err);
+                        else resolve(rows || []);
+                    });
+                }, 100);
+            } else {
+                database.getDB().all(sql, [targetDate], (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows || []);
+                });
+            }
         });
     }
 

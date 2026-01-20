@@ -33,10 +33,43 @@
                     <p>Análisis completo de ventas y rendimiento del negocio</p>
                 </div>
 
-                <div class="time-filters">
-                    <button class="time-filter active" data-period="today" onclick="changePeriod('today')">Hoy</button>
-                    <button class="time-filter" data-period="week" onclick="changePeriod('week')">Esta Semana</button>
-                    <button class="time-filter" data-period="month" onclick="changePeriod('month')">Este Mes</button>
+                <!-- Filtros Mejorados -->
+                <div class="filters-section">
+                    <div class="filter-group date-filters">
+                        <h3>📅 Filtrar por Fecha</h3>
+                        <div class="filter-options">
+                            <div class="date-range">
+                                <input type="date" id="startDate" class="date-input">
+                                <span>hasta</span>
+                                <input type="date" id="endDate" class="date-input">
+                            </div>
+                            <div class="quick-dates">
+                                <button onclick="setDateRange('today')" class="filter-btn active">Hoy</button>
+                                <button onclick="setDateRange('week')" class="filter-btn">Esta Semana</button>
+                                <button onclick="setDateRange('month')" class="filter-btn">Este Mes</button>
+                                <button onclick="setDateRange('custom')" class="filter-btn">Personalizado</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h3>🏷️ Filtrar por Producto</h3>
+                        <div class="filter-options">
+                            <select id="productFilter" class="select-filter">
+                                <option value="">Todos los productos</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h3>💰 Tipo de Pago</h3>
+                        <div class="filter-options payment-filters">
+                            <button onclick="filterByPayment('all')" class="filter-btn active">Todos</button>
+                            <button onclick="filterByPayment('cash')" class="filter-btn">Efectivo</button>
+                            <button onclick="filterByPayment('qr')" class="filter-btn">QR</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="stats-grid" id="statsGrid">
@@ -53,10 +86,11 @@
                         <h3 class="chart-title">
                             📈 Ventas del Día por Hora
                         </h3>
-                        <div class="chart-placeholder">
-                            <div class="chart-placeholder-icon">📊</div>
-                            <div>Gráfico de ventas por hora</div>
-                            <div style="font-size: 0.9rem; margin-top: 0.5rem;">(Próximamente con Chart.js)</div>
+                        <div class="chart-placeholder" style="min-height: 300px; padding: 1rem;">
+                            <div class="loading" style="text-align: center;">
+                                <div class="loading-spinner"></div>
+                                Cargando datos de ventas por hora...
+                            </div>
                         </div>
                     </div>
 
@@ -73,15 +107,58 @@
                     </div>
                 </div>
 
-                <div class="recent-sales">
+                <div class="recent-sales-section" style="margin-top: 2rem;">
                     <h3 class="chart-title">
                         🧾 Ventas Recientes
                     </h3>
-                    <div class="sales-list" id="recentSalesList">
-                        <div class="loading">
+                    <div id="recentSalesList" style="max-height: 400px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+                        <div class="loading" style="text-align: center; padding: 2rem;">
                             <div class="loading-spinner"></div>
-                            Cargando ventas...
+                            Cargando ventas recientes...
                         </div>
+                    </div>
+                </div>
+
+                <div class="sales-section" style="margin-top: 2rem;">
+                    <div class="sales-header">
+                        <h3 class="chart-title">🧾 Reporte de Ventas</h3>
+                        <button onclick="exportToExcel()" class="export-btn">
+                            📊 Exportar a Excel
+                        </button>
+                    </div>
+                    
+                    <div class="daily-summary" id="dailySummary">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+
+                    <div class="sales-table-container">
+                        <table id="salesTable" class="sales-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Mesa</th>
+                                    <th>Total</th>
+                                    <th>Tipo de Pago</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="loading">
+                                            <div class="loading-spinner"></div>
+                                            Cargando ventas...
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="pagination" class="pagination">
+                        <!-- Se llenará dinámicamente -->
                     </div>
                 </div>
             </div>

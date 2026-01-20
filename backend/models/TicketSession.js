@@ -1,17 +1,18 @@
-// server/models/TicketSession.js - VERSIÓN COMPLETA CON FECHA LOCAL GLOBAL
+// server/models/TicketSession.js - VERSIÓN COMPLETA CON FECHA LOCAL
 
 const database = require('../config/database');
+const DateUtils = require('../utils/dateUtils');
 
 class TicketSession {
     // FUNCIÓN GLOBAL PARA FECHA LOCAL - USAR EN TODO EL ARCHIVO
     static getLocalDate(date = null) {
         if (date) return date;
-        return new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD en zona local
+        return DateUtils.getLocalDate();
     }
 
     // Obtener o crear sesión activa para un usuario en una fecha
     static async getOrCreateActiveSession(userId, date = null) {
-        await database.ensureConnected();
+        // await database.ensureConnected(); // Eliminado: causa error y no es necesario aquí
         
         return new Promise((resolve, reject) => {
             const targetDate = this.getLocalDate(date); // ✅ USAR FUNCIÓN GLOBAL
@@ -97,7 +98,7 @@ class TicketSession {
     
     // Obtener próximo número de ticket para un usuario
     static async getNextTicketNumber(userId, date = null) {
-        await database.ensureConnected();
+        // await database.ensureConnected(); // Eliminado: causa error y no es necesario aquí
         
         return new Promise(async (resolve, reject) => {
             try {
@@ -115,7 +116,7 @@ class TicketSession {
     
     // Incrementar contador de ticket en sesión activa
     static async incrementTicketCounter(userId, saleAmount, date = null) {
-        await database.ensureConnected();
+        // await database.ensureConnected(); // Eliminado: causa error y no es necesario aquí
         
         return new Promise(async (resolve, reject) => {
             try {
@@ -174,7 +175,7 @@ class TicketSession {
     
     // Cerrar sesión activa de un usuario
     static async closeUserSession(userId, date = null) {
-        await database.ensureConnected();
+        // await database.ensureConnected(); // Eliminado: causa error y no es necesario aquí
         
         return new Promise((resolve, reject) => {
             const targetDate = this.getLocalDate(date); // ✅ USAR FUNCIÓN GLOBAL
@@ -202,7 +203,7 @@ class TicketSession {
     
     // Obtener resumen de todas las sesiones de un día
     static async getDailySummary(date = null) {
-        await database.ensureConnected();
+        // await database.ensureConnected(); // Eliminado: causa error y no es necesario aquí
         
         return new Promise((resolve, reject) => {
             const targetDate = this.getLocalDate(date); // ✅ USAR FUNCIÓN GLOBAL
@@ -243,7 +244,7 @@ class TicketSession {
     
     // Obtener estadísticas de sesión de un usuario específico
     static async getUserSessionStats(userId, date = null) {
-        await database.ensureConnected();
+        // await database.ensureConnected(); // Eliminado: causa error y no es necesario aquí
         
         return new Promise((resolve, reject) => {
             const targetDate = this.getLocalDate(date); // ✅ USAR FUNCIÓN GLOBAL
@@ -288,7 +289,7 @@ class TicketSession {
     
     // Resetear numeración para nuevo día (ejecutar automáticamente)
     static async startNewDay(date = null) {
-        await database.ensureConnected();
+        // await database.ensureConnected(); // Eliminado: causa error y no es necesario aquí
         
         return new Promise((resolve, reject) => {
             const targetDate = this.getLocalDate(date); // ✅ USAR FUNCIÓN GLOBAL

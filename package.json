@@ -4,7 +4,6 @@
   "description": "Sistema POS de Escritorio",
   "author": "Tu Empresa",
   "main": "src/main.js",
-  "homepage": "./",
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
@@ -15,6 +14,7 @@
     "pack": "electron-builder --dir",
     "test-server": "cd backend && node server.js",
     "create-users": "node create-users.js",
+    "create-products": "node create-products.js",
     "start-dev": "electron . --dev",
     "build-win": "electron-builder --win",
     "build-all": "electron-builder --win --linux --mac"

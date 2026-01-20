@@ -1,357 +1,298 @@
-     // Variables globales
-        let currentUser = null;
-        let authToken = localStorage.getItem('pos_token');
-        const API_BASE = '/api';
-        let isAuthenticated = false;
-        let authCheckInProgress = false;
-        let supplyDemandChart = null;
-        let distributionChart = null;
+﻿// dashboard.js - Sistema POS Moderno
+import { setupEventListeners, startPeriodicChecks, loadDashboardData } from './dashboard-utils.js';
+import { CONFIG, AppState } from './dashboard-config.js';
 
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎨 Iniciando Dashboard Moderno...');
-            
-            // Esperar a que sidebar.js se inicialice
-            setTimeout(initializeDashboard, 100);
-        });
+// Inicialización
+document.addEventListener("DOMContentLoaded", async () => {
+    console.log("🚀 Iniciando Dashboard...");
+    
+    try {
+        // Cargar token y usuario
+        AppState.auth.token = localStorage.getItem("pos_token");
+        const userStr = localStorage.getItem("pos_user");
+        AppState.auth.user = userStr ? JSON.parse(userStr) : null;
 
-        async function initializeDashboard() {
-            try {
-                if (!authToken) {
-                    redirectToLogin();
-                    return;
-                }
-
-                if (authCheckInProgress) return;
-                authCheckInProgress = true;
-
-                await initializeDashboardContent();
-             
-                
-            } catch (error) {
-                console.error('⚠ Error en inicialización:', error);
-                cleanupAndRedirect();
-            } finally {
-                authCheckInProgress = false;
-            }
-        }
-
-
-        async function initializeDashboardContent() {
-
-            await loadDashboardData();
-            initializeCharts();
-            startPeriodicCheck();
-            startAutoRefresh();
-        }
-
-        async function loadDashboardData() {
-            try {
-                const [dashboardResponse, salesResponse] = await Promise.allSettled([
-                    fetch(`${API_BASE}/reports/dashboard`, {
-                        headers: { 'Authorization': `Bearer ${authToken}` }
-                    }),
-                    fetch(`${API_BASE}/sales/today`, {
-                        headers: { 'Authorization': `Bearer ${authToken}` }
-                    })
-                ]);
-
-                let dashboardData = null;
-                let salesData = null;
-
-                if (dashboardResponse.status === 'fulfilled' && dashboardResponse.value.ok) {
-                    const data = await dashboardResponse.value.json();
-                    dashboardData = data.dashboard;
-                }
-
-                if (salesResponse.status === 'fulfilled' && salesResponse.value.ok) {
-                    const data = await salesResponse.value.json();
-                    salesData = data.today_sales || [];
-                }
-
-                updateDashboardStats(dashboardData);
-                updateTransactionsTable(salesData);
-
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-                updateDashboardStats(null);
-                updateTransactionsTable([]);
-            }
-        }
-
-        function updateDashboardStats(dashboardData) {
-            if (dashboardData) {
-                const today = dashboardData.today || {};
-                const thisMonth = dashboardData.this_month || {};
-
-                // Actualizar ventas de hoy
-                const todayAmountEl = document.getElementById('todayAmount');
-                if (todayAmountEl && today.amount !== undefined) {
-                    todayAmountEl.innerHTML = `$${today.amount.toFixed(2)} <span style="font-size: 1rem; color: #6b7280;">BOB</span>`;
-                }
-
-                // Actualizar ventas del mes
-                const monthAmountEl = document.getElementById('monthAmount');
-                if (monthAmountEl && thisMonth.amount !== undefined) {
-                    monthAmountEl.textContent = `$${thisMonth.amount.toFixed(2)}`;
-                }
-
-                // Actualizar productos activos
-                const productsCountEl = document.getElementById('productsCount');
-                if (productsCountEl && dashboardData.total_products !== undefined) {
-                    productsCountEl.textContent = dashboardData.total_products;
-                }
-            }
-        }
-
-        function updateTransactionsTable(salesData) {
-            const tableBody = document.getElementById('transactionsTable');
-            
-            if (!salesData || salesData.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align:center;padding:2rem;color:#6b7280">
-                            No hay ventas registradas hoy
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tableBody.innerHTML = salesData.slice(0, 10).map(sale => {
-                const date = new Date(sale.created_at);
-                const dateStr = date.toLocaleDateString('es-ES');
-                
-                return `
-                    <tr>
-                        <td>${sale.customer_name || 'SIN NOMBRE'}</td>
-                        <td>${dateStr}</td>
-                        <td class="transaction-amount">$${sale.total.toFixed(2)}</td>
-                        <td>
-                            <span class="transaction-status ${sale.order_type === 'takeaway' ? 'status-completed' : 'status-pending'}">
-                                ${sale.order_type === 'takeaway' ? 'Para llevar' : 'Mesa'}
-                            </span>
-                        </td>
-                        <td>${sale.table_number || '-'}</td>
-                        <td>#${sale.id}</td>
-                        <td>
-                            <button style="background: none; border: none; color: #ff7043; cursor: pointer;" 
-                                    onclick="viewSaleDetails(${sale.id})" title="Ver detalles">
-                                👁️
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function viewSaleDetails(saleId) {
-            alert(`Ver detalles de la venta #${saleId}\n(Función próximamente)`);
-        }
-
-        function initializeCharts() {
-            // Chart 1: Ventas mensuales
-            const ctx1 = document.getElementById('supplyDemandChart');
-            if (ctx1) {
-                supplyDemandChart = new Chart(ctx1.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-                        datasets: [{
-                            label: 'Ventas ($)',
-                            data: [1250, 1890, 2340, 1980, 2100, 2450, 2180, 2890, 2340, 2100, 2650, 2890],
-                            backgroundColor: '#ff8a65',
-                            borderRadius: 8,
-                            borderSkipped: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { 
-                            legend: { display: false } 
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: { 
-                                    color: '#f3f4f6', 
-                                    borderDash: [2, 2] 
-                                },
-                                ticks: {
-                                    color: '#6b7280',
-                                    font: { size: 12 },
-                                    callback: function(value) { 
-                                        return '$' + value; 
-                                    }
-                                }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: { 
-                                    color: '#6b7280', 
-                                    font: { size: 12 } 
-                                }
-                            }
-                        },
-                        elements: { 
-                            bar: { borderWidth: 0 } 
-                        }
-                    }
-                });
-            }
-
-            // Chart 2: Productos por categoría
-            const ctx2 = document.getElementById('distributionChart');
-            if (ctx2) {
-                distributionChart = new Chart(ctx2.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Comidas', 'Bebidas', 'Postres'],
-                        datasets: [{
-                            data: [45, 35, 20],
-                            backgroundColor: ['#ff8a65', '#64b5f6', '#81c784'],
-                            borderWidth: 0,
-                            cutout: '70%'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    padding: 20,
-                                    usePointStyle: true,
-                                    font: { size: 12 },
-                                    color: '#6b7280'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        function startPeriodicCheck() {
-            setInterval(async () => {
-                if (!isAuthenticated || authCheckInProgress) return;
-                
-                try {
-                    const isValid = await verifyToken();
-                    if (!isValid) {
-                        cleanupAndRedirect();
-                    }
-                } catch (error) {
-                    console.error('Error en verificación periódica:', error);
-                }
-            }, 10 * 60 * 1000); // Cada 10 minutos
-        }
-
-        function startAutoRefresh() {
-            // Auto-refresh de datos cada 2 minutos
-            setInterval(() => {
-                if (isAuthenticated && !authCheckInProgress) {
-                    const currentPage = document.getElementById('currentPage').textContent;
-                    if (currentPage === 'Dashboard') {
-                        loadDashboardData().catch(console.error);
-                    }
-                }
-            }, 120000); // 2 minutos
-        }
-
-        function cleanupAndRedirect() {
-            localStorage.removeItem('pos_token');
-            localStorage.removeItem('pos_user');
-            currentUser = null;
-            authToken = null;
-            isAuthenticated = false;
+        if (!AppState.auth.token || !AppState.auth.user) {
+            console.log("No hay token o usuario, redirigiendo a login");
             redirectToLogin();
+            return;
         }
 
-        function redirectToLogin() {
-            window.location.href = '/login';
+        await initializeApp();
+    } catch (error) {
+        console.error("Error de inicialización:", error);
+        handleAuthError(error);
+    }
+});
+
+async function initializeApp() {
+    if (AppState.auth.checkInProgress) return;
+
+    try {
+        AppState.auth.checkInProgress = true;
+        console.log("🚀 Iniciando verificación de sesión...");
+        
+        // Verificar token local
+        if (!AppState.auth.token || !AppState.auth.user) {
+            console.log("No hay datos de sesión locales");
+            throw new Error("Sin datos de sesión");
         }
 
-        // Funciones de compatibilidad con sidebar.js
-        function logout() {
-            if (confirm('¿Está seguro que desea cerrar sesión?')) {
-                cleanupAndRedirect();
+        // Intentar verificar autenticación con reintentos
+        let isValid = false;
+        let retryCount = 0;
+        const maxInitRetries = 3;
+
+        while (!isValid && retryCount < maxInitRetries) {
+            try {
+                isValid = await verifyToken();
+                if (isValid) break;
+            } catch (e) {
+                console.log(`Intento ${retryCount + 1} fallido:`, e);
+            }
+            retryCount++;
+            if (retryCount < maxInitRetries) {
+                const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+                await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
 
-        // Alias para compatibilidad
-        window.appLogout = logout;
-
-        // Navegación (para compatibilidad con el código original)
-        function navigateTo(section, title, icon) {
-            if (!isAuthenticated) {
-                cleanupAndRedirect();
-                return;
-            }
-
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            const routes = {
-                'dashboard': '/dashboard',
-                'pos': '/pos',
-                'products': '/products',
-                'categories': '/categories',
-                'reports': '/reports',
-                'create-user': '/create-user',
-                'my-sales': '/dashboard'
-            };
-            
-            if (routes[section] && routes[section] !== '/dashboard') {
-                window.location.href = routes[section];
-            }
+        if (!isValid) {
+            throw new Error("No se pudo verificar el token después de varios intentos");
         }
 
-        // Resize de charts cuando cambia el sidebar
-      // Función mejorada para resize de charts
-function resizeChartsOnSidebarToggle() {
-    // Esperar a que termine la animación del sidebar (300ms)
-    setTimeout(() => {
-        try {
-            // Forzar recálculo del layout
-            const chartsContainer = document.querySelector('.widgets-grid');
-            if (chartsContainer) {
-                chartsContainer.style.display = 'none';
-                chartsContainer.offsetHeight; // Trigger reflow
-                chartsContainer.style.display = 'grid';
-            }
-            
-            // Resize de los charts con nuevas dimensiones
-            if (supplyDemandChart) {
-                supplyDemandChart.resize();
-                supplyDemandChart.update('none'); // Update sin animación
-            }
-            
-            if (distributionChart) {
-                distributionChart.resize();
-                distributionChart.update('none');
-            }
-            
-            console.log('Charts redimensionados correctamente');
-            
-        } catch (error) {
-            console.warn('Error redimensionando charts:', error);
-        }
-    }, 350); // 50ms extra después de la animación
+        console.log("✅ Sesión verificada correctamente");
+        AppState.auth.isAuthenticated = true;
+        AppState.auth.retryCount = 0; // Resetear contador de intentos
+
+        // Inicializar componentes
+        console.log("🔄 Inicializando componentes...");
+        setupEventListeners();
+        await loadDashboardData();
+        initializeCharts();
+        startPeriodicChecks();
+        
+        console.log("✅ Dashboard inicializado correctamente");
+    } catch (error) {
+        console.error("⚠ Error en inicialización:", error);
+        handleAuthError(error);
+    } finally {
+        AppState.auth.checkInProgress = false;
+    }
 }
 
-        // Escuchar eventos de resize
-        window.addEventListener('resize', function() {
-            resizeChartsOnSidebarToggle();
-        });
+async function verifyToken() {
+    try {
+        // Intentar ambas rutas de verificación
+        const endpoints = [
+            `${CONFIG.API_BASE}/auth/verify-token`,
+            `${CONFIG.API_BASE}/auth/verify`
+        ];
 
-        // Escuchar clicks en el toggle del sidebar
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.sidebar-toggle') || e.target.closest('.mobile-menu-btn')) {
-                resizeChartsOnSidebarToggle();
+        let response = null;
+        let success = false;
+
+        for (const endpoint of endpoints) {
+            try {
+                response = await fetch(endpoint, {
+                    method: 'POST', // Cambiar a POST ya que enviamos datos
+                    headers: { 
+                        "Authorization": `Bearer ${AppState.auth.token}`,
+                        "Cache-Control": "no-cache",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ token: AppState.auth.token })
+                });
+
+                if (response.ok) {
+                    success = true;
+                    break;
+                }
+            } catch (e) {
+                console.log(`Intento fallido con ${endpoint}:`, e);
+                continue;
+            }
+        }
+
+        if (!success) {
+            if (response && response.status === 401) {
+                return false;
+            }
+            throw new Error("Error verificando token en todos los endpoints");
+        }
+
+        // Verificar si hay un nuevo token en los headers
+        const newToken = response.headers.get('X-New-Token');
+        if (newToken) {
+            console.log("🔄 Renovando token...");
+            AppState.auth.token = newToken;
+            localStorage.setItem("pos_token", newToken);
+        }
+
+        const data = await response.json();
+
+        // Actualizar información del usuario si está disponible
+        if (data.user) {
+            AppState.auth.user = data.user;
+            localStorage.setItem("pos_user", JSON.stringify(data.user));
+        }
+
+        return data.success;
+    } catch (error) {
+        console.error("Error en verificación de token:", error);
+        
+        // Si es error de red, implementar backoff exponencial
+        if (error.name === "TypeError" && AppState.auth.retryCount < AppState.auth.maxRetries) {
+            AppState.auth.retryCount++;
+            const backoffTime = Math.min(1000 * Math.pow(2, AppState.auth.retryCount), 30000);
+            console.log(`⏳ Reintentando en ${backoffTime/1000} segundos...`);
+            await new Promise(resolve => setTimeout(resolve, backoffTime));
+            return verifyToken(); // Reintentar recursivamente
+        }
+        
+        // Si excedimos los reintentos, verificar si aún tenemos datos locales válidos
+        if (AppState.auth.token && AppState.auth.user) {
+            console.log("🔄 Usando datos locales mientras se restaura la conexión...");
+            return true;
+        }
+        
+        return false;
+    }
+}
+
+function handleAuthError(error) {
+    console.error("Error de autenticación:", error);
+
+    // Verificar si tenemos datos locales válidos
+    const hasLocalData = AppState.auth.token && AppState.auth.user;
+
+    // Si es error de red y no hemos excedido los reintentos, implementar backoff exponencial
+    if ((error.name === "TypeError" || error.message.includes("conexión")) && AppState.auth.retryCount < AppState.auth.maxRetries) {
+        AppState.auth.retryCount++;
+        const backoffTime = Math.min(1000 * Math.pow(2, AppState.auth.retryCount), 30000);
+        
+        if (hasLocalData) {
+            showNotification(`Error de conexión. Operando en modo offline. Reintentando en ${backoffTime/1000} segundos...`, "warning");
+            
+            // Mantener la sesión activa en modo offline
+            setTimeout(() => {
+                if (AppState.auth.token && AppState.auth.user) {
+                    initializeApp();
+                }
+            }, backoffTime);
+        } else {
+            showNotification(`Error de conexión. Reintentando en ${backoffTime/1000} segundos...`, "warning");
+            setTimeout(() => initializeApp(), backoffTime);
+        }
+        return;
+    }
+
+    // Manejar diferentes tipos de errores
+    if (error.status === 401 || error.message.includes("Token inválido")) {
+        // Error de autenticación explícito
+        clearSession("Sesión expirada. Por favor, vuelva a iniciar sesión.");
+    } else if (AppState.auth.retryCount >= AppState.auth.maxRetries) {
+        // Se agotaron los reintentos
+        if (hasLocalData) {
+            showNotification("Problemas de conexión persistentes. Operando en modo offline.", "warning");
+            AppState.auth.retryCount = 0; // Resetear para futuros intentos
+            startPeriodicChecks(); // Mantener los chequeos periódicos
+        } else {
+            clearSession("Error de conexión persistente. Por favor, inicie sesión nuevamente.");
+        }
+    } else {
+        // Otros errores, mantener la sesión si hay datos locales
+        if (hasLocalData) {
+            showNotification("Error de conexión. Operando con datos locales.", "warning");
+            startPeriodicChecks();
+        } else {
+            clearSession("Error del sistema. Por favor, inicie sesión nuevamente.");
+        }
+    }
+}
+
+function clearSession(message) {
+    AppState.auth.isAuthenticated = false;
+    AppState.auth.token = null;
+    AppState.auth.user = null;
+    localStorage.removeItem("pos_token");
+    localStorage.removeItem("pos_user");
+    
+    showNotification(message, "error");
+    setTimeout(() => {
+        window.location.href = "/login";
+    }, 2000);
+}
+
+function showNotification(message, type = "info") {
+    const notification = document.getElementById("notification");
+    if (notification) {
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.style.display = "block";
+        setTimeout(() => {
+            notification.style.display = "none";
+        }, 3000);
+    }
+}
+
+// Función para inicializar gráficos
+function initializeCharts() {
+    // Gráfico de ventas mensuales
+    const chartCanvas = document.getElementById('supplyDemandChart');
+    if (chartCanvas && !AppState.charts.sales) {
+        AppState.charts.sales = new Chart(chartCanvas, {
+            type: 'bar',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                datasets: [{
+                    label: 'Ventas (Bs)',
+                    data: [100, 150, 120, 200, 180, 220, 210, 240, 200, 180, 160, 200],
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#1e40af',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
             }
         });
+    }
 
-        console.log('✨ Dashboard Moderno inicializado correctamente');
+    // Gráfico de distribución de categorías
+    const pieCanvas = document.getElementById('distributionChart');
+    if (pieCanvas && !AppState.charts.paymentMethods) {
+        AppState.charts.paymentMethods = new Chart(pieCanvas, {
+            type: 'pie',
+            data: {
+                labels: ['Platos', 'Bebidas', 'Refrescos', 'Extras'],
+                datasets: [{
+                    data: [30, 25, 20, 25],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#10b981',
+                        '#f59e0b',
+                        '#8b5cf6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    }
+}
+
+// ... [resto del código del dashboard permanece igual]
